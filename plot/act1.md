@@ -1,6 +1,6 @@
 # Possible commands:
  - DESCRIBE
- - GO TO [SOMWERE]
+ - GO [SOMWERE]
  - EXAMINE [SOMETHING]
  - TAKE [SOMETHING]
  - DROP [SOMETHING]
@@ -183,7 +183,7 @@ TAKE WATER:
 TAKE GEIGER:
 "If we’re dealing with something unnatural, this might be useful." takes Geiger counter
 
-TAKE FIRST AID KIT:
+TAKE FIRST AID KIT (change to MEDKIT):
 "Better to be safe than sorry." takes first aid kit
 
 TAKE RADIO:
