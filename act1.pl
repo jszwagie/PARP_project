@@ -1,28 +1,22 @@
-/* Antarctic Expedition, a text adventure game in Prolog */
-
-:- dynamic i_am_at/1, at/2, holding/1, talked/2, examined/1, task/1.
-:- retractall(at(_, _)), retractall(i_am_at(_)), retractall(holding(_)),
-   retractall(talked(_, _)), retractall(examined(_)), retractall(task(_)).
-
 /* Initial state */
-i_am_at(start).
+i_am_at(yard).
 
 /* Define locations */
-location(start).
+location(yard).
 location(barrack).
 location(runway).
 location(depot).
 location(tent).
 
 /* Define paths between locations */
-path(start, barrack).
-path(start, runway).
-path(start, depot).
-path(start, tent).
-path(barrack, start).
-path(runway, start).
-path(depot, start).
-path(tent, start).
+path(yard, barrack).
+path(yard, runway).
+path(yard, depot).
+path(yard, tent).
+path(barrack, yard).
+path(runway, yard).
+path(depot, yard).
+path(tent, yard).
 
 /* Define items at locations */
 at(clara, runway).
@@ -150,60 +144,60 @@ examine(lighter) :-
 
 examine(list) :-
     i_am_at(tent),
-    write('- FOOD Rations"'), nl,
-    write('- WATER'), nl, 
+    write('- FOOD Rations'), nl,
+    write('- WATER'), nl,
     write('- GEIGER Counter'), nl,
     write('- MEDKIT'), nl,
     write('- RADIO'), nl,
     write('- Climbing GEAR'), nl,
-    write('- Navigation TOOLS'), nl, 
+    write('- Navigation TOOLS'), nl,
     write('The plane has a capacity of only 5 items, I must choose intelligently.'),
     assert(examined(list)),
     !, nl.
 
-examine(food) :- 
+examine(food) :-
     i_am_at(tent),
     write('Canned goods and dried meals.'), nl,
     write('Enough to last two weeks, but not exactly gourmet'), nl,
     assert(examined(food)),
     !, nl.
 
-examine(water) :- 
+examine(water) :-
     i_am_at(tent),
     write('Canned goods and dried meals.'), nl,
     write('Enough to last two weeks, but not exactly gourmet'), nl,
     assert(examined(food)),
     !, nl.
 
-examine(geiger) :- 
+examine(geiger) :-
     i_am_at(tent),
     write('A standard radiation detector.'), nl,
     write('If we stumble upon something unnatural, this could be crucial.'), nl,
     assert(examined(food)),
     !, nl.
 
-examine(medkit) :- 
+examine(medkit) :-
     i_am_at(tent),
     write('Bandages, antiseptic, morphine...'), nl,
     write('Everything needed for basic field medical care.'), nl,
     assert(examined(food)),
     !, nl.
 
-examine(radio) :- 
+examine(radio) :-
     i_am_at(tent),
     write('A shortwave field radio.'), nl,
     write('Not the best range, but it should work if we''re within contact distance of the base.'), nl,
     assert(examined(food)),
     !, nl.
 
-examine(gear) :- 
+examine(gear) :-
     i_am_at(tent),
     write('Ropes, pitons, carabiners.'), nl,
     write('If we need to descend into something deep or climb out of trouble, this will help.'), nl,
     assert(examined(food)),
     !, nl.
 
-examine(tools) :- 
+examine(tools) :-
     i_am_at(tent),
     write('A compass, maps, and a sextant.'), nl,
     write('Old-school but reliable.'), nl,
@@ -283,7 +277,7 @@ talk(clara) :-
     write('Thank you!'), nl,
     write('*a moment of silence*'), nl,
     write('Clara: "So, tell me again why we''re risking our necks for this?'), nl,
-    write('A diary from some explorer doesn''t scream ‘top priority’ to me."'), nl,
+    write('A diary from some explorer doesn''t scream ''top priority'' to me."'), nl,
     write('Your choices:'), nl,
     write('1."Because it could be the discovery of the century."'), nl,
     write('2."Orders are orders. The government wants answers."'), nl,
@@ -298,7 +292,12 @@ talk(clara) :-
     findall(Y, (holding(Y), supply(Y)), SupplyList),
     length(SupplyList, Count),
     not(Count > 0),
-    write('You have to grab at least one item.'), nl,
+    write('You have to grab at least one item.'),
+    !, nl.
+
+talk(clara) :-
+    i_am_at(runway),
+    write('I better do my job first.'),
     !, nl.
 
 
@@ -324,6 +323,7 @@ process_clara_fuel_talk(3) :-
     write('You: "Why don''t you take care of it?"'), nl,
     write('Clara: (frowning) "Oh, you''re lazy, aren''t you? Fine, I''ll handle it after I finish checking the oil, but you''re not off the hook, doc. Go gather mandatory supplies and drop them near the plane."'),
     retractall(task(_)),
+    assert(talked(clara, fuel_request)),
     assert(task(supplies)),
     !, nl.
 
@@ -342,11 +342,11 @@ process_clara_supplies_talk(2) :-
 
 process_clara_explain(1) :-
     write('You: "Because it could be the discovery of the century."'), nl,
-    write('Clara: "Discovery of the century? I hope it''s not just a pile of ice and a frostbite bill."'),
+    write('Clara: "Discovery of the century? I hope it''s not just a pile of ice and a frostbite bill."'), nl,
     retractall(task(_)),
     write("Your choice:"), nl,
     write("1. Byrd wasn't a dreamer. Those coordinates mean something."), nl,
-    write("2. Even if it’s nothing, the science alone is worth it."), nl,
+    write("2. Even if it's nothing, the science alone is worth it."), nl,
     read(Choice),
     process_further_explain(Choice).
 
@@ -360,16 +360,16 @@ process_clara_explain(2) :-
 process_clara_explain(3) :-
     write('You: "I''ve got a feeling there''s something big waiting for us."'), nl,
     write('Clara: "Feelings don''t keep us warm, doc. What''s in that diary that''s got you hooked?"'),
-    write('You: "Hints of a hidden land—geological oddities, maybe more."'), nl,
+    write('You: "Hints of a hidden land-geological oddities, maybe more."'), nl,
     retractall(task(_)),
     act1_epilog.
 
-process_further_explain(1) :- 
+process_further_explain(1) :-
     write('You: "Byrd wasn''t a dreamer. Those coordinates mean something."'), nl,
     write('Clara: "Maybe. But I''d rather not die proving him right."'), nl,
     act1_epilog.
 
-process_further_explain(2) :- 
+process_further_explain(2) :-
     write('You: "Even if it''s nothing, the science alone is worth it."'), nl,
     write('Clara: "Maybe. But I''d rather not die proving him right."'), nl,
     act1_epilog.
@@ -400,7 +400,7 @@ hint :-
     !, nl.
 
 hint :-
-    talked(clara, fuel_request),
+    task(fuel),
     not(examined(tanks)),
     write('I should check the fuel tanks.'),
     !, nl.
@@ -436,7 +436,6 @@ hint :-
 /* Game initialization and instructions */
 instructions :-
     nl,
-    write('ACT 1: DEPARTURE FROM THE EDGE OF THE WORLD'), nl, nl,
     write('Enter commands using standard Prolog syntax.'), nl,
     write('Available commands are:'), nl,
     write('start.             -- to start the game.'), nl,
@@ -452,24 +451,25 @@ instructions :-
     nl.
 
 /* This rule prints out instructions and tells where you are. */
-start :-
+start_act1 :-
     instructions,
     intro.
 
-/* This rule tells how to finish the game. */
-finish :-
+act1_end :-
+    write('----------------------------ACT 1 OVER----------------------------'),
     nl,
-    write('The game is over. Please enter the "halt." command.'),
-    nl.
+    nl,
+    finished_act(1).
 
 intro :-
+    write('ACT 1: DEPARTURE FROM THE EDGE OF THE WORLD'), nl, nl,
     write('You awaken to a stark view from your window at an Antarctic base camp in New Swabia.'), nl,
     write('A desolate expanse of ice and snow stretches endlessly under a pale, gray sky.'), nl,
     write('You get up, dress in layers against the cold and step outside.'), nl,
     look.
 
 /* These rules describe the various locations. */
-describe(start) :-
+describe(yard) :-
     write('You''re on the BARRACK yard. Nearby, a sturdy twin-engine plane rests'), nl,
     write('on a makeshift RUNWAY, its metal hull glinting faintly in the weak sunlight.'), nl,
     write('To the side, there''s a fuel DEPOT and a supply TENT. The air is frigid,'), nl,
@@ -482,16 +482,16 @@ describe(barrack) :-
     write('Your bed is neatly made, and a PHOTO of your late wife sits on the dresser beside it.'), nl,
     write('Across the room, your working desk holds mission documents, a small lamp, and a LIGHTER.'), nl,
     write('A CALENDAR hangs above the desk.'), nl,
-    write('You can go to: START.').
+    write('You can go to: YARD.').
 
 describe(runway) :-
     findall(Y, (holding(Y), supply(Y)), SupplyList),
     length(SupplyList, Count),
     Count > 0,
     write('Clara has finished fueling and has something waiting for you.'), nl,
-    write('You pack the supplies into the plane. The reason for your journey—Admiral Byrd''s diary—lies open on a box in front of you,'), nl,
-    write('its cryptic coordinates circled in red ink: 70°S, 10°E.'), nl,
-    write('Clara hands you a cup of lukewarm coffee.'), 
+    write('You pack the supplies into the plane. The reason for your journey-Admiral Byrd''s diary-lies open on a box in front of you,'), nl,
+    write('its cryptic coordinates circled in red ink: 70S, 10E.'), nl,
+    write('Clara hands you a cup of lukewarm coffee.'),
     !, nl.
 
 
@@ -500,91 +500,89 @@ describe(runway) :-
     write('The sunlight, reflected off the steel plates, blinds you as you approach the aircraft - '), nl,
     write('a Douglas A-20 Havoc. It''s not the newest PLANE, but it''s reliable.'), nl,
     (at(clara, runway) -> write('CLARA is tinkering with one of the engines.'); true), nl,
-    write('You can go to: START.').
+    write('You can go to: YARD.').
 
 describe(runway) :-
     holding(canister),
     write('The sunlight, reflected off the steel plates, blinds you as you approach the Douglas A-20 Havoc - '), nl,
     write('a reliable, if not modern, PLANE.'), nl,
     write('Clara is still tinkering with one of the engines.'), nl,
-    write('You can go to: START.').
+    write('You can go to: YARD.').
 
 describe(depot) :-
     write('You step into the depot, a rough but functional structure shielding fuel CANISTERs from the Antarctic cold.'), nl,
-    write('You can go to: START.').
+    write('You can go to: YARD.').
 
 describe(tent) :-
     write('You enter the supply tent, a cramped space cluttered with gear.'), nl,
     write('Boxes and crates are labeled with essentials: food, water, scientific tools, and survival equipment.'), nl,
     write('A LIST of stock hangs on the wall.'), nl,
-    write('You can go to: START.').
+    write('You can go to: YARD.').
 
 comment_take(food) :-
     write('Essential for survival.'), nl,
-    write('I don''t plan on starving out there.'), nl,
+    write('I don''t plan on starving out there.'),
     !, nl.
 
 comment_take(water) :-
-    write('Dehydration is just as dangerous as the cold.'), nl,
+    write('Dehydration is just as dangerous as the cold.'),
     !, nl.
 
 comment_take(geiger) :-
-    write('If we''re dealing with something unnatural, this might be useful.'), nl,
+    write('If we''re dealing with something unnatural, this might be useful.'),
     !, nl.
 
 comment_take(medkit) :-
-    write('Better to be safe than sorry.'), nl,
+    write('Better to be safe than sorry.'),
     !, nl.
 
 comment_take(radio) :-
-    write('If we lose contact, this might be our only way to call for help.'), nl,
+    write('If we lose contact, this might be our only way to call for help.'),
     !, nl.
 
 comment_take(gear) :-
-    write('If we have to scale ice walls or descend into caves, we''ll need this.'), nl,
+    write('If we have to scale ice walls or descend into caves, we''ll need this.'),
     !, nl.
 
 comment_take(tools) :-
-    write('We can''t afford to get lost.'), nl,
+    write('We can''t afford to get lost.'),
     !, nl.
 
 comment_drop(food) :-
-    write('I hope we won''t regret this.'), nl,
+    write('I hope we won''t regret this.'),
     !, nl.
 
 comment_drop(water) :-
-    write('Maybe there''s another source where we''re heading.'), nl,
+    write('Maybe there''s another source where we''re heading.'),
     !, nl.
 
 comment_drop(geiger) :-
-    write('If there''s nothing radioactive, it''s just extra weight.'), nl,
+    write('If there''s nothing radioactive, it''s just extra weight.'),
     !, nl.
 
 comment_drop(medkit) :-
-    write('Risky move, but I might need something else more.'), nl,
+    write('Risky move, but I might need something else more.'),
     !, nl.
 
 comment_drop(radio) :-
-    write('We''ll just have to rely on good old-fashioned shouting.'), nl,
+    write('We''ll just have to rely on good old-fashioned shouting.'),
     !, nl.
 
 comment_drop(gear) :-
-    write('Hopefully, no steep cliffs on this trip.'), nl,
+    write('Hopefully, no steep cliffs on this trip.'),
     !, nl.
 
 comment_drop(tools) :-
-    write('If Clara can fly straight, maybe we won''t need these.'), nl,
+    write('If Clara can fly straight, maybe we won''t need these.'),
     !, nl.
 
 act1_epilog :-
     write('You: "What do you think we''ll find out there?"'), nl,
     write('Clara: "Best case? A rock formation worth naming. Worst case? A grave with our names on it. I don''t buy the unearthly land garbage."'), nl,
     write('You: "Neither do I, but the government does."'), nl,
-    write('Clara: "I think it''s time we have a good wheater"'), nl,
+    write('Clara: "I think it''s time we have a good weather"'), nl,
     write('Preparations complete, you and Clara climb into the plane''s hatch.'), nl,
     write('Clara starts the engines, ready to challenge the icy wilderness.'), nl,
     write('The plane roars to life, cutting through swirling snow as it lifts off.'), nl,
     write('Inside, you study the diary while Clara grips the yoke.'), nl,
-    write('The horizon swallows the base camp, leaving you with a mix of anticipation—and a hint of lurking danger.'), 
-    nl.
-
+    write('The horizon swallows the base camp, leaving you with a mix of anticipation-and a hint of lurking danger.'), nl.
