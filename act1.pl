@@ -121,6 +121,7 @@ examine(tanks) :-
     write('You crouch beside the aircraft and open the fuel hatch.'), nl,
     write('We''re running low. We need at least one more drum of fuel.'), nl,
     write('Clara: "Told you. Go grab one from the depot."'),
+    assert(examined(tanks)),
     assert(task(fuel)),
     !, nl.
 
@@ -225,33 +226,19 @@ look :-
 /* Hint system */
 hint :-
     i_am_at(barrack),
-    write('I should do something useful.'),
+    not(holding(lighter)),
+    write('I should gather something useful.'),
     !, nl.
 
 hint :-
-    i_am_at(runway),
-    \+ talked(clara, fuel_request),
-    \+ task(fuel),
-    write('I should talk to Clara.'),
-    !, nl.
-
-hint :-
-    i_am_at(runway),
     talked(clara, fuel_request),
-    \+ examined(tanks),
+    not(examined(tanks)),
     write('I should check the fuel tanks.'),
     !, nl.
 
 hint :-
-    i_am_at(depot),
     task(fuel),
     write('I should gather some fuel.'),
-    !, nl.
-
-hint :-
-    i_am_at(depot),
-    \+ task(fuel),
-    write('I should talk to Clara first.'),
     !, nl.
 
 hint :-
@@ -260,7 +247,6 @@ hint :-
     !, nl.
 
 hint :-
-    i_am_at(start),
     write('I think I should talk with Clara.'),
     !, nl.
 
@@ -276,7 +262,7 @@ instructions :-
     write('take(Object).      -- to pick up an object.'), nl,
     write('drop(Object).      -- to put down an object.'), nl,
     write('examine(Object).   -- to examine an object closely.'), nl,
-    write('talk(Person).   -- to talk to someone.'), nl,
+    write('talk(Person).      -- to talk to someone.'), nl,
     write('hint.              -- to get a hint if you''re stuck.'), nl,
     write('instructions.      -- to see this message again.'), nl,
     write('halt.              -- to end the game and quit.'), nl,
