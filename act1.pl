@@ -244,14 +244,14 @@ examine(_) :-
 
 /* Talk to people */
 talk(clara) :-
-    \+ i_am_at(runway),
+    not(i_am_at(runway)),
     write('I''m not going to shout; I should go to her.'),
     !, nl.
 
 talk(clara) :-
     i_am_at(runway),
-    \+ talked(clara, fuel_request),
-    \+ task(fuel),
+    not(talked(clara, fuel_request)),
+    not(task(fuel)),
     write('Clara: "Morning, doc. We need to get this bird fueled up. Could you check the TANKS for me?"'), nl,
     write('Your choices:'), nl,
     write('1. "Okay, I''ll handle it now."'), nl,
@@ -273,6 +273,34 @@ talk(clara) :-
     write('2. "Are you sure you can handle it by yourself?"'), nl,
     read(Choice),
     process_clara_supplies_talk(Choice).
+
+talk(clara) :-
+    i_am_at(runway),
+    task(supplies),
+    findall(Y, (holding(Y), supply(Y)), SupplyList),
+    length(SupplyList, Count),
+    Count > 0,
+    write('Thank you!'), nl,
+    write('*a moment of silence*'), nl,
+    write('Clara: "So, tell me again why we''re risking our necks for this?'), nl,
+    write('A diary from some explorer doesn''t scream ‘top priority’ to me."'), nl,
+    write('Your choices:'), nl,
+    write('1."Because it could be the discovery of the century."'), nl,
+    write('2."Orders are orders. The government wants answers."'), nl,
+    write('3."I''ve got a feeling there''s something big waiting for us."'), nl,
+    read(Choice),
+    process_clara_explain(Choice).
+
+
+talk(clara) :-
+    i_am_at(runway),
+    task(supplies),
+    findall(Y, (holding(Y), supply(Y)), SupplyList),
+    length(SupplyList, Count),
+    not(Count > 0),
+    write('You have to grab at least one item.'), nl,
+    !, nl.
+
 
 talk(_) :-
     write('There''s no one here to talk to.'),
@@ -312,6 +340,40 @@ process_clara_supplies_talk(2) :-
     assert(task(supplies)),
     !, nl.
 
+process_clara_explain(1) :-
+    write('You: "Because it could be the discovery of the century."'), nl,
+    write('Clara: "Discovery of the century? I hope it''s not just a pile of ice and a frostbite bill."'),
+    retractall(task(_)),
+    write("Your choice:"), nl,
+    write("1. Byrd wasn't a dreamer. Those coordinates mean something."), nl,
+    write("2. Even if it’s nothing, the science alone is worth it."), nl,
+    read(Choice),
+    process_further_explain(Choice).
+
+process_clara_explain(2) :-
+    write('You: "Orders are orders. The government wants answers."'), nl,
+    write('Clara: "Yeah, and Uncle Sam loves sending us into the freezer for kicks. What''s their angle?"'), nl,
+    write('You: "Cold War jitters, probably. They don''t want the Soviets sniffing around first."'), nl,
+    retractall(task(_)),
+    act1_epilog.
+
+process_clara_explain(3) :-
+    write('You: "I''ve got a feeling there''s something big waiting for us."'), nl,
+    write('Clara: "Feelings don''t keep us warm, doc. What''s in that diary that''s got you hooked?"'),
+    write('You: "Hints of a hidden land—geological oddities, maybe more."'), nl,
+    retractall(task(_)),
+    act1_epilog.
+
+process_further_explain(1) :- 
+    write('You: "Byrd wasn''t a dreamer. Those coordinates mean something."'), nl,
+    write('Clara: "Maybe. But I''d rather not die proving him right."'), nl,
+    act1_epilog.
+
+process_further_explain(2) :- 
+    write('You: "Even if it''s nothing, the science alone is worth it."'), nl,
+    write('Clara: "Maybe. But I''d rather not die proving him right."'), nl,
+    act1_epilog.
+
 /* Movement between locations */
 go(Place) :-
     i_am_at(Here),
@@ -346,6 +408,14 @@ hint :-
 hint :-
     task(fuel),
     write('I should gather some fuel.'),
+    !, nl.
+
+hint :-
+    task(supplies),
+    findall(Y, (holding(Y), supply(Y)), SupplyList),
+    length(SupplyList, Count),
+    Count > 0,
+    write('I should thank her for the coffee.'),
     !, nl.
 
 hint :-
@@ -413,6 +483,17 @@ describe(barrack) :-
     write('Across the room, your working desk holds mission documents, a small lamp, and a LIGHTER.'), nl,
     write('A CALENDAR hangs above the desk.'), nl,
     write('You can go to: START.').
+
+describe(runway) :-
+    findall(Y, (holding(Y), supply(Y)), SupplyList),
+    length(SupplyList, Count),
+    Count > 0,
+    write('Clara has finished fueling and has something waiting for you.'), nl,
+    write('You pack the supplies into the plane. The reason for your journey—Admiral Byrd''s diary—lies open on a box in front of you,'), nl,
+    write('its cryptic coordinates circled in red ink: 70°S, 10°E.'), nl,
+    write('Clara hands you a cup of lukewarm coffee.'), 
+    !, nl.
+
 
 describe(runway) :-
     not(holding(canister)),
@@ -494,4 +575,16 @@ comment_drop(gear) :-
 comment_drop(tools) :-
     write('If Clara can fly straight, maybe we won''t need these.'), nl,
     !, nl.
+
+act1_epilog :-
+    write('You: "What do you think we''ll find out there?"'), nl,
+    write('Clara: "Best case? A rock formation worth naming. Worst case? A grave with our names on it. I don''t buy the unearthly land garbage."'), nl,
+    write('You: "Neither do I, but the government does."'), nl,
+    write('Clara: "I think it''s time we have a good wheater"'), nl,
+    write('Preparations complete, you and Clara climb into the plane''s hatch.'), nl,
+    write('Clara starts the engines, ready to challenge the icy wilderness.'), nl,
+    write('The plane roars to life, cutting through swirling snow as it lifts off.'), nl,
+    write('Inside, you study the diary while Clara grips the yoke.'), nl,
+    write('The horizon swallows the base camp, leaving you with a mix of anticipation—and a hint of lurking danger.'), 
+    nl.
 
