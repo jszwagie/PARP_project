@@ -274,6 +274,7 @@ talk(clara) :-
     findall(Y, (holding(Y), supply(Y)), SupplyList),
     length(SupplyList, Count),
     Count > 0,
+    retractall(task(_)),
     write('Thank you!'), nl,
     write('*a moment of silence*'), nl,
     write('Clara: "So, tell me again why we''re risking our necks for this?'), nl,
@@ -285,7 +286,6 @@ talk(clara) :-
     read(Choice),
     process_clara_explain(Choice).
 
-
 talk(clara) :-
     i_am_at(runway),
     task(supplies),
@@ -294,12 +294,6 @@ talk(clara) :-
     not(Count > 0),
     write('You have to grab at least one item.'),
     !, nl.
-
-talk(clara) :-
-    i_am_at(runway),
-    write('I better do my job first.'),
-    !, nl.
-
 
 talk(_) :-
     write('There''s no one here to talk to.'),
@@ -456,10 +450,13 @@ start_act1 :-
     intro.
 
 act1_end :-
+    retractall(talked(_, _)),
+    retractall(task(_)),
+    nl,
     write('----------------------------ACT 1 OVER----------------------------'),
-    nl,
-    nl,
-    finished_act(1).
+    !, nl,
+    assert(finished_act(1)),
+    check_progress.
 
 intro :-
     write('ACT 1: DEPARTURE FROM THE EDGE OF THE WORLD'), nl, nl,
@@ -585,4 +582,5 @@ act1_epilog :-
     write('Clara starts the engines, ready to challenge the icy wilderness.'), nl,
     write('The plane roars to life, cutting through swirling snow as it lifts off.'), nl,
     write('Inside, you study the diary while Clara grips the yoke.'), nl,
-    write('The horizon swallows the base camp, leaving you with a mix of anticipation-and a hint of lurking danger.'), nl.
+    write('The horizon swallows the base camp, leaving you with a mix of anticipation-and a hint of lurking danger.'), nl,
+    !, act1_end.

@@ -12,5 +12,13 @@ act2 :-
     start_act2.
 
 start :-
-    start_act1,
-    (finished_act(1) -> act2 ; true).
+    retractall(finished_act(_)),
+    start_act1.
+
+check_progress :-
+    retract(finished_act(1)),
+    !,
+    act2.
+
+check_progress :-
+    true.
