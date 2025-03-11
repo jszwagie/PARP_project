@@ -276,7 +276,7 @@ instructions :-
     write('take(Object).      -- to pick up an object.'), nl,
     write('drop(Object).      -- to put down an object.'), nl,
     write('examine(Object).   -- to examine an object closely.'), nl,
-    write('talk(Person).   -- to talk to someone.'), nl,
+    write('talk(Person).      -- to talk to someone.'), nl,
     write('hint.              -- to get a hint if you''re stuck.'), nl,
     write('instructions.      -- to see this message again.'), nl,
     write('halt.              -- to end the game and quit.'), nl,
