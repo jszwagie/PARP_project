@@ -32,6 +32,22 @@ at(calendar, barrack).
 at(plane, runway).
 at(canister, depot).
 at(tanks, runway).
+at(food, tent).
+at(water, tent).
+at(geiger, tent).
+at(medkit, tent).
+at(radio, tent).
+at(gear, tent).
+at(tools, tent).
+
+/* Define items that could be a part of the supplies */
+supply(food).
+supply(water).
+supply(geiger).
+supply(medkit).
+supply(radio).
+supply(gear).
+supply(tools).
 
 /* Define items that can be picked up */
 can_take(lighter).
@@ -41,6 +57,26 @@ can_take(canister).
 take(X) :-
     holding(X),
     write('You''re already holding it!'),
+    !, nl.
+
+take(X) :-
+    supply(X),
+    i_am_at(Place),
+    at(X, Place),
+    findall(Y, (holding(Y), supply(Y)), SupplyList),
+    length(SupplyList, Count),
+    Count < 5,
+    retract(at(X, Place)),
+    assert(holding(X)),
+    comment_take(X),
+    !, nl.
+
+take(X) :-
+    supply(X),
+    findall(Y, (holding(Y), supply(Y)), SupplyList),
+    length(SupplyList, Count),
+    Count >= 5,
+    write('You cannot take this - you''ve reached the limit - 5 items only.'),
     !, nl.
 
 take(X) :-
@@ -79,6 +115,15 @@ drop(canister) :-
     !, nl.
 
 drop(X) :-
+    supply(X),
+    holding(X),
+    i_am_at(Place),
+    retract(holding(X)),
+    assert(at(X, Place)),
+    comment_drop(X),
+    !, nl.
+
+drop(X) :-
     holding(X),
     i_am_at(Place),
     retract(holding(X)),
@@ -101,6 +146,68 @@ examine(lighter) :-
     i_am_at(barrack),
     write('I really should quit smoking.'),
     assert(examined(lighter)),
+    !, nl.
+
+examine(list) :-
+    i_am_at(tent),
+    write('- FOOD Rations"'), nl,
+    write('- WATER'), nl, 
+    write('- GEIGER Counter'), nl,
+    write('- MEDKIT'), nl,
+    write('- RADIO'), nl,
+    write('- Climbing GEAR'), nl,
+    write('- Navigation TOOLS'), nl, 
+    write('The plane has a capacity of only 5 items, I must choose intelligently.'),
+    assert(examined(list)),
+    !, nl.
+
+examine(food) :- 
+    i_am_at(tent),
+    write('Canned goods and dried meals.'), nl,
+    write('Enough to last two weeks, but not exactly gourmet'), nl,
+    assert(examined(food)),
+    !, nl.
+
+examine(water) :- 
+    i_am_at(tent),
+    write('Canned goods and dried meals.'), nl,
+    write('Enough to last two weeks, but not exactly gourmet'), nl,
+    assert(examined(food)),
+    !, nl.
+
+examine(geiger) :- 
+    i_am_at(tent),
+    write('A standard radiation detector.'), nl,
+    write('If we stumble upon something unnatural, this could be crucial.'), nl,
+    assert(examined(food)),
+    !, nl.
+
+examine(medkit) :- 
+    i_am_at(tent),
+    write('Bandages, antiseptic, morphine...'), nl,
+    write('Everything needed for basic field medical care.'), nl,
+    assert(examined(food)),
+    !, nl.
+
+examine(radio) :- 
+    i_am_at(tent),
+    write('A shortwave field radio.'), nl,
+    write('Not the best range, but it should work if we''re within contact distance of the base.'), nl,
+    assert(examined(food)),
+    !, nl.
+
+examine(gear) :- 
+    i_am_at(tent),
+    write('Ropes, pitons, carabiners.'), nl,
+    write('If we need to descend into something deep or climb out of trouble, this will help.'), nl,
+    assert(examined(food)),
+    !, nl.
+
+examine(tools) :- 
+    i_am_at(tent),
+    write('A compass, maps, and a sextant.'), nl,
+    write('Old-school but reliable.'), nl,
+    assert(examined(food)),
     !, nl.
 
 examine(calendar) :-
@@ -247,6 +354,12 @@ hint :-
     !, nl.
 
 hint :-
+    task(supplies),
+    i_am_at(tent),
+    write('I should take only the most necessary items for the mission.'),
+    !, nl.
+
+hint :-
     write('I think I should talk with Clara.'),
     !, nl.
 
@@ -302,7 +415,7 @@ describe(barrack) :-
     write('You can go to: START.').
 
 describe(runway) :-
-    \+ holding(canister),
+    not(holding(canister)),
     write('The sunlight, reflected off the steel plates, blinds you as you approach the aircraft - '), nl,
     write('a Douglas A-20 Havoc. It''s not the newest PLANE, but it''s reliable.'), nl,
     (at(clara, runway) -> write('CLARA is tinkering with one of the engines.'); true), nl,
@@ -324,3 +437,61 @@ describe(tent) :-
     write('Boxes and crates are labeled with essentials: food, water, scientific tools, and survival equipment.'), nl,
     write('A LIST of stock hangs on the wall.'), nl,
     write('You can go to: START.').
+
+comment_take(food) :-
+    write('Essential for survival.'), nl,
+    write('I don''t plan on starving out there.'), nl,
+    !, nl.
+
+comment_take(water) :-
+    write('Dehydration is just as dangerous as the cold.'), nl,
+    !, nl.
+
+comment_take(geiger) :-
+    write('If we''re dealing with something unnatural, this might be useful.'), nl,
+    !, nl.
+
+comment_take(medkit) :-
+    write('Better to be safe than sorry.'), nl,
+    !, nl.
+
+comment_take(radio) :-
+    write('If we lose contact, this might be our only way to call for help.'), nl,
+    !, nl.
+
+comment_take(gear) :-
+    write('If we have to scale ice walls or descend into caves, we''ll need this.'), nl,
+    !, nl.
+
+comment_take(tools) :-
+    write('We can''t afford to get lost.'), nl,
+    !, nl.
+
+comment_drop(food) :-
+    write('I hope we won''t regret this.'), nl,
+    !, nl.
+
+comment_drop(water) :-
+    write('Maybe there''s another source where we''re heading.'), nl,
+    !, nl.
+
+comment_drop(geiger) :-
+    write('If there''s nothing radioactive, it''s just extra weight.'), nl,
+    !, nl.
+
+comment_drop(medkit) :-
+    write('Risky move, but I might need something else more.'), nl,
+    !, nl.
+
+comment_drop(radio) :-
+    write('We''ll just have to rely on good old-fashioned shouting.'), nl,
+    !, nl.
+
+comment_drop(gear) :-
+    write('Hopefully, no steep cliffs on this trip.'), nl,
+    !, nl.
+
+comment_drop(tools) :-
+    write('If Clara can fly straight, maybe we won''t need these.'), nl,
+    !, nl.
+
