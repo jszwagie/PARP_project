@@ -64,6 +64,7 @@ start :-
 
 act2 :-
     instructions,
+    act1:cleanup,
     retractall(current_act(_)),
     assert(current_act(2)),
     % Check if we're coming from Act 1 or starting directly
@@ -76,6 +77,7 @@ setup_default_act2 :-
     assert(holding(medkit)),
     assert(holding(food)),
     assert(holding(water)),
+    assert(holding(lighter)),
     write('You\'re starting directly at Act 2.'), nl,
     write('You can take 2 more items from these options:'), nl,
     write('1. GEIGER Counter'), nl,
