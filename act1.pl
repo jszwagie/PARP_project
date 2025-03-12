@@ -430,8 +430,13 @@ act_end :-
     nl,
     write('----------------------------ACT 1 OVER----------------------------'),
     !, nl,
+    cleanup,
     assert(user:finished_act(1)),
     user:check_progress.
+
+cleanup :-
+    retractall(at(_, _)),
+    retractall(i_am_at(_)).
 
 intro :-
     write('ACT 1: DEPARTURE FROM THE EDGE OF THE WORLD'), nl, nl,
