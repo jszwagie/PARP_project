@@ -1,7 +1,28 @@
-/* Initial state */
-i_am_at(yard).
+:- module(act1, []).
 
-/* Define locations */
+initialize_act :-
+    retractall(i_am_at(_)),
+    assert(i_am_at(yard)),
+
+    retractall(at(_, _)),
+    assert(at(clara, runway)),
+    assert(at(lighter, barrack)),
+    assert(at(photo, barrack)),
+    assert(at(calendar, barrack)),
+    assert(at(plane, runway)),
+    assert(at(canister, depot)),
+    assert(at(tanks, runway)),
+    assert(at(food, tent)),
+    assert(at(water, tent)),
+    assert(at(geiger, tent)),
+    assert(at(medkit, tent)),
+    assert(at(radio, tent)),
+    assert(at(gear, tent)),
+    assert(at(tools, tent)),
+
+    assert(can_take(lighter)),
+    assert(can_take(canister)).
+
 location(yard).
 location(barrack).
 location(runway).
@@ -18,41 +39,7 @@ path(runway, yard).
 path(depot, yard).
 path(tent, yard).
 
-/* Define items at locations */
-at(clara, runway).
-at(lighter, barrack).
-at(photo, barrack).
-at(calendar, barrack).
-at(plane, runway).
-at(canister, depot).
-at(tanks, runway).
-at(food, tent).
-at(water, tent).
-at(geiger, tent).
-at(medkit, tent).
-at(radio, tent).
-at(gear, tent).
-at(tools, tent).
-
-/* Define items that could be a part of the supplies */
-supply(food).
-supply(water).
-supply(geiger).
-supply(medkit).
-supply(radio).
-supply(gear).
-supply(tools).
-
-/* Define items that can be picked up */
-can_take(lighter).
-can_take(canister).
-
 /* These rules describe how to pick up an object. */
-take(X) :-
-    holding(X),
-    write('You''re already holding it!'),
-    !, nl.
-
 take(X) :-
     supply(X),
     i_am_at(Place),
@@ -73,6 +60,19 @@ take(X) :-
     write('You cannot take this - you''ve reached the limit - 5 items only.'),
     !, nl.
 
+take(photo) :-
+    write('Sorry, my love, but I can''t take you with me.'),
+    !, nl.
+
+take(calendar) :-
+    write('I doubt this will be useful.'),
+    !, nl.
+
+take(X) :-
+    holding(X),
+    write('You''re already holding it!'),
+    !, nl.
+
 take(X) :-
     i_am_at(Place),
     at(X, Place),
@@ -82,17 +82,9 @@ take(X) :-
     write('OK.'),
     !, nl.
 
-take(photo) :-
-    write('Sorry, my love, but I can''t take you with me.'),
-    !, nl.
-
-take(calendar) :-
-    write('I doubt this will be useful.'),
-    !, nl.
-
 take(_) :-
     write('I don''t see it here or can''t take that.'),
-    !, nl.
+    nl.
 
 /* These rules describe how to put down an object. */
 drop(lighter) :-
@@ -349,24 +341,24 @@ process_clara_explain(2) :-
     write('Clara: "Yeah, and Uncle Sam loves sending us into the freezer for kicks. What''s their angle?"'), nl,
     write('You: "Cold War jitters, probably. They don''t want the Soviets sniffing around first."'), nl,
     retractall(task(_)),
-    act1_epilog.
+    act_epilog.
 
 process_clara_explain(3) :-
     write('You: "I''ve got a feeling there''s something big waiting for us."'), nl,
     write('Clara: "Feelings don''t keep us warm, doc. What''s in that diary that''s got you hooked?"'),
     write('You: "Hints of a hidden land-geological oddities, maybe more."'), nl,
     retractall(task(_)),
-    act1_epilog.
+    act_epilog.
 
 process_further_explain(1) :-
     write('You: "Byrd wasn''t a dreamer. Those coordinates mean something."'), nl,
     write('Clara: "Maybe. But I''d rather not die proving him right."'), nl,
-    act1_epilog.
+    act_epilog.
 
 process_further_explain(2) :-
     write('You: "Even if it''s nothing, the science alone is worth it."'), nl,
     write('Clara: "Maybe. But I''d rather not die proving him right."'), nl,
-    act1_epilog.
+    act_epilog.
 
 /* Movement between locations */
 go(Place) :-
@@ -427,36 +419,19 @@ hint :-
     write('I think I should talk with Clara.'),
     !, nl.
 
-/* Game initialization and instructions */
-instructions :-
-    nl,
-    write('Enter commands using standard Prolog syntax.'), nl,
-    write('Available commands are:'), nl,
-    write('start.             -- to start the game.'), nl,
-    write('look.              -- to look around you again.'), nl,
-    write('go(Place).         -- to go to a place.'), nl,
-    write('take(Object).      -- to pick up an object.'), nl,
-    write('drop(Object).      -- to put down an object.'), nl,
-    write('examine(Object).   -- to examine an object closely.'), nl,
-    write('talk(Person).      -- to talk to someone.'), nl,
-    write('hint.              -- to get a hint if you''re stuck.'), nl,
-    write('instructions.      -- to see this message again.'), nl,
-    write('halt.              -- to end the game and quit.'), nl,
-    nl.
-
-/* This rule prints out instructions and tells where you are. */
-start_act1 :-
-    instructions,
+/* This rule starts Act 1 */
+start_act :-
+    initialize_act,
     intro.
 
-act1_end :-
+act_end :-
     retractall(talked(_, _)),
     retractall(task(_)),
     nl,
     write('----------------------------ACT 1 OVER----------------------------'),
     !, nl,
-    assert(finished_act(1)),
-    check_progress.
+    assert(user:finished_act(1)),
+    user:check_progress.
 
 intro :-
     write('ACT 1: DEPARTURE FROM THE EDGE OF THE WORLD'), nl, nl,
@@ -516,64 +491,7 @@ describe(tent) :-
     write('A LIST of stock hangs on the wall.'), nl,
     write('You can go to: YARD.').
 
-comment_take(food) :-
-    write('Essential for survival.'), nl,
-    write('I don''t plan on starving out there.'),
-    !, nl.
-
-comment_take(water) :-
-    write('Dehydration is just as dangerous as the cold.'),
-    !, nl.
-
-comment_take(geiger) :-
-    write('If we''re dealing with something unnatural, this might be useful.'),
-    !, nl.
-
-comment_take(medkit) :-
-    write('Better to be safe than sorry.'),
-    !, nl.
-
-comment_take(radio) :-
-    write('If we lose contact, this might be our only way to call for help.'),
-    !, nl.
-
-comment_take(gear) :-
-    write('If we have to scale ice walls or descend into caves, we''ll need this.'),
-    !, nl.
-
-comment_take(tools) :-
-    write('We can''t afford to get lost.'),
-    !, nl.
-
-comment_drop(food) :-
-    write('I hope we won''t regret this.'),
-    !, nl.
-
-comment_drop(water) :-
-    write('Maybe there''s another source where we''re heading.'),
-    !, nl.
-
-comment_drop(geiger) :-
-    write('If there''s nothing radioactive, it''s just extra weight.'),
-    !, nl.
-
-comment_drop(medkit) :-
-    write('Risky move, but I might need something else more.'),
-    !, nl.
-
-comment_drop(radio) :-
-    write('We''ll just have to rely on good old-fashioned shouting.'),
-    !, nl.
-
-comment_drop(gear) :-
-    write('Hopefully, no steep cliffs on this trip.'),
-    !, nl.
-
-comment_drop(tools) :-
-    write('If Clara can fly straight, maybe we won''t need these.'),
-    !, nl.
-
-act1_epilog :-
+act_epilog :-
     write('You: "What do you think we''ll find out there?"'), nl,
     write('Clara: "Best case? A rock formation worth naming. Worst case? A grave with our names on it. I don''t buy the unearthly land garbage."'), nl,
     write('You: "Neither do I, but the government does."'), nl,
@@ -583,4 +501,4 @@ act1_epilog :-
     write('The plane roars to life, cutting through swirling snow as it lifts off.'), nl,
     write('Inside, you study the diary while Clara grips the yoke.'), nl,
     write('The horizon swallows the base camp, leaving you with a mix of anticipation-and a hint of lurking danger.'), nl,
-    !, act1_end.
+    !, act_end.
