@@ -34,6 +34,7 @@ supply(medkit).
 supply(radio).
 supply(gear).
 supply(tools).
+supply(pistol).
 
 /* Main game instructions */
 instructions :-

@@ -57,6 +57,14 @@ take(X) :-
     supply(X),
     i_am_at(Place),
     accessible(X, Place),
+    findall(Y, (holding(Y), supply(Y)), SupplyList),
+    length(SupplyList, Count),
+    Count >= 5,
+    write('You cannot take this - you''ve reached supply limit - 5 items only.'),
+    !, nl.
+
+take(X) :-
+    supply(X),
     retract(at(X, _)),
     assert(holding(X)),
     comment_take(X),
