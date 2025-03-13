@@ -79,7 +79,7 @@ Creature:
 
 Choices:
 
-  TELL A: "Those Germans—the Nazis—are monsters. They’ve waged war and slaughtered millions."
+  TELL A: "Those Germans—the Nazis—are monsters. They’ve waged war and killed millions."
   Creature: "Malice such, perceived it not, we did. Blinded us, our hospitality has, to their stain."
 
   TELL B: "They’re exploiting you. They’ll strip this valley bare and leave nothing behind."
@@ -129,7 +129,7 @@ You: "What’s our move? They’re closing in fast."
 Clara: "We’re outgunned and outmanned. Fight, run, or surrender—you decide, but make it quick!"
 Choices:
 - TELL 1: "Let’s fight! I’ll hand you the PISTOL!" *(If you took the PISTOL earlier)*
-- TELL 2: "Run for the TUNNEL—we can try the RADIO again!" *(If you have the RADIO)*
+- TELL 2: "Run for the TUNNEL—we can try the RADIO again!" *(If you have the RADIO)* *(If you don't have it, you can still run, but it would be game over later)
 - TELL 3: "We surrender. Maybe we can talk our way out."
 - TELL 4: "Into the WOODS—lose them in the trees!"
 
@@ -148,7 +148,7 @@ HINT:
 "I should hand the PISTOL to Clara."
 
 USE PISTOL/DROP PISTOL:
-ou hand the PISTOL to Clara. She aims the old Mauser and squeezes the trigger—a sharp crack echoes through the valley, but the gun jams mid-shot, smoke curling from the barrel like a dying breath. The Nazis roar in fury, their rifles spitting fire in response. Bullets chip the rock, showering you with dust and shards. The leader bellows, his voice thick with venom:
+You hand the PISTOL to Clara. She aims the old Mauser and squeezes the trigger—a sharp crack echoes through the valley, but the gun jams mid-shot, smoke curling from the barrel like a dying breath. The Nazis roar in fury, their rifles spitting fire in response. Bullets chip the rock, showering you with dust and shards. The leader bellows, his voice thick with venom:
   Nazi Leader: "Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!"
 
 HINT:
@@ -159,10 +159,10 @@ You: "What did he say?"
 Clara: *breathing heavily* "Nothing good. I don’t know if we can get out of this alive."
 Clara: *shouting in fright* "Wir kapitulieren! Halt!"
 
-The soldiers cease fire, their eyes still burning with rage. They swarm closer, boots pounding the earth like war drums, and you’re wrestled to the ground, wrists bound tight with rough cord. Their treatment is brutal—fists and threats of execution rain down like hail, though they spare you for now, muttering darkly about your potential value.
-They bind your hands with coarse rope and march you toward the CITY, their motorcycles roaring triumphantly.
+The soldiers cease fire, their eyes still burning with rage. They swarm closer, boots pounding the earth like war drums, and you’re wrestled to the ground, wrists bound tight with rough cord. Their treatment is brutal — fists and threats of execution, though they spare you for now, muttering darkly about your potential value.
+They march you toward the CITY, their motorcycles roaring triumphantly.
 
-*END OF ACT 3*
+*END OF ACT 3 or TO BE CONTINUED?"*
 
 ### Choice 2: Run to the Tunnel
 
@@ -213,6 +213,7 @@ SET C TO [NUMBER]:
 Choose a number between 1 and 9.
 (To establish a clear signal, set A to 4, B to 7, and C to 2.)
 
+USE RADIO:
 Outcomes:
 If all numbers are wrong:
 The RADIO hisses with static, a grating buzz drowning out any signal.
@@ -239,14 +240,6 @@ After three incorrect attempts:
 HINT: "Think it through: 4 is even, 7 is prime, and 2 ties to the square root of 4. That matches all the clues."
 
 
-USE RADIO
-You fumble with the RADIO, static crackling as you twist the dials, searching for a lifeline. A faint voice breaks through—hope flickers like a dying ember.
-You: "I think I’ve got something."
-Clara (to the radio): "This is Mission 334, issuing an SOS. Do you copy? Over."
-Radio: "Mission 334, this is the 32nd Marine Corps. We have your coordinates. Stay put—extraction is en route. Over."
-Clara: "Understood. We’ll hold position. Over."
-
-
 After a tense wait, the roar of engines fills the air. A Marine transport plane descends through the snow, its lights cutting through the gloom. You and Clara board, the warmth of the cabin a stark contrast to the biting cold. As the plane lifts off, a Marine hands you a stack of nondisclosure agreements.
 Marine: "Sign these. What you saw down there stays buried. Understood?"
 You nod, the weight of the unknown pressing on your chest. The valley’s secrets remain hidden, and your journey ends in silence.
@@ -263,7 +256,7 @@ Nazi Leader: "Kluger Schachzug, Amerikaner. Unser Kommandant möchte Sie unbedin
 
 They bind your hands with coarse rope, the knots biting into your wrists, and march you toward the CITY, their motorcycles roaring triumphantly.
 
-*END OF ACT 3*
+*END OF ACT 3 or TO BE CONTINUED?"*
 
 #### Choice 4: Run to the Woods
 You: "Come on, to the WOODS—GO!"
@@ -275,7 +268,7 @@ Nazi Pilot (over loudspeaker): "Kein Entkommen, ihr Narren! Das Reich sieht alle
 
 Riflemen emerge from the trees, their grips iron as they drag you back to the group. They bind your hands with coarse rope and march you toward the CITY, their motorcycles roaring triumphantly.
 
-*END OF ACT 3*
+*END OF ACT 3 or TO BE CONTINUED?"*
 
 *(After choices 1, 3, or 4, Act 3 ends with capture and transport to the CITY.)*
 *(After choice 2, the FALSE ENDING triggers.)*
