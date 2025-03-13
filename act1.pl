@@ -425,8 +425,6 @@ start_act :-
     intro.
 
 act_end :-
-    retractall(talked(_, _)),
-    retractall(task(_)),
     nl,
     write('----------------------------ACT 1 OVER----------------------------'),
     !, nl,
@@ -435,6 +433,8 @@ act_end :-
     user:check_progress.
 
 cleanup :-
+    retractall(talked(_, _)),
+    retractall(task(_)),
     retractall(at(_, _)),
     retractall(i_am_at(_)).
 
