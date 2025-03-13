@@ -128,6 +128,8 @@ go(tree) :-
     assert(at(clara, tree)),
     write('You approach the towering TREE, its presence both majestic and unsettling.'), nl,
     write('Thick vines and sturdy branches form a natural ladder, inviting you to climb into its heights.'), nl,
+    !, nl.
+
 go(Place) :-
     i_am_at(Here),
     path(Here, Place),
