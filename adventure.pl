@@ -9,12 +9,12 @@
            task/1, current_act/1, can_take/1, used/1.
 
 next_act(1, 2).
-% next_act(2, 3).
+next_act(2, 3).
 % next_act(3, 4).
 
 call_act(1) :- act1:start_act.
 call_act(2) :- act2:start_act.
-% call_act(3) :- act3:start_act.
+call_act(3) :- act3:start_act.
 % call_act(4) :- act4:start_act.
 
 next :-
@@ -73,7 +73,7 @@ act2 :-
     (finished_act(1) -> true ; setup_default_act2),
     act2:start_act.
 
-/* Setup defaults for Act 2 if starting directly, mainly for denug purpose*/
+/* Setup defaults for Act 2 if starting directly, mainly for debug purpose*/
 setup_default_act2 :-
     retractall(holding(_)),
     assert(holding(medkit)),
