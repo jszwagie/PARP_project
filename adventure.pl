@@ -3,9 +3,9 @@
 
 /* Common predicates shared between acts */
 :- dynamic i_am_at/1, at/2, holding/1, talked/2, examined/1,
-           is_injured/1, radio_used/0, described/1, crashed/0,
-           entered_wreck/0, seen_aircraft/0, finished_act/1,
-           task/1, current_act/1, can_take/1.
+           is_injured/1, described/1, crashed/0,
+           entered/1, seen_aircraft/0, finished_act/1,
+           task/1, current_act/1, can_take/1, used/1.
 
 next_act(1, 2).
 % next_act(2, 3).
