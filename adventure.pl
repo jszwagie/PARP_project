@@ -1,5 +1,6 @@
 :- use_module(act1, []).
 :- use_module(act2, []).
+:- use_module(act3, []).
 
 /* Common predicates shared between acts */
 :- dynamic i_am_at/1, at/2, holding/1, talked/2, examined/1,
@@ -106,10 +107,13 @@ check_progress :-
 
 check_progress :-
     finished_act(2),
-    write('Act 3 coming soon...'),
-    !.
+    !,
+    write("Enter 'next.' to start next act.").
 
-check_progress.
+check_progress :-
+    finished_act(3),
+    !, 
+    write("Enter 'next.' to start next act.").
 
 comment_take(food) :-
     write('Essential for survival. I don''t plan on starving out there.'),
