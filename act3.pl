@@ -179,6 +179,30 @@ examine(tree) :-
     write('The tree stands ancient and imposing, its roots plunging into the earth like the veins of the valley itself.'),
     nl, !.
 
+process_clara_tunnel_talk(1) :-
+    write('You: "You''re right. We need to explore and figure this out."'), nl,
+    write('*You stay in the valley, your resolve hardening.*'), 
+    !, nl.
+
+process_clara_tunnel_talk(2) :-
+    write('You: No, it''s too risky. Let''s head back while we can.'), nl,
+    write('Clara: "And what? Freeze out there with no plan? We''re in too deep to turn tail now."'), 
+    !, nl,
+    process_clara_tunnel_talk_radio.
+
+process_clara_tunnel_talk_radio :-
+    holding(radio),
+    write('You: "But we could try contacting the base again with the radio."'), nl,
+    write('Clara: "Don''t be naive, doc. That radio''s a piece of junk—half-static on a good day—and even if we got through, what then?'), nl,
+    write('Help''s days away at best, assuming they don''t think we''re delusional. We''d be stuck out there, freezing to death, praying for a miracle.'), nl,
+    write('No, we push forward, find answers, and make our own way out of this mess."'), 
+    !, nl.
+
+process_clara_tunnel_talk_radio :-
+    write('Clara: "And what? Freeze out there with no plan? We''re in too deep to turn tail now.'), nl,
+    write('Without a radio or supplies, we wouldn''t last a day on the surface. Our only chance is to keep moving, find shelter or someone who knows what''s going on—anything''s better than retreating empty-handed."'), 
+    !, nl.
+
 go(tree) :-
     i_am_at(ledge),
     retract(i_am_at(ledge)),
@@ -215,29 +239,6 @@ go(city) :-
     write('You set off toward the CITY, its ominous skyline growing sharper with each step. Before you reach its perimeter, the growl of engines cuts through the stillness.'), nl,
     write('A division of Nazis on motorcycles bursts into view, their dust trails rising like storm clouds. Clara mutters under her breath, "Looks like we''ve got company—and they don''t seem friendly."'), 
     !, nl.
-
-process_clara_tunnel_talk(1):
-    write('You: "You''re right. We need to explore and figure this out."'), nl,
-    write('*You stay in the valley, your resolve hardening.*'), 
-    !, nl.
-
-process_clara_tunnel_talk(2):
-    write('You: No, it''s too risky. Let''s head back while we can.'), nl,
-    write('Clara: "And what? Freeze out there with no plan? We''re in too deep to turn tail now."'), 
-    !, nl,
-    process_clara_tunnel_talk_radio.
-
-process_clara_tunnel_talk_radio :-
-    holding(radio),
-    write('You: "But we could try contacting the base again with the radio."'), nl,
-    write('Clara: "Don''t be naive, doc. That radio''s a piece of junk—half-static on a good day—and even if we got through, what then?'), nl,
-    write('Help''s days away at best, assuming they don''t think we''re delusional. We''d be stuck out there, freezing to death, praying for a miracle.'), nl,
-    write('No, we push forward, find answers, and make our own way out of this mess."'), 
-    !, nl.
-
-process_clara_tunnel_talk_radio :-
-    write('Clara: "And what? Freeze out there with no plan? We''re in too deep to turn tail now.'), nl,
-    write('Without a radio or supplies, we wouldn''t last a day on the surface. Our only chance is to keep moving, find shelter or someone who knows what''s going on—anything''s better than retreating empty-handed."'), nl,
 
 go(Place) :-
     i_am_at(Here),
