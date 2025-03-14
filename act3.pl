@@ -503,7 +503,7 @@ go(city) :-
     i_am_at(tree),
     write('You set off toward the CITY, its ominous skyline growing sharper with each step. Before you reach its perimeter, the growl of engines cuts through the stillness.'), nl,
     write('A division of Nazis on motorcycles bursts into view, their dust trails rising like storm clouds. Clara mutters under her breath, "Looks like we''ve got company—and they don''t seem friendly."'), nl,
-    ambush_beginning.
+    nazi_ambush.
 
 go(Place) :-
     i_am_at(Here),
