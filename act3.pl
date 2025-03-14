@@ -213,7 +213,8 @@ go(tunnel) :-
 go(city) :-
     i_am_at(tree),
     write('You set off toward the CITY, its ominous skyline growing sharper with each step. Before you reach its perimeter, the growl of engines cuts through the stillness.'), nl,
-    write('A division of Nazis on motorcycles bursts into view, their dust trails rising like storm clouds. Clara mutters under her breath, "Looks like we''ve got company—and they don''t seem friendly."'), nl,
+    write('A division of Nazis on motorcycles bursts into view, their dust trails rising like storm clouds. Clara mutters under her breath, "Looks like we''ve got company—and they don''t seem friendly."'), 
+    !, nl.
 
 process_clara_tunnel_talk(1):
     write('You: "You''re right. We need to explore and figure this out."'), nl,
