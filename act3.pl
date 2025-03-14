@@ -1,6 +1,31 @@
 :- module(act3, []).
 
 :- dynamic(at/2).
+:- dynamic(attempts/2).
+:- dynamic(examined/1).
+
+attempts(radio, 0).
+
+wrong_count(A, B, C, Count) :-
+    (A =:= 4 -> WA = 0 ; WA = 1),
+    (B =:= 7 -> WB = 0 ; WB = 1),
+    (C =:= 2 -> WC = 0 ; WC = 1),
+    Count is WA + WB + WC.
+
+increments_attempts(radio) :-
+    attempts(radio, N),
+    N1 is N + 1,
+    retract(attempts(radio, N)),
+    assert(attempts(radio, N1)).
+
+radio_hint(radio) :-
+    attempts(radio, Count),
+    ( Count =:= 2 ->
+        write('HINT: "The plaque mentions ''A=Even, B=Prime, C=Square.'' And the note says ''Four''s might''—could A be 4?"'), nl
+    ; Count =:= 3 ->
+        write('HINT: "Think it through: 4 is even, 7 is prime, and 2 ties to the square root of 4. That matches all the clues."'), nl
+    ; true ).
+
 initialize_act :-
     retractall(i_am_at(_)),
     assert(i_am_at(ledge)),
@@ -73,8 +98,28 @@ describe(tree) :-
     write('Behind you, the TUNNEL exit gapes like a dark maw, leading back to the frozen surface—a lifeline or a trap, depending on your next move.'),
     !, nl.
 
+describe(tunnel) :-
+    i_am_at(tunnel),
+    task(tunnel),
+    write('The crash site lies in ruins, the plane''s twisted metal half-buried in snow.'), nl,
+    write('The wind howls mercilessly, and the sky above is a bleak, unforgiving gray.'), nl,
+    write('Your breath fogs in the frigid air as you clutch the RADIO, your last lifeline.'), 
+    !, nl.
+
 
 /* Hint system */
+hint :-
+    i_am_at(tunnel),
+    task(tunnel),
+    write('I should USE the RADIO, as I said.'), 
+    nl, !.
+
+hint :-
+    i_am_at(rock),
+    task(tunnel),
+    write('We should go to TUNNEL.'), 
+    nl, !.
+
 hint :-
     i_am_at(rock),
     task(after_fight),
@@ -90,6 +135,17 @@ hint :-
 hint :-
     task(ambush_beginning),
     write('Maybe Clara knows what to do in this situation.'),
+    !, nl.
+
+hint :-
+    task(radio), 
+    examined(note),
+    write('The note says ''Four''s might, Seven''s luck, Two''s the root.'' That could point to the settings for A, B, and C. The plaque might help confirm it.'),
+    !, nl.
+
+hint :-
+    task(radio),
+    write('I need to tune the dials to the right numbers to reach the Marines. The NOTE or the RADIO might hold the key.'),
     !, nl.
 
 hint :-
@@ -125,6 +181,25 @@ hint :-
     write('Is the TALK the answer?'),
     !, nl.
 
+examine(tree) :-
+    write('The tree stands ancient and imposing, its roots plunging into the earth like the veins of the valley itself.'),
+    nl, !.
+
+examine(radio) :-
+    task(radio),
+    holding(radio),
+    write('The RADIO is a rugged military device, scratched and dented but still working.'), nl,
+    write('Each dial can be set to a number between 1 and 9.'), nl,
+    write('The dials click stiffly as you turn them. A small plaque beneath them reads: "Standard Marine Corps Protocol: A=Even, B=Prime, C=Square."'),
+    !, nl.
+
+examine(note) :-
+    assert(examined(note)),
+    task(radio),
+    holding(radio),
+    write('The note is weathered, its ink blurred but readable: "Marine Corps Frequency: Alpha-Bravo-Charlie. Remember the code: Four''s might, Seven''s luck, Two''s the root."'),
+    !, nl.
+
 use(pistol) :-
     holding(pistol),
     task(fight),
@@ -137,6 +212,63 @@ use(pistol) :-
     write('Bullets chip the rock, showering you with dust and shards.'), nl,
     write('The leader bellows, his voice thick with venom:'), nl,
     write('Nazi Leader: "Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!"'), 
+    !, nl.
+
+use(radio) :-
+    holding(radio),
+    task(tunnel),
+    retractall(task(tunnel)),
+    assert(task(radio)),
+    write('The RADIO crackles in your hands, its three dials labeled A, B, and C glinting faintly in the dim light of the crash site.'), nl,
+    write('Each dial can be set to a number between 1 and 9.'), nl,
+    write('A faded, crumpled NOTE taped to the side reads: "Marine Corps Frequency: Alpha-Bravo-Charlie."'), nl,
+    write('The wind howls outside, urging you to hurry.'), nl,
+    !, nl.
+
+use(radio) :-
+    holding(radio),
+    task(radio),
+    write('You grip the RADIO and start adjusting the dials to tune the frequency.'), nl,
+    write('Set A to: '), read(A),
+    write('Set B to: '), read(B),
+    write('Set C to: '), read(C),
+    wrong_count(A, B, C, Count),
+    (
+        Count =:= 0 ->
+            write('The RADIO hums as it locks onto a strong signal. A clear voice cuts through:'), nl,
+            write('"Mission 334, this is the 32nd Marine Corps. Coordinates received. Extraction team inbound. Over."'), nl,
+            write('Clara: "Copy that. We''ll hold tight. Over."'), nl,
+            write('Marine: "Copy that. We''re tracking your signal. Hold tight, over."'), nl,
+            write('The steady signal brings a flicker of relief amidst the chaos.'), nl,
+            retract(holding(radio)),
+            assert(used(radio)),
+            radio_game_end
+        ; Count =:= 1 ->
+            writeln('The RADIO picks up a faint Marine transmission, but it''s garbled:'),
+            writeln('"Mission... [static]... coordinates... [static]... hold..."'),
+            writeln('Clara: "Almost there, but it''s too weak. They won''t get our position like this."'),
+            increment_attempts(radio),
+            maybe_hint(radio)
+        ; Count =:= 2 ->
+            writeln('A sharp burst of static erupts from the RADIO, followed by a chilling German voice:'),
+            writeln('"Achtung! Feindliche Übertragung entdeckt!"'),
+            writeln('Clara: "That''s the Germans—they''ve intercepted us. We''ve got to fix this now!"'),
+            increment_attempts(radio),
+            maybe_hint(radio)
+        ; Count =:= 3 ->
+            writeln('The RADIO hisses with static, a grating buzz drowning out any signal.'),
+            writeln('You: "Just noise. This isn''t the right frequency."'),
+            increment_attempts(radio),
+            maybe_hint(radio)
+    ), nl.
+
+radio_game_end :-
+    write('After a tense wait, the roar of engines fills the air. A Marine transport plane descends through the snow, its lights cutting through the gloom.'), nl,
+    write('You and Clara board, the warmth of the cabin a stark contrast to the biting cold.'), nl,
+    write('As the plane lifts off, a Marine hands you a stack of nondisclosure agreements.'), nl,
+    write('Marine: "Sign these. What you saw down there stays buried. Understood?"'), nl,
+    write('You nod, the weight of the unknown pressing on your chest. The valley''s secrets remain hidden, and your journey ends in silence.'), nl,
+    write('FALSE ENDING'), 
     !, nl.
 
 talk(clara) :-
@@ -215,6 +347,13 @@ process_ambush(1) :-
     write('Clara: "Here, give me the pistol and get behind that ROCK—now!"'), 
     !, nl.
 
+process_ambush(2) :-
+    retractall(task(_)),
+    assert(task(tunnel)),
+    (write('You: "To the TUNNEL - move'); holding(radio), write('We can try the RADIO one more time!')), nl,
+    (holding(radio), write('Clara: "It''s a long shot, but let''s go!"'); not(holding(radio)), write('Clara: "Without the RADIO, we''ll just freeze out there. Terrible plan, but I''m with you."')),
+    !, nl.
+
 creature_disappears :-
     i_am_at(ruins),
     at(creature, ruins),
@@ -246,9 +385,7 @@ after_ledge_talk :-
     write('Clara: *gasps* "Okay, enough gawking. If we want to survive this, we need a better lay of the land. Let''s find a high spot for reconnaissance."'),
     !, nl.
 
-examine(tree) :-
-    write('The tree stands ancient and imposing, its roots plunging into the earth like the veins of the valley itself.'),
-    nl, !.
+
 
 process_clara_tunnel_talk(1) :-
     write('You: "You''re right. We need to explore and figure this out."'), nl,
@@ -273,6 +410,19 @@ process_clara_tunnel_talk_radio :-
     write('Clara: "And what? Freeze out there with no plan? We''re in too deep to turn tail now.'), nl,
     write('Without a radio or supplies, we wouldn''t last a day on the surface. Our only chance is to keep moving, find shelter or someone who knows what''s going on—anything''s better than retreating empty-handed."'), 
     !, nl.
+
+go(tunnel) :- 
+    (i_am_at(ruins); i_am_at(city)),
+    retractall(task(_)),
+    assert(task(tunnel)),
+    retractall(i_am_at(_)),
+    assert(i_am_at(tunnel)),
+    write('You bolt through the undergrowth, the Nazis'' shouts and revving engines hot on your heels.'), nl,
+    write('Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.'), nl,
+    write('The icy wind bites at your face, a cruel reminder of the surface''s hostility.'), nl, !,
+    not(holding(radio)), write('You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'), nl,
+    write('Survival hangs by a thread, your fate uncertain.'), nl,
+    write('GAME OVER.'), nl.
 
 go(rock) :-
     (i_am_at(ruins); i_am_at(city)),
@@ -312,7 +462,8 @@ go(tunnel) :-
     write('1. "You''re right. We need to explore and figure this out."'), nl,
     write('2. "No, it''s too risky. Let''s head back while we can."'), nl,
     read(Choice),
-    process_clara_tunnel_talk(Choice).
+    process_clara_tunnel_talk(Choice),
+    !, nl.
 
 go(city) :-
     i_am_at(tree),
