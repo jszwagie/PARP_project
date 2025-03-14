@@ -447,7 +447,19 @@ go(tunnel) :-
     write('GAME OVER.'), nl.
 
 go(woods) :-
-    (i_am_at(ruins); i_am_at(city)),
+    i_am_at(ruins),
+    task(woods),
+    retractall(task(_)),
+    write('You sprint into the dense forest, branches snapping underfoot as you weave through the shadows.'), nl,
+    write('The Nazis'' shouts fade briefly—you dare to hope—until the sky hums with menace.'), nl,
+    write('A flying saucer descends, its beam of light slashing through the canopy like a blade, pinning you in its merciless glare.'), nl,
+    write('Nazi Pilot (over loudspeaker): "Kein Entkommen, ihr Narren! Das Reich sieht alles!"'), nl,
+    write('Riflemen emerge from the trees, their grips iron as they drag you back to the group. They bind your hands with coarse rope and march you toward the CITY, their motorcycles roaring triumphantly.'), nl,
+    write('*END OF ACT 3 or TO BE CONTINUED?"*'), 
+    !, nl.
+
+go(woods) :-
+    i_am_at(city),
     task(woods),
     retractall(task(_)),
     write('You sprint into the dense forest, branches snapping underfoot as you weave through the shadows.'), nl,
@@ -503,7 +515,7 @@ go(city) :-
     i_am_at(tree),
     write('You set off toward the CITY, its ominous skyline growing sharper with each step. Before you reach its perimeter, the growl of engines cuts through the stillness.'), nl,
     write('A division of Nazis on motorcycles bursts into view, their dust trails rising like storm clouds. Clara mutters under her breath, "Looks like we''ve got company—and they don''t seem friendly."'), nl,
-    nazi_ambush.
+    !, nazi_ambush.
 
 go(Place) :-
     i_am_at(Here),
