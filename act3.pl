@@ -109,6 +109,11 @@ describe(tunnel) :-
 
 /* Hint system */
 hint :-
+    task(woods),
+    write('We should GO to the WOODS.'),
+    !, nl.
+
+hint :-
     i_am_at(tunnel),
     task(tunnel),
     write('I should USE the RADIO, as I said.'), 
@@ -354,6 +359,23 @@ process_ambush(2) :-
     (holding(radio), write('Clara: "It''s a long shot, but let''s go!"'); not(holding(radio)), write('Clara: "Without the RADIO, we''ll just freeze out there. Terrible plan, but I''m with you."')),
     !, nl.
 
+process_ambush(3) :-
+    retractall(task(_)),
+    write('You: "We surrender. Maybe we can talk our way out."'), nl,
+    write('You raise your hands slowly. Clara mirrors your movement and calls out to the soldiers:'), nl, 
+    write('Clara: "Wir kapitulieren! Kein Problem."'), nl,
+    write('The Nazis lower their rifles slightly, though their glares remain sharp as knives. The leader smirks, holstering his Luger with a flourish.'), nl,
+    write('Nazi Leader: "Kluger Schachzug, Amerikaner. Unser Kommandant möchte Sie unbedingt sehen."'), nl,
+    write('They bind your hands with coarse rope, the knots biting into your wrists, and march you toward the CITY, their motorcycles roaring triumphantly.'), nl,
+    write('*END OF ACT 3 or TO BE CONTINUED?"*'), nl,
+    !, nl.
+
+process_ambush(4) :-
+    retractall(task(_)),
+    assert(task(woods)),
+    write('You: "Come on, to the WOODS—GO!"'), nl,
+    !, nl.
+
 creature_disappears :-
     i_am_at(ruins),
     at(creature, ruins),
@@ -423,6 +445,18 @@ go(tunnel) :-
     not(holding(radio)), write('You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'), nl,
     write('Survival hangs by a thread, your fate uncertain.'), nl,
     write('GAME OVER.'), nl.
+
+go(woods) :-
+    (i_am_at(ruins); i_am_at(city)),
+    task(woods),
+    retractall(task(_)),
+    write('You sprint into the dense forest, branches snapping underfoot as you weave through the shadows.'), nl,
+    write('The Nazis'' shouts fade briefly—you dare to hope—until the sky hums with menace.'), nl,
+    write('A flying saucer descends, its beam of light slashing through the canopy like a blade, pinning you in its merciless glare.'), nl,
+    write('Nazi Pilot (over loudspeaker): "Kein Entkommen, ihr Narren! Das Reich sieht alles!"'), nl,
+    write('Riflemen emerge from the trees, their grips iron as they drag you back to the group. They bind your hands with coarse rope and march you toward the CITY, their motorcycles roaring triumphantly.'), nl,
+    write('*END OF ACT 3 or TO BE CONTINUED?"*'), 
+    !, nl.
 
 go(rock) :-
     (i_am_at(ruins); i_am_at(city)),
