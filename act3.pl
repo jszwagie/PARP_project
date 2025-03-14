@@ -1,10 +1,13 @@
 :- module(act3, []).
 
+:- dynamic(at/2).
 initialize_act :-
     retractall(i_am_at(_)),
     assert(i_am_at(ledge)),
     assert(task(ledge_talk)),
-    assert(at(clara, ledge)).
+    assert(at(clara, ledge)),
+    assert(holding(pistol)), %temporarily
+    assert(holding(radio)). %temporarily
 
 /* Define locations */
 location(ledge).
@@ -12,6 +15,7 @@ location(tree).
 location(ruins).
 location(tunnel).
 location(city).
+location(rock).
 
 /* Define location of episodes characters */
 at(creature, ruins).
@@ -72,6 +76,28 @@ describe(tree) :-
 
 /* Hint system */
 hint :-
+    i_am_at(rock),
+    task(after_fight),
+    write('I should talk to Clara.'), 
+    nl, !.
+
+hint :- 
+    i_am_at(rock),
+    task(fight),
+    write('I should hand the PISTOL to Clara.'),
+    !, nl.
+
+hint :-
+    task(ambush_beginning),
+    write('Maybe Clara knows what to do in this situation.'),
+    !, nl.
+
+hint :-
+    task(hide),
+    write('I should GO behind that ROCK.'),
+    !, nl.
+
+hint :-
     i_am_at(ledge),
     task(ledge_talk),
     write('I should talk to Clara.'), 
@@ -79,7 +105,6 @@ hint :-
 
 hint :-
     i_am_at(ledge),
-    described(tree),
     task(tree),
     write('I think I could GO up on that TREE.'), 
     nl, !.
@@ -99,6 +124,45 @@ hint :-
     i_am_at(ruins),
     write('Is the TALK the answer?'),
     !, nl.
+
+use(pistol) :-
+    holding(pistol),
+    task(fight),
+    retract(holding(pistol)),
+    retract(task(fight)),
+    assert(task(after_fight)),
+    write('You hand the PISTOL to Clara.'), nl,
+    write('She aims the old Mauser and squeezes the trigger—a sharp crack echoes through the valley, but the gun jams mid-shot, smoke curling from the barrel like a dying breath.'), nl,
+    write('The Nazis roar in fury, their rifles spitting fire in response.'), nl,
+    write('Bullets chip the rock, showering you with dust and shards.'), nl,
+    write('The leader bellows, his voice thick with venom:'), nl,
+    write('Nazi Leader: "Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!"'), 
+    !, nl.
+
+talk(clara) :-
+    task(after_fight),
+    write('You: "What did he say?"'), nl,
+    write('Clara: *breathing heavily* "Nothing good. I don''t know if we can get out of this alive."'), nl,
+    write('Clara: *shouting in fright* "Wir kapitulieren! Halt!"'), nl,
+    write('The soldiers cease fire, their eyes still burning with rage.'), nl,
+    write('They swarm closer, boots pounding the earth like war drums, and you''re wrestled to the ground, wrists bound tight with rough cord.'), nl,
+    write('Their treatment is brutal — fists and threats of execution, though they spare you for now, muttering darkly about your potential value.'), nl,
+    write('They march you toward the CITY, their motorcycles roaring triumphantly.'), nl,
+    write('*END OF ACT 3 or TO BE CONTINUED?"*'), 
+    !, nl.
+
+
+talk(clara) :-
+    task(ambush_beginning),
+    write('You: "What''s our move? They''re closing in fast."'), nl, 
+    write('Clara: "We''re outgunned and outmanned. Fight, run, or surrender—you decide, but make it quick!"'), nl, 
+    write('Your choices:'), nl, 
+    write('1. "Let''s fight! I''ll hand you the PISTOL!"'), nl, 
+    write('2. "Run for the TUNNEL—we can try the RADIO again!"'), nl, 
+    write('3. "We surrender. Maybe we can talk our way out."'), nl, 
+    write('4. "Into the WOODS—lose them in the trees!"'), nl,
+    read(Choice),
+    process_ambush(Choice).
 
 talk(clara) :-
     i_am_at(ledge),
@@ -144,14 +208,21 @@ process_creature_talk(2) :-
     write('Creature: "Cloaked in deception, they are, then. Harmony we cherish, yet stirred by this threat, we are. Counsel, what offer you?"'), nl,
     creature_disappears.
 
+process_ambush(1) :-
+    retractall(task(_)),
+    assert(task(hide)),
+    write('You: "Let''s fight! I''ll hand you the PISTOL!"'), nl,
+    write('Clara: "Here, give me the pistol and get behind that ROCK—now!"'), 
+    !, nl.
+
 creature_disappears :-
     i_am_at(ruins),
     at(creature, ruins),
     retract(at(creature, ruins)),
     write('*Before you can respond, the air splits with the roar of engines and sharp, guttural shouts. The ground trembles faintly—a prelude to chaos.*'), nl,
     write('Creature: "True, if what you say is, run immediately, you must. Farewell, my friends."'), nl,
-    write('*The creature dissolves into the air, leaving you confused and on edge.*'), 
-    !, nl.
+    write('*The creature dissolves into the air, leaving you confused and on edge.*'), nl,
+    nazi_ambush.
 
 
 process_clara_ledge_talk(1) :-
@@ -203,6 +274,15 @@ process_clara_tunnel_talk_radio :-
     write('Without a radio or supplies, we wouldn''t last a day on the surface. Our only chance is to keep moving, find shelter or someone who knows what''s going on—anything''s better than retreating empty-handed."'), 
     !, nl.
 
+go(rock) :-
+    (i_am_at(ruins); i_am_at(city)),
+    retractall(task(_)),
+    retractall(i_am_at(_)),
+    assert(i_am_at(rock)),
+    assert(task(fight)),
+    write('You dive behind a jagged boulder, its surface slick with glowing moss, your breath ragged as you press against the cold stone.'), 
+    !, nl.
+
 go(tree) :-
     i_am_at(ledge),
     retract(i_am_at(ledge)),
@@ -249,4 +329,17 @@ go(Place) :-
 
 go(_) :-
     write('You can''t go there from here.'),
+    !, nl.
+
+nazi_ambush :-
+    retractall(task(_)),
+    assert(task(ambush_beginning)),
+    write('The Nazis lock eyes on you, their motorcycles skidding to a halt in a crescent of dust and menace.'), nl,
+    write('Their leader, a wiry man with a scar slashing across his cheek, leaps off his bike, his black uniform pristine despite the grime of the valley.'), nl,
+    write('He levels a Luger at you, his voice a guttural snarl that cuts through the humid air.'), nl,
+    write('Nazi Leader: "Halt! Amerikanische Spione! Werft die Waffen nieder!"'), nl,
+    write('Clara (whispering): "They think we are spies. They''ve got us wrong, but I doubt they''ll listen to reason."'), nl,
+    write('The air thickens with tension as the Nazis fan out, their boots crunching on the gravel, rifles glinting in the bioluminescent glow.'), nl,
+    write('Above, a flying saucer hums into view, its searchlight slicing through the foliage like a predator''s gaze.'), nl,
+    write('Time slows—your heart pounds, and the valley''s beauty fades behind the cold reality of danger.'), 
     !, nl.
