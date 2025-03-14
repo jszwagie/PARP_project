@@ -10,11 +10,21 @@ initialize_act :-
 location(ledge).
 location(tree).
 location(ruins).
+location(tunnel).
+location(city).
+
+/* Define location of episodes characters */
+at(creature, ruins).
 
 /* Define paths */
 path(ledge, tree).
 path(tree, ledge).
 path(tree, ruins).
+path(ruins, tree).
+path(tunnel, tree).
+path(tree, tunnel).
+path(tree, city).
+path(city, tree).
 
 
 start_act :-
@@ -85,6 +95,11 @@ hint :-
     write('We should decide where to go.'),
     !, nl.
 
+hint :- 
+    i_am_at(ruins),
+    write('Is the TALK the answer?'),
+    !, nl.
+
 talk(clara) :-
     i_am_at(ledge),
     write('Clara: "This place… it''s like stepping into a dream. Or maybe a nightmare—I can''t decide."'), nl,
@@ -94,6 +109,50 @@ talk(clara) :-
     write('2. "Or they stumbled across it after the war, looking for a place to hide."'), nl,
     read(Choice), !,
     process_clara_ledge_talk(Choice).
+
+talk(clara) :- 
+    i_am_at(ruins),
+    write('Clara: "Do you think we should TALK to it?"'),
+    !, nl.
+
+talk(creature) :- 
+    i_am_at(ruins),
+    at(creature, ruins),
+    write('*The creature''s voice resonates in your mind, a melodic hum that bypasses your ears entirely.*'), nl,
+    write('Creature: "Wanderers, greetings. Sentinel of this realm, I am, keeper of wisdom older than your civilization, hmm.'), nl,
+    write('Answers you seek, yes? Give them to you, I shall.'), nl,
+    write('Tied to what you call ''Atlantis,'' our kin are, though lost to your tongue, our true name is.'), nl,
+    write('Arrived, the ones you call ''Germans'' did, speaking of a great calamity they fled. Stewards of peace we are, granted them refuge, we did. Yet, tidings of their shadow you bear, hmm?"'), 
+    nl, nl,
+    write('Your choices: '), nl,
+    write('1. "Those Germans—the Nazis—are monsters. They''ve waged war and killed millions."'), nl,
+    write('2. "They''re exploiting you. They''ll strip this valley bare and leave nothing behind."'), nl,
+    read(Choice),
+    process_creature_talk(Choice).
+
+process_creature_talk(1) :-
+    i_am_at(ruins),
+    at(creature, ruins),
+    write('You: "Those Germans—the Nazis—are monsters. They''ve waged war and killed millions."'), nl,
+    write('Creature: "Malice such, perceived it not, we did. Blinded us, our hospitality has, to their stain."'), nl,
+    creature_disappears.
+
+process_creature_talk(2) :-
+    i_am_at(ruins),
+    at(creature, ruins),
+    write('You: "They''re exploiting you. They''ll strip this valley bare and leave nothing behind."'), nl,
+    write('Creature: "Cloaked in deception, they are, then. Harmony we cherish, yet stirred by this threat, we are. Counsel, what offer you?"'), nl,
+    creature_disappears.
+
+creature_disappears :-
+    i_am_at(ruins),
+    at(creature, ruins),
+    retract(at(creature, ruins)),
+    write('*Before you can respond, the air splits with the roar of engines and sharp, guttural shouts. The ground trembles faintly—a prelude to chaos.*'), nl,
+    write('Creature: "True, if what you say is, run immediately, you must. Farewell, my friends."'), nl,
+    write('*The creature dissolves into the air, leaving you confused and on edge.*'), 
+    !, nl.
+
 
 process_clara_ledge_talk(1) :-
     i_am_at(ledge),
@@ -129,6 +188,55 @@ go(tree) :-
     write('You approach the towering TREE, its presence both majestic and unsettling.'), nl,
     write('Thick vines and sturdy branches form a natural ladder, inviting you to climb into its heights.'), nl,
     !, nl.
+
+go(ruins) :-
+    i_am_at(tree),
+    retract(i_am_at(tree)),
+    assert(i_am_at(ruins)),
+    retract(at(clara, tree)),
+    assert(at(clara, ruins)),
+    write('You weave through the dense undergrowth toward the RUINS, their stone facades echoing the grandeur of Egypt''s pyramids or the jungle temples of South America, yet twisted with an alien flair.'), nl,
+    write('Intricate carvings of starships and celestial beings adorn the walls, hinting at a history far beyond human understanding.'), nl,
+    write('As you step deeper, a tall, slender figure emerges, its luminous eyes studying you with quiet intrigue. The CREATURE gestures gracefully, inviting conversation.'), 
+    !, nl.
+
+go(tunnel) :- 
+    i_am_at(tree), 
+    write('Clara grabs your sleeve, her grip tight.'), nl,
+    write('Clara: "Hold on! We can''t just run back now—there''s too much we don''t understand."'), nl,
+    write('Your choices: '), nl,
+    write('1. "You''re right. We need to explore and figure this out."'), nl,
+    write('2. "No, it''s too risky. Let''s head back while we can."'), nl,
+    read(Choice),
+    process_clara_tunnel_talk(Choice).
+
+go(city) :-
+    i_am_at(tree),
+    write('You set off toward the CITY, its ominous skyline growing sharper with each step. Before you reach its perimeter, the growl of engines cuts through the stillness.'), nl,
+    write('A division of Nazis on motorcycles bursts into view, their dust trails rising like storm clouds. Clara mutters under her breath, "Looks like we''ve got company—and they don''t seem friendly."'), nl,
+
+process_clara_tunnel_talk(1):
+    write('You: "You''re right. We need to explore and figure this out."'), nl,
+    write('*You stay in the valley, your resolve hardening.*'), 
+    !, nl.
+
+process_clara_tunnel_talk(2):
+    write('You: No, it''s too risky. Let''s head back while we can.'), nl,
+    write('Clara: "And what? Freeze out there with no plan? We''re in too deep to turn tail now."'), 
+    !, nl,
+    process_clara_tunnel_talk_radio.
+
+process_clara_tunnel_talk_radio :-
+    holding(radio),
+    write('You: "But we could try contacting the base again with the radio."'), nl,
+    write('Clara: "Don''t be naive, doc. That radio''s a piece of junk—half-static on a good day—and even if we got through, what then?'), nl,
+    write('Help''s days away at best, assuming they don''t think we''re delusional. We''d be stuck out there, freezing to death, praying for a miracle.'), nl,
+    write('No, we push forward, find answers, and make our own way out of this mess."'), 
+    !, nl.
+
+process_clara_tunnel_talk_radio :-
+    write('Clara: "And what? Freeze out there with no plan? We''re in too deep to turn tail now.'), nl,
+    write('Without a radio or supplies, we wouldn''t last a day on the surface. Our only chance is to keep moving, find shelter or someone who knows what''s going on—anything''s better than retreating empty-handed."'), nl,
 
 go(Place) :-
     i_am_at(Here),
