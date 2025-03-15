@@ -227,9 +227,11 @@ hint :-
 
 examine(1, X) :- act1:examine(X).
 examine(2, X) :- act2:examine(X).
+examine(3, X) :- act3:examine(X).
 
 talk(1, X) :- act1:talk(X).
 talk(2, X) :- act2:talk(X).
+talk(3, X) :- act3:talk(X).
 
 take(1, X) :- act1:take(X).
 take(2, X) :- act2:take(X).
@@ -239,12 +241,16 @@ drop(2, X) :- act2:drop(X).
 
 go(1, X) :- act1:go(X).
 go(2, X) :- act2:go(X).
+go(3, X) :- act3:go(X).
 
 use(1, _).
 use(2, X) :- act2:use(X).
+use(3, X) :- act3:use(X).
 
 look(1) :- act1:look.
 look(2) :- act2:look.
+look(3) :- act3:look.
 
 hint(1) :- act1:hint.
 hint(2) :- act2:hint.
+hint(3) :- act3:hint.
