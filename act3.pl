@@ -1,8 +1,6 @@
 :- module(act3, []).
 
-:- dynamic(at/2).
 :- dynamic(attempts/2).
-:- dynamic(examined/1).
 
 attempts(radio, 0).
 
@@ -28,11 +26,12 @@ radio_hint(radio) :-
 
 initialize_act :-
     retractall(i_am_at(_)),
-    assert(i_am_at(ledge)),
-    assert(task(ledge_talk)),
-    assert(at(clara, ledge)),
-    assert(holding(pistol)), %temporarily
-    assert(holding(radio)). %temporarily
+    assert(user:i_am_at(ledge)),
+    assert(user:task(ledge_talk)),
+    assert(user:at(clara, ledge)),
+    assert(user:at(creature, ruins)).
+    % assert(holding(pistol)), %temporarily
+    % assert(holding(radio)). %temporarily
 
 /* Define locations */
 location(ledge).
@@ -41,9 +40,6 @@ location(ruins).
 location(tunnel).
 location(city).
 location(rock).
-
-/* Define location of episodes characters */
-at(creature, ruins).
 
 /* Define paths */
 path(ledge, tree).
@@ -115,6 +111,7 @@ hint :-
 
 hint :-
     i_am_at(tunnel),
+    holding(radio),
     task(tunnel),
     write('I should USE the RADIO, as I said.'),
     nl, !.
@@ -133,6 +130,7 @@ hint :-
 
 hint :-
     i_am_at(rock),
+    holding(pistol),
     task(fight),
     write('I should hand the PISTOL to Clara.'),
     !, nl.
@@ -144,17 +142,20 @@ hint :-
 
 hint :-
     task(radio),
+    holding(radio),
     examined(note),
     write('The note says ''Four''s might, Seven''s luck, Two''s the root.'' That could point to the settings for A, B, and C. The plaque might help confirm it.'),
     !, nl.
 
 hint :-
     task(radio),
+    holding(radio),
     write('I need to tune the dials to the right numbers to reach the Marines. The NOTE or the RADIO might hold the key.'),
     !, nl.
 
 hint :-
     task(hide),
+    holding(pistol),
     write('I should GO behind that ROCK.'),
     !, nl.
 
@@ -294,8 +295,9 @@ talk(clara) :-
     write('You: "What''s our move? They''re closing in fast."'), nl,
     write('Clara: "We''re outgunned and outmanned. Fight, run, or surrender-you decide, but make it quick!"'), nl,
     write('Your choices:'), nl,
-    write('1. "Let''s fight! I''ll hand you the PISTOL!"'), nl,
-    write('2. "Run for the TUNNEL-we can try the RADIO again!"'), nl,
+    (holding(pistol), write('1. "Let''s fight! I''ll hand you the PISTOL!"'), nl; true),
+    write('2. "Run for the TUNNEL."'), 
+    (holding(radio), write('We can try the RADIO one more time!'); true), nl,
     write('3. "We surrender. Maybe we can talk our way out."'), nl,
     write('4. "Into the WOODS-lose them in the trees!"'), nl,
     read(Choice),
@@ -346,6 +348,7 @@ process_creature_talk(2) :-
     creature_disappears.
 
 process_ambush(1) :-
+    holding(pistol),
     retractall(task(_)),
     assert(task(hide)),
     write('You: "Let''s fight! I''ll hand you the PISTOL!"'), nl,
@@ -355,8 +358,10 @@ process_ambush(1) :-
 process_ambush(2) :-
     retractall(task(_)),
     assert(task(tunnel)),
-    (write('You: "To the TUNNEL - move'); holding(radio), write('We can try the RADIO one more time!')), nl,
-    (holding(radio), write('Clara: "It''s a long shot, but let''s go!"'); not(holding(radio)), write('Clara: "Without the RADIO, we''ll just freeze out there. Terrible plan, but I''m with you."')),
+    write('You: "To the TUNNEL - move. '),
+    (holding(radio), write('We can try the RADIO one more time!'); true), nl,
+    (holding(radio), write('Clara: "It''s a long shot, but let''s go!"'); true),
+    (not(holding(radio)), write('Clara: "Without the RADIO, we''ll just freeze out there. Terrible plan, but I''m with you."'); true),
     !, nl.
 
 process_ambush(3) :-
@@ -472,6 +477,7 @@ go(woods) :-
 
 go(rock) :-
     (i_am_at(ruins); i_am_at(city)),
+    holding(pistol),
     retractall(task(_)),
     retractall(i_am_at(_)),
     assert(i_am_at(rock)),
