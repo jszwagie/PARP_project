@@ -42,6 +42,7 @@ instructions :-
     write('Available commands are:'), nl,
     write('start.             -- to start the game from Act 1.'), nl,
     write('act2.              -- to start directly from Act 2.'), nl,
+    write('act3.              -- to start directly from Act 3.'), nl,
     write('look.              -- to look around you and describe surroundings'), nl,
     write('go(Place).         -- to go to a place.'), nl,
     write('take(Object).      -- to pick up an object.'), nl,
@@ -82,6 +83,15 @@ act2 :-
     (finished_act(1) -> true ; setup_default_act2),
     act2:start_act.
 
+act3 :-
+    instructions,
+    act1:cleanup,
+    retractall(current_act(_)),
+    assert(current_act(3)),
+    % Check if we're coming from Act 2 or starting directly
+    (finished_act(2) -> true ; setup_default_act3),
+    act3:start_act.
+
 /* Setup defaults for Act 2 if starting directly, mainly for debug purpose*/
 setup_default_act2 :-
     retractall(holding(_)),
@@ -102,10 +112,35 @@ setup_default_act2 :-
     read(Choice2),
     add_item(Choice2).
 
-add_item(1) :- assert(holding(geiger)), !.
-add_item(2) :- assert(holding(radio)), !.
-add_item(3) :- assert(holding(gear)), !.
-add_item(4) :- assert(holding(tools)), !.
+setup_default_act3 :-
+    retractall(holding(_)),
+    assert(holding(medkit)),
+    assert(holding(food)),
+    assert(holding(water)),
+    assert(holding(lighter)),
+    write('You\'re starting directly at Act 3.'), nl,
+    write('You can take 2 more items from these options:'), nl,
+    write('1. GEIGER Counter'), nl,
+    write('2. RADIO'), nl,
+    write('3. PISTOL'), nl,
+    write('4. Navigation TOOLS'), nl,
+    write('Choose your first item (1-4): '),
+    read(Choice1),
+    add_item(Choice1),
+    write('Choose your second item (1-4): '),
+    read(Choice2),
+    add_item(Choice2).
+
+add_item(1) :- current_act(2), assert(holding(geiger)), !.
+add_item(2) :- current_act(2), assert(holding(radio)), !.
+add_item(3) :- current_act(2), assert(holding(pistol)), !.
+add_item(4) :- current_act(2), assert(holding(tools)), !.
+
+add_item(1) :- current_act(3), assert(holding(geiger)), !.
+add_item(2) :- current_act(3), assert(holding(radio)), !.
+add_item(3) :- current_act(3), assert(holding(gear)), !.
+add_item(4) :- current_act(3), assert(holding(tools)), !.
+
 add_item(_) :- write('Invalid choice, defaulting to navigation tools.'), nl,
                assert(holding(tools)).
 
