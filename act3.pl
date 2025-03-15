@@ -140,6 +140,11 @@ hint :-
     !, nl.
 
 hint :-
+    task(after_radio),
+    write('I should talk to Clara.'),
+    !, nl.
+
+hint :-
     task(radio),
     holding(radio),
     examined(note),
@@ -269,12 +274,43 @@ use(radio) :-
 
 radio_game_end :-
     write('After a tense wait, the roar of engines fills the air. A Marine transport plane descends through the snow, its lights cutting through the gloom.'), nl,
-    write('You and Clara board, the warmth of the cabin a stark contrast to the biting cold.'), nl,
+    write('You and CLARA board, the warmth of the cabin a stark contrast to the biting cold.'), nl,
     write('As the plane lifts off, a Marine hands you a stack of nondisclosure agreements.'), nl,
     write('Marine: "Sign these. What you saw down there stays buried. Understood?"'), nl,
-    write('You nod, the weight of the unknown pressing on your chest. The valley''s secrets remain hidden, and your journey ends in silence.'), nl,
-    write('FALSE ENDING'),
+    write('You nod, a heavy, unspoken weight settling over you.'), nl,
+    write('The valley''s mysteries fade into the distance, shrouded in silence, as the plane carries you away.'), nl,
+    retractall(task(_)),
+    assert(task(after_radio)),
     !, nl.
+
+talk(clara) :- 
+    task(after_radio),
+    write('You turn to Clara, her face illuminated by the dim cabin lights.'), nl,
+    write('You: "So, what—this is how it ends?"'), nl,
+    write('Clara: "Wake up!"'), nl,
+    write('You: "What?!"'), nl,
+    write('Clara: "WAKE UP!"'), nl,
+    write('Suddenly, a sharper voice breaks through the haze.'), nl,
+    write('Your wife: "Damn it, wake up! You''ll be late for your lectures!"'), nl,
+    write('You: "What? What lectures?"'), nl,
+    write('Your wife: "You were up late watching TV again. You''ve got to stop with those'), nl,
+    write('ridiculous pseudo-historical documentaries on FOCUS TV or TV4-they''re frying your brain."'), nl,
+    write('ridiculous pseudo-historical documentaries on FOCUS TV or TV4-they''re frying your brain."'), nl, nl,
+    write('The Antarctic adventure dissolves like mist. You blink, disoriented, as the soft '), nl,
+    write('glow of your bedside lamp replaces the plane''s harsh lights. The hum of Warsaw''s '), nl,
+    write('morning traffic seeps through the window, a mundane rhythm far removed from the  '), nl,
+    write('valley''s eerie pulse. It was all a dream—a vivid fantasy spun from late-night '), nl,
+    write('television and a restless mind. You''re not an adventurer escaping a hidden'), nl,
+    write('world; you''re an ordinary professor at the Warsaw University of Technology, with'), nl,
+    write('lectures to deliver and papers to grade. Reality sinks in, familiar and unrelenting.'), nl,
+    write('You sit up, rubbing your eyes as the dream''s vivid details—Clara''s determined '), nl,
+    write('gaze, the snow-swept valley, the roar of the plane—slip away like sand through '), nl,
+    write('your fingers. Your wife moves about the room, muttering about your late-night '), nl,
+    write('habits, oblivious to the epic journey you''ve just imagined.'), nl,
+    write('Your wife: "Honestly, those conspiracy channels will be the death of you. Go to bed on time for once."'), nl,
+    write('You muster a faint smile, the last echoes of the dream fading into nothingness.'), nl,
+    write('The adventure is over, and the real world beckons.'), nl,
+    write('THE END'), nl,
 
 talk(clara) :-
     task(after_fight),
@@ -285,7 +321,7 @@ talk(clara) :-
     write('They swarm closer, boots pounding the earth like war drums, and you''re wrestled to the ground, wrists bound tight with rough cord.'), nl,
     write('Their treatment is brutal - fists and threats of execution, though they spare you for now, muttering darkly about your potential value.'), nl,
     write('They march you toward the CITY, their motorcycles roaring triumphantly.'), nl,
-    write('*END OF ACT 3 or TO BE CONTINUED?"*'),
+    to_be_continued,
     !, nl.
 
 
@@ -371,7 +407,7 @@ process_ambush(3) :-
     write('The Nazis lower their rifles slightly, though their glares remain sharp as knives. The leader smirks, holstering his Luger with a flourish.'), nl,
     write('Nazi Leader: "Kluger Schachzug, Amerikaner. Unser Kommandant mochte Sie unbedingt sehen."'), nl,
     write('They bind your hands with coarse rope, the knots biting into your wrists, and march you toward the CITY, their motorcycles roaring triumphantly.'), nl,
-    write('*END OF ACT 3 or TO BE CONTINUED?"*'), nl,
+    to_be_continued,
     !, nl.
 
 process_ambush(4) :-
@@ -472,7 +508,7 @@ go(woods) :-
     write('A flying saucer descends, its beam of light slashing through the canopy like a blade, pinning you in its merciless glare.'), nl,
     write('Nazi Pilot (over loudspeaker): "Kein Entkommen, ihr Narren! Das Reich sieht alles!"'), nl,
     write('Riflemen emerge from the trees, their grips iron as they drag you back to the group. They bind your hands with coarse rope and march you toward the CITY, their motorcycles roaring triumphantly.'), nl,
-    write('*END OF ACT 3 or TO BE CONTINUED?"*'),
+    to_be_continued,
     !, nl.
 
 go(woods) :-
@@ -484,7 +520,7 @@ go(woods) :-
     write('A flying saucer descends, its beam of light slashing through the canopy like a blade, pinning you in its merciless glare.'), nl,
     write('Nazi Pilot (over loudspeaker): "Kein Entkommen, ihr Narren! Das Reich sieht alles!"'), nl,
     write('Riflemen emerge from the trees, their grips iron as they drag you back to the group. They bind your hands with coarse rope and march you toward the CITY, their motorcycles roaring triumphantly.'), nl,
-    write('*END OF ACT 3 or TO BE CONTINUED?"*'),
+    to_be_continued,
     !, nl.
 
 go(rock) :-
@@ -560,3 +596,16 @@ nazi_ambush :-
     write('Above, a flying saucer hums into view, its searchlight slicing through the foliage like a predator''s gaze.'), nl,
     write('Time slows-your heart pounds, and the valley''s beauty fades behind the cold reality of danger.'),
     !, nl.
+
+to_be_continued :-
+    write('The CITY looms ahead, its dark spires piercing the bioluminescent sky like '), nl,
+    write('jagged teeth. Clara stumbles beside you, her face pale but defiant, though her eyes betray a flicker of fear.'), nl,
+    write('You steal a glance at the leader, his scar twisting as he smirks, satisfied with '), nl,
+    write('his prize. What awaits in the CITY? Interrogation? Imprisonment? Or something '), nl,
+    write('far worse, tied to the secrets buried in this impossible valley? The questions '), nl,
+    write('gnaw at you, but answers remain elusive, shrouded in the same mystery that'), nl,
+    write('cloaks this hidden world.'), nl,
+    write('As the CITY gates creak open, swallowing you into its shadowed maw, one thought'), nl,
+    write('lingers: this is not the end, but a dark new beginning. Your fate hangs in the '), nl,
+    write('balance, and the next chapter of your journey waits just beyond the horizon.'), nl,
+    write('TO BE CONTINUED...'), nl,
