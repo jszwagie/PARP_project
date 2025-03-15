@@ -70,14 +70,11 @@ take(X) :-
 
 take(X) :-
     supply(X),
+    i_am_at(Place),
+    accessible(X, Place),
+    comment_take(X),
     retract(at(X, _)),
     assert(holding(X)),
-    comment_take(X),
-    !, nl.
-
-take(X) :-
-    holding(X),
-    write('You''re already holding it!'),
     !, nl.
 
 take(X) :-
@@ -87,6 +84,11 @@ take(X) :-
     retract(at(X, _)),
     assert(holding(X)),
     write('OK.'),
+    !, nl.
+
+take(X) :-
+    holding(X),
+    write('You''re already holding it!'),
     !, nl.
 
 take(_) :-
