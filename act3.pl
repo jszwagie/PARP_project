@@ -446,9 +446,9 @@ go(tunnel) :-
     write('You bolt through the undergrowth, the Nazis'' shouts and revving engines hot on your heels.'), nl,
     write('Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.'), nl,
     write('The icy wind bites at your face, a cruel reminder of the surface''s hostility.'), nl, !,
-    not(holding(radio)), write('You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'), nl,
+    (not(holding(radio)), write('You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'), nl,
     write('Survival hangs by a thread, your fate uncertain.'), nl,
-    write('GAME OVER.'), nl.
+    write('GAME OVER.'), nl; true).
 
 go(woods) :-
     i_am_at(ruins),
