@@ -429,7 +429,7 @@ act_end :-
     write('----------------------------ACT 1 OVER----------------------------'),
     !, nl,
     cleanup,
-    assert(user:finished_act(1)),
+    asserta(user:finished_act(1)),
     user:check_progress.
 
 cleanup :-

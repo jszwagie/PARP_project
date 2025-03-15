@@ -606,8 +606,8 @@ act_end :-
     nl,
     write('----------------------------ACT 2 OVER----------------------------'),
     !, nl,
-    assert(finished_act(2)),
     cleanup,
+    asserta(user:finished_act(2)),
     user:check_progress.
 
 cleanup :-
