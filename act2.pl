@@ -399,6 +399,7 @@ go(wreck) :-
 go(deeper) :-
     (i_am_at(cave); i_am_at(wreck)),
     not(examined(wreck)),
+    not(entered(wreck)),
     write('Clara: "Hold up, doc. We can''t ignore this-it''s too weird."'), nl,
     write('You should EXAMINE the WRECK.'),
     !, nl.
