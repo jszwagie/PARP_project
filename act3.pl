@@ -8,7 +8,7 @@ wrong_count(A, B, C, Count) :-
     (C =:= 2 -> WC = 0 ; WC = 1),
     Count is WA + WB + WC.
 
-increments_attempts(radio) :-
+increment_attempts(radio) :-
     attempts(radio, N),
     N1 is N + 1,
     retract(attempts(radio, N)),
