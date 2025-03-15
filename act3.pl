@@ -2,8 +2,6 @@
 
 :- dynamic(attempts/2).
 
-attempts(radio, 0).
-
 wrong_count(A, B, C, Count) :-
     (A =:= 4 -> WA = 0 ; WA = 1),
     (B =:= 7 -> WB = 0 ; WB = 1),
@@ -26,10 +24,11 @@ radio_hint(radio) :-
 
 initialize_act :-
     retractall(i_am_at(_)),
-    assert(user:i_am_at(ledge)),
+    assert(i_am_at(ledge)),
     assert(user:task(ledge_talk)),
-    assert(user:at(clara, ledge)),
-    assert(user:at(creature, ruins)).
+    assert(at(clara, ledge)),
+    assert(at(creature, ruins)),
+    assert(attempts(radio, 0)).
     % assert(holding(pistol)), %temporarily
     % assert(holding(radio)). %temporarily
 
@@ -296,7 +295,7 @@ talk(clara) :-
     write('Clara: "We''re outgunned and outmanned. Fight, run, or surrender-you decide, but make it quick!"'), nl,
     write('Your choices:'), nl,
     (holding(pistol), write('1. "Let''s fight! I''ll hand you the PISTOL!"'), nl; true),
-    write('2. "Run for the TUNNEL."'), 
+    write('2. "Run for the TUNNEL."'),
     (holding(radio), write('We can try the RADIO one more time!'); true), nl,
     write('3. "We surrender. Maybe we can talk our way out."'), nl,
     write('4. "Into the WOODS-lose them in the trees!"'), nl,
