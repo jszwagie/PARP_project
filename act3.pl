@@ -438,7 +438,20 @@ process_clara_tunnel_talk_radio :-
     !, nl.
 
 go(tunnel) :-
-    (i_am_at(ruins); i_am_at(city)),
+    i_am_at(city),
+    retractall(task(_)),
+    assert(task(tunnel)),
+    retractall(i_am_at(_)),
+    assert(i_am_at(tunnel)),
+    write('You bolt through the undergrowth, the Nazis'' shouts and revving engines hot on your heels.'), nl,
+    write('Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.'), nl,
+    write('The icy wind bites at your face, a cruel reminder of the surface''s hostility.'), nl, !,
+    (not(holding(radio)), write('You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'), nl,
+    write('Survival hangs by a thread, your fate uncertain.'), nl,
+    write('GAME OVER.'), nl; true).
+
+go(tunnel) :-
+    i_am_at(ruins),
     retractall(task(_)),
     assert(task(tunnel)),
     retractall(i_am_at(_)),
@@ -518,6 +531,8 @@ go(tunnel) :-
 
 go(city) :-
     i_am_at(tree),
+    retract(i_am_at(tree)),
+    assert(i_am_at(city)),
     write('You set off toward the CITY, its ominous skyline growing sharper with each step. Before you reach its perimeter, the growl of engines cuts through the stillness.'), nl,
     write('A division of Nazis on motorcycles bursts into view, their dust trails rising like storm clouds. Clara mutters under her breath, "Looks like we''ve got company-and they don''t seem friendly."'), nl,
     !, nazi_ambush.
