@@ -29,8 +29,6 @@ initialize_act :-
     assert(at(clara, ledge)),
     assert(at(creature, ruins)),
     assert(attempts(radio, 0)).
-    % assert(holding(pistol)), %temporarily
-    % assert(holding(radio)). %temporarily
 
 /* Define locations */
 location(ledge).
@@ -210,6 +208,7 @@ examine(note) :-
     write('The note is weathered, its ink blurred but readable: "Marine Corps Frequency: Alpha-Bravo-Charlie. Remember the code: Four''s might, Seven''s luck, Two''s the root."'),
     !, nl.
 
+/* Define actions */
 use(pistol) :-
     holding(pistol),
     task(fight),
@@ -238,6 +237,16 @@ use(radio) :-
 use(radio) :-
     holding(radio),
     task(radio),
+    attempts(radio, Count),
+    Count > 3,
+    write('The RADIO sparks violently as you fumble again, overwhelming you with static.'), nl,
+    write('It''s out of order now.'), nl,
+    tunnel_game_over,
+    !, nl.
+
+use(radio) :-
+    holding(radio),
+    task(radio),
     write('You grip the RADIO and start adjusting the dials to tune the frequency.'), nl,
     write('Set A to: '), read(A),
     write('Set B to: '), read(B),
@@ -258,30 +267,19 @@ use(radio) :-
             writeln('"Mission... [static]... coordinates... [static]... hold..."'),
             writeln('Clara: "Almost there, but it''s too weak. They won''t get our position like this."'),
             increment_attempts(radio),
-            maybe_hint(radio)
+            radio_hint(radio)
         ; Count =:= 2 ->
             writeln('A sharp burst of static erupts from the RADIO, followed by a chilling German voice:'),
             writeln('"Achtung! Feindliche Ubertragung entdeckt!"'),
             writeln('Clara: "That''s the Germans-they''ve intercepted us. We''ve got to fix this now!"'),
             increment_attempts(radio),
-            maybe_hint(radio)
+            radio_hint(radio)
         ; Count =:= 3 ->
             writeln('The RADIO hisses with static, a grating buzz drowning out any signal.'),
             writeln('You: "Just noise. This isn''t the right frequency."'),
             increment_attempts(radio),
-            maybe_hint(radio)
+            radio_hint(radio)
     ), nl.
-
-radio_game_end :-
-    write('After a tense wait, the roar of engines fills the air. A Marine transport plane descends through the snow, its lights cutting through the gloom.'), nl,
-    write('You and CLARA board, the warmth of the cabin a stark contrast to the biting cold.'), nl,
-    write('As the plane lifts off, a Marine hands you a stack of nondisclosure agreements.'), nl,
-    write('Marine: "Sign these. What you saw down there stays buried. Understood?"'), nl,
-    write('You nod, a heavy, unspoken weight settling over you.'), nl,
-    write('The valley''s mysteries fade into the distance, shrouded in silence, as the plane carries you away.'), nl,
-    retractall(task(_)),
-    assert(task(after_radio)),
-    !, nl.
 
 talk(clara) :- 
     task(after_radio),
@@ -482,9 +480,7 @@ go(tunnel) :-
     write('You bolt through the undergrowth, the Nazis'' shouts and revving engines hot on your heels.'), nl,
     write('Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.'), nl,
     write('The icy wind bites at your face, a cruel reminder of the surface''s hostility.'), nl, !,
-    (not(holding(radio)), write('You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'), nl,
-    write('Survival hangs by a thread, your fate uncertain.'), nl,
-    write('GAME OVER.'), nl; true).
+    (not(holding(radio)), tunnel_game_over; true).
 
 go(tunnel) :-
     i_am_at(ruins),
@@ -609,4 +605,21 @@ to_be_continued :-
     write('lingers: this is not the end, but a dark new beginning. Your fate hangs in the '), nl,
     write('balance, and the next chapter of your journey waits just beyond the horizon.'), nl,
     write('TO BE CONTINUED...'), 
+    !, nl.
+
+tunnel_game_over :-
+    write('You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'), nl,
+    write('Survival hangs by a thread, your fate uncertain.'), nl,
+    write('GAME OVER.'), 
+    !, nl.
+
+radio_game_end :-
+    write('After a tense wait, the roar of engines fills the air. A Marine transport plane descends through the snow, its lights cutting through the gloom.'), nl,
+    write('You and CLARA board, the warmth of the cabin a stark contrast to the biting cold.'), nl,
+    write('As the plane lifts off, a Marine hands you a stack of nondisclosure agreements.'), nl,
+    write('Marine: "Sign these. What you saw down there stays buried. Understood?"'), nl,
+    write('You nod, a heavy, unspoken weight settling over you.'), nl,
+    write('The valley''s mysteries fade into the distance, shrouded in silence, as the plane carries you away.'), nl,
+    retractall(task(_)),
+    assert(task(after_radio)),
     !, nl.
