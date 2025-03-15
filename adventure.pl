@@ -10,12 +10,10 @@
 
 next_act(1, 2).
 next_act(2, 3).
-% next_act(3, 4).
 
 call_act(1) :- act1:start_act.
 call_act(2) :- act2:start_act.
 call_act(3) :- act3:start_act.
-% call_act(4) :- act4:start_act.
 
 next :-
     finished_act(CurrentAct),
@@ -67,7 +65,6 @@ introduction :-
     write('challenges and uncover the truth. Stay sharp - the unknown awaits.'), nl, nl,
     instructions.
 
-/* Display introduction when game starts */
 :- initialization(introduction).
 
 /* Entry points for each act */
