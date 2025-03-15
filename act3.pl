@@ -310,7 +310,7 @@ talk(clara) :-
     write('Your wife: "Honestly, those conspiracy channels will be the death of you. Go to bed on time for once."'), nl,
     write('You muster a faint smile, the last echoes of the dream fading into nothingness.'), nl,
     write('The adventure is over, and the real world beckons.'), nl,
-    write('THE END'), nl,
+    write('THE END'), !, nl.
 
 talk(clara) :-
     task(after_fight),
@@ -608,4 +608,5 @@ to_be_continued :-
     write('As the CITY gates creak open, swallowing you into its shadowed maw, one thought'), nl,
     write('lingers: this is not the end, but a dark new beginning. Your fate hangs in the '), nl,
     write('balance, and the next chapter of your journey waits just beyond the horizon.'), nl,
-    write('TO BE CONTINUED...'), nl,
+    write('TO BE CONTINUED...'), 
+    !, nl.
