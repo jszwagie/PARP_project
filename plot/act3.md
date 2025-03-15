@@ -162,7 +162,7 @@ Clara: *shouting in fright* "Wir kapitulieren! Halt!"
 The soldiers cease fire, their eyes still burning with rage. They swarm closer, boots pounding the earth like war drums, and you’re wrestled to the ground, wrists bound tight with rough cord. Their treatment is brutal — fists and threats of execution, though they spare you for now, muttering darkly about your potential value.
 They march you toward the CITY, their motorcycles roaring triumphantly.
 
-*END OF ACT 3 or TO BE CONTINUED?"*
+*TO BE CONTINUED PART*
 
 ### Choice 2: Run to the Tunnel
 
@@ -240,10 +240,43 @@ After three incorrect attempts:
 HINT: "Think it through: 4 is even, 7 is prime, and 2 ties to the square root of 4. That matches all the clues."
 
 
-After a tense wait, the roar of engines fills the air. A Marine transport plane descends through the snow, its lights cutting through the gloom. You and Clara board, the warmth of the cabin a stark contrast to the biting cold. As the plane lifts off, a Marine hands you a stack of nondisclosure agreements.
+After a tense wait, the roar of engines fills the air. A Marine transport plane descends through the snow, its lights cutting through the gloom. You and CLARA board, the warmth of the cabin a stark contrast to the biting cold. As the plane lifts off, a Marine hands you a stack of nondisclosure agreements.
+
 Marine: "Sign these. What you saw down there stays buried. Understood?"
-You nod, the weight of the unknown pressing on your chest. The valley’s secrets remain hidden, and your journey ends in silence.
-FALSE ENDING
+
+You nod, a heavy, unspoken weight settling over you. The valley’s mysteries fade into the distance, shrouded in silence, as the plane carries you away.
+
+HINT:
+"I should talk to Clara."
+
+TALK TO CLARA:
+You turn to Clara, her face illuminated by the dim cabin lights.
+
+You: "So, what—this is how it ends?"
+
+Clara: "Wake up!"
+
+You: "What?!"
+
+Clara: "WAKE UP!"
+
+Suddenly, a sharper voice breaks through the haze.
+
+Your wife: "Damn it, wake up! You’ll be late for your lectures!"
+
+You: "What? What lectures?"
+
+Your wife: "You were up late watching TV again. You’ve got to stop with those ridiculous pseudo-historical documentaries on FOCUS TV or TV4—they’re frying your brain."
+
+The Antarctic adventure dissolves like mist. You blink, disoriented, as the soft glow of your bedside lamp replaces the plane’s harsh lights. The hum of Warsaw’s morning traffic seeps through the window, a mundane rhythm far removed from the valley’s eerie pulse. It was all a dream—a vivid fantasy spun from late-night television and a restless mind. You’re not an adventurer escaping a hidden world; you’re an ordinary professor at the Warsaw University of Technology, with lectures to deliver and papers to grade. Reality sinks in, familiar and unrelenting.
+
+You sit up, rubbing your eyes as the dream’s vivid details—Clara’s determined gaze, the snow-swept valley, the roar of the plane—slip away like sand through your fingers. Your wife moves about the room, muttering about your late-night habits, oblivious to the epic journey you’ve just imagined.
+
+Your wife: "Honestly, those conspiracy channels will be the death of you. Go to bed on time for once."
+
+You muster a faint smile, the last echoes of the dream fading into nothingness. The adventure is over, and the real world beckons.
+
+THE END
 
 ### Choice 3: Surrender
 You raise your hands slowly. Clara mirrors your movement and calls out to the soldiers:
@@ -256,7 +289,7 @@ Nazi Leader: "Kluger Schachzug, Amerikaner. Unser Kommandant möchte Sie unbedin
 
 They bind your hands with coarse rope, the knots biting into your wrists, and march you toward the CITY, their motorcycles roaring triumphantly.
 
-*END OF ACT 3 or TO BE CONTINUED?"*
+*TO BE CONTINUED PART*
 
 #### Choice 4: Run to the Woods
 You: "Come on, to the WOODS—GO!"
@@ -268,8 +301,18 @@ Nazi Pilot (over loudspeaker): "Kein Entkommen, ihr Narren! Das Reich sieht alle
 
 Riflemen emerge from the trees, their grips iron as they drag you back to the group. They bind your hands with coarse rope and march you toward the CITY, their motorcycles roaring triumphantly.
 
-*END OF ACT 3 or TO BE CONTINUED?"*
+*TO BE CONTINUED PART*
 
 *(After choices 1, 3, or 4, Act 3 ends with capture and transport to the CITY.)*
 *(After choice 2, the FALSE ENDING triggers.)*
 
+
+### TO BE CONTINUED PART:
+
+The CITY looms ahead, its dark spires piercing the bioluminescent sky like jagged teeth. Clara stumbles beside you, her face pale but defiant, though her eyes betray a flicker of fear.
+
+You steal a glance at the leader, his scar twisting as he smirks, satisfied with his prize. What awaits in the CITY? Interrogation? Imprisonment? Or something far worse, tied to the secrets buried in this impossible valley? The questions gnaw at you, but answers remain elusive, shrouded in the same mystery that cloaks this hidden world.
+
+As the CITY gates creak open, swallowing you into its shadowed maw, one thought lingers: this is not the end, but a dark new beginning. Your fate hangs in the balance, and the next chapter of your journey waits just beyond the horizon.
+
+TO BE CONTINUED...
