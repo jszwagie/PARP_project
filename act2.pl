@@ -53,6 +53,11 @@ accessible(Item, Place) :-
     at(Item, compartment),
     accessible(compartment, Place).
 
+take(radio) :-
+    i_am_at(cockpit),
+    write('You can''t take the radio; it''s bolted to the cockpit.'),
+    !, nl.
+
 take(X) :-
     supply(X),
     i_am_at(Place),
