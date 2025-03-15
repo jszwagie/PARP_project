@@ -112,6 +112,7 @@ setup_default_act2 :-
     read(Choice2),
     add_item(Choice2).
 
+/* Setup defaults for Act 3 if starting directly, mainly for debug purpose*/
 setup_default_act3 :-
     retractall(holding(_)),
     assert(holding(medkit)),
