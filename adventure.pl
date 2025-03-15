@@ -44,7 +44,7 @@ instructions :-
     write('Available commands are:'), nl,
     write('start.             -- to start the game from Act 1.'), nl,
     write('act2.              -- to start directly from Act 2.'), nl,
-    write('describe.          -- to look around you.'), nl,
+    write('look.              -- to look around you and describe surroundings'), nl,
     write('go(Place).         -- to go to a place.'), nl,
     write('take(Object).      -- to pick up an object.'), nl,
     write('drop(Object).      -- to put down an object.'), nl,
@@ -57,9 +57,21 @@ instructions :-
     write('halt.              -- to end the game and quit.'), nl,
     nl.
 
+/* Game Introduction */
+introduction :-
+    write('INTRODUCTION:'), nl,
+    write('Welcome to "The Hidden Realm", an interactive fiction adventure'), nl,
+    write('set in the icy depths of Antarctica. Unravel ancient secrets,'), nl,
+    write('face modern dangers, and shape your fate through your choices.'), nl,
+    write('Don\'t be afraid to use HINTS - they will help you navigate'), nl,
+    write('challenges and uncover the truth. Stay sharp - the unknown awaits.'), nl, nl,
+    instructions.
+
+/* Display introduction when game starts */
+:- initialization(introduction).
+
 /* Entry points for each act */
 start :-
-    instructions,
     retractall(current_act(_)),
     assert(current_act(1)),
     act1:start_act.
@@ -112,7 +124,7 @@ check_progress :-
 
 check_progress :-
     finished_act(3),
-    !, 
+    !,
     write("Enter 'next.' to start next act.").
 
 comment_take(food) :-
