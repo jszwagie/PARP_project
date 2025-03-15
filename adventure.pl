@@ -134,12 +134,12 @@ setup_default_act3 :-
 
 add_item(1) :- current_act(2), assert(holding(geiger)), !.
 add_item(2) :- current_act(2), assert(holding(radio)), !.
-add_item(3) :- current_act(2), assert(holding(pistol)), !.
+add_item(3) :- current_act(2), assert(holding(gear)), !.
 add_item(4) :- current_act(2), assert(holding(tools)), !.
 
 add_item(1) :- current_act(3), assert(holding(geiger)), !.
 add_item(2) :- current_act(3), assert(holding(radio)), !.
-add_item(3) :- current_act(3), assert(holding(gear)), !.
+add_item(3) :- current_act(3), assert(holding(pistol)), !.
 add_item(4) :- current_act(3), assert(holding(tools)), !.
 
 add_item(_) :- write('Invalid choice, defaulting to navigation tools.'), nl,
