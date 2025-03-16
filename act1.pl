@@ -39,6 +39,11 @@ path(depot, yard).
 path(tent, yard).
 
 /* These rules describe how to pick up an object. */
+take(_) :-
+    finished_act(1),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 take(X) :-
     supply(X),
     i_am_at(Place),
@@ -107,6 +112,11 @@ take(_) :-
     nl.
 
 /* Use command */
+use(_) :-
+    finished_act(1),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 use(canister) :-
     holding(canister),
     i_am_at(runway),
@@ -123,6 +133,11 @@ use(_) :-
     nl.
 
 /* These rules describe how to put down an object. */
+drop(_) :-
+    finished_act(1),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 drop(lighter) :-
     holding(lighter),
     i_am_at(Place),
@@ -158,6 +173,11 @@ drop(_) :-
     nl.
 
 /* Examine objects */
+examine(_) :-
+    finished_act(1),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 examine(photo) :-
     i_am_at(barrack),
     write('I''ll never forget you, my love.'),
@@ -311,6 +331,11 @@ examine(_) :-
     !, nl.
 
 /* Talk to people */
+talk(_) :-
+    finished_act(1),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 talk(clara) :-
     not(i_am_at(runway)),
     write('I''m not going to shout; I should go to her.'),
@@ -454,6 +479,11 @@ process_further_explain(2) :-
     act_epilog.
 
 /* Movement between locations */
+go(_) :-
+    finished_act(1),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 go(Place) :-
     i_am_at(Here),
     path(Here, Place),
@@ -467,11 +497,21 @@ go(_) :-
 
 /* This rule tells how to look about you. */
 look :-
+    finished_act(1),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
+look :-
     i_am_at(Place),
     describe(Place),
     !, nl.
 
 /* Hint system */
+hint :-
+    finished_act(1),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 hint :-
     i_am_at(barrack),
     not(holding(lighter)),
@@ -559,7 +599,7 @@ describe(barrack) :-
     write('Your bed is neatly made, and a PHOTO of your late wife sits on the dresser beside it.'), nl,
     write('Across the room, your working desk holds mission documents, a small lamp, and a LIGHTER.'), nl,
     write('A CALENDAR hangs above the desk.'), nl,
-    write('You can go to: YARD.').
+    write('Outside - the YARD, covered in snow.').
 
 describe(runway) :-
     findall(Y, (holding(Y), supply(Y)), SupplyList),
@@ -577,24 +617,24 @@ describe(runway) :-
     write('The sunlight, reflected off the steel plates, blinds you as you approach the aircraft - '), nl,
     write('a Douglas A-20 Havoc. It''s not the newest PLANE, but it''s reliable.'), nl,
     (at(clara, runway) -> write('CLARA is tinkering with one of the engines.'); true), nl,
-    write('You can go to: YARD.').
+    write('Behind you - the YARD, covered in snow.').
 
 describe(runway) :-
     holding(canister),
     write('The sunlight, reflected off the steel plates, blinds you as you approach the Douglas A-20 Havoc - '), nl,
     write('a reliable, if not modern, PLANE.'), nl,
     write('Clara is still tinkering with one of the engines.'), nl,
-    write('You can go to: YARD.').
+    write('Behind you - the YARD, covered in snow.').
 
 describe(depot) :-
     write('You step into the depot, a rough but functional structure shielding fuel CANISTERs from the Antarctic cold.'), nl,
-    write('You can go to: YARD.').
+    write('Outside - the YARD, covered in snow.').
 
 describe(tent) :-
     write('You enter the supply tent, a cramped space cluttered with gear.'), nl,
     write('Boxes and crates are labeled with essentials: food, water, scientific tools, and survival equipment.'), nl,
     write('A LIST of stock hangs on the wall.'), nl,
-    write('You can go to: YARD.').
+    write('Outside - the YARD, covered in snow.').
 
 act_epilog :-
     write('You: "What do you think we''ll find out there?"'), nl,
