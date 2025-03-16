@@ -20,8 +20,7 @@ initialize_act :-
     assert(at(gear, tent)),
     assert(at(tools, tent)),
 
-    assert(can_take(lighter)),
-    assert(can_take(canister)).
+    assert(can_take(lighter)).
 
 location(yard).
 location(barrack).
@@ -68,6 +67,27 @@ take(calendar) :-
     write('I doubt this will be useful.'),
     !, nl.
 
+take(lighter) :-
+    write('I''m not going to smoke now.'),
+    !, nl.
+
+take(canister) :-
+    not(can_take(canister)),
+    i_am_at(Place),
+    at(canister, Place),
+    write('I should check the fuel tanks first.'),
+    !, nl.
+
+take(canister) :-
+    can_take(canister),
+    i_am_at(Place),
+    at(canister, Place),
+    retract(at(canister, Place)),
+    assert(holding(canister)),
+    write('This should be enough.'),
+    !, nl.
+
+
 take(X) :-
     holding(X),
     write('You''re already holding it!'),
@@ -86,6 +106,22 @@ take(_) :-
     write('I don''t see it here or can''t take that.'),
     nl.
 
+/* Use command */
+use(canister) :-
+    holding(canister),
+    i_am_at(runway),
+    write('I should give it to Clara. I''ll TALK to her.'),
+    !, nl.
+
+use(X) :-
+    holding(X),
+    write('I can''t use that right now.'),
+    !, nl.
+
+use(_) :-
+    write('I don''t have it.'),
+    nl.
+
 /* These rules describe how to put down an object. */
 drop(lighter) :-
     holding(lighter),
@@ -97,7 +133,7 @@ drop(lighter) :-
 
 drop(canister) :-
     holding(canister),
-    write('I should get it to Clara.'),
+    write('I should get it to Clara. I''ll TALK to her.'),
     !, nl.
 
 drop(X) :-
@@ -215,7 +251,12 @@ examine(tanks) :-
     write('We''re running low. We need at least one more drum of fuel.'), nl,
     write('Clara: "Told you. Go grab one from the depot."'),
     assert(examined(tanks)),
-    assert(task(fuel)),
+    assert(can_take(canister)),
+    !, nl.
+
+examine(canister) :-
+    not(can_take(canister)),
+    write('I should check the fuel tanks first.'),
     !, nl.
 
 examine(canister) :-
@@ -296,6 +337,7 @@ process_clara_fuel_talk(1) :-
     write('You: "Okay, I''ll handle it now."'),
     retractall(talked(clara, _)),
     assert(talked(clara, fuel_request)),
+    assert(task(fuel)),
     nl.
 
 process_clara_fuel_talk(2) :-
@@ -303,6 +345,7 @@ process_clara_fuel_talk(2) :-
     write('Clara: "Good enough doesn''t cut it out here. Antarctica doesn''t forgive mistakes. Check it properly."'),
     retractall(talked(clara, _)),
     assert(talked(clara, fuel_request)),
+    assert(task(fuel)),
     nl.
 
 process_clara_fuel_talk(3) :-
@@ -388,7 +431,13 @@ hint :-
 hint :-
     task(fuel),
     not(examined(tanks)),
-    write('I should check the fuel tanks.'),
+    write('I should check the fuel TANKS.'),
+    !, nl.
+
+hint :-
+    task(fuel),
+    holding(canister),
+    write('I should give the CANISRER to Clara.'),
     !, nl.
 
 hint :-

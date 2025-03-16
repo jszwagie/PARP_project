@@ -279,7 +279,7 @@ go(1, X) :- act1:go(X).
 go(2, X) :- act2:go(X).
 go(3, X) :- act3:go(X).
 
-use(1, _).
+use(1, X) :- act1:use(X).
 use(2, X) :- act2:use(X).
 use(3, X) :- act3:use(X).
 
