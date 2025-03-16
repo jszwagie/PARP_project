@@ -63,7 +63,7 @@ intro :-
     look.
 
 /* This rule tells how to look about you. */
-look :- 
+look :-
     finished_act(3),
     write('You''ve already finished this act. Enter "halt." to quit.'),
     !, nl.
@@ -76,12 +76,16 @@ look :-
 /* Describe locations */
 describe(ruins) :-
     i_am_at(ruins),
-    write('PLACEHOLDER'), 
+    write('The ruins before you are a marvel of ancient architecture, reminiscent of Egypt’s pyramids or the jungle temples of South America, yet distinctly alien.'), nl,
+    write('Crumbling stone facades are adorned with intricate carvings of starships and celestial beings, hinting at a civilization far beyond human comprehension.'), nl,
+    write('The air here feels thick with history and unspoken secrets.'),
     !, nl.
 
 describe(city) :-
     i_am_at(city),
-    write('PLACEHOLDER'),
+    write('The city cuts a stark silhouette against the valley’s greenery, its dark gray buildings rising like monolithic sentinels.'), nl,
+    write('Swastika flags flutter ominously from every structure, their bold red and black stark against the muted stone.'), nl,
+    write('The atmosphere is heavy with foreboding, as if the very walls are watching your every move.'),
     !, nl.
 
 describe(ledge) :-
@@ -265,7 +269,9 @@ examined(_) :-
 examine(creature) :-
     i_am_at(ruins),
     at(creature, ruins),
-    write('PLACEHOLDER'),
+    write('The creature stands tall and slender, its luminous eyes studying you with an intelligence that feels ancient.'), nl,
+    write('Its skin seems to shimmer faintly, and as you look closer, you realize it''s communicating directly into your mind—a melodic hum that bypasses your ears.'), nl,
+    write('It exudes an aura of wisdom and otherworldliness, as if it holds secrets older than time itself.'),
     !, nl.
 
 examine(tree) :-
@@ -378,7 +384,7 @@ talk(_) :-
     write('You''ve already finished this act. Enter "halt." to quit.'),
     !, nl.
 
-talk(clara) :- 
+talk(clara) :-
     task(after_radio),
     write('You turn to Clara, her face illuminated by the dim cabin lights.'), nl,
     write('You: "So, what—this is how it ends?"'), nl,
@@ -716,7 +722,7 @@ go(tunnel) :-
 
 go(tunnel) :-
     i_am_at(tree),
-    (talked(clara, tunnel), 
+    (talked(clara, tunnel),
     write('We can''t GO to TUNNEL. We went to far.'), nl;
     true),
     (not(talked(clara, tunnel)),
@@ -774,14 +780,14 @@ to_be_continued :-
     write('As the CITY gates creak open, swallowing you into its shadowed maw, one thought'), nl,
     write('lingers: this is not the end, but a dark new beginning. Your fate hangs in the '), nl,
     write('balance, and the next chapter of your journey waits just beyond the horizon.'), nl,
-    write('TO BE CONTINUED...'), 
+    write('TO BE CONTINUED...'),
     asserta(user:finished_act(3)),
     !, nl.
 
 tunnel_game_over :-
     write('You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'), nl,
     write('Survival hangs by a thread, your fate uncertain.'), nl,
-    write('GAME OVER.'), 
+    write('GAME OVER.'),
     asserta(user:finished_act(3)),
     !, nl.
 
