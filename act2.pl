@@ -42,7 +42,6 @@ path(cave, tunnel).
 path(tunnel, cave).
 
 /* Define items that can be picked up */
-can_take(diary).
 can_take(pistol).
 
 accessible(Item, Place) :-
@@ -53,9 +52,26 @@ accessible(Item, Place) :-
     at(Item, compartment),
     accessible(compartment, Place).
 
+take(_) :-
+    finished_act(2),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 take(radio) :-
     i_am_at(cockpit),
     write('You can''t take the radio; it''s bolted to the cockpit.'),
+    !, nl.
+
+take(diary) :-
+    i_am_at(cockpit),
+    write('I''ll put it in my jacket when we get there.'),
+    !, nl.
+
+take(pistol) :-
+    i_am_at(wreck),
+    write('I hope it won''t be needed.'), nl,
+    write('*You take the pistol.*'),
+    assert(holding(pistol)),
     !, nl.
 
 take(X) :-
@@ -66,6 +82,18 @@ take(X) :-
     length(SupplyList, Count),
     Count >= 5,
     write('You cannot take this - you''ve reached supply limit - 5 items only.'),
+    !, nl.
+
+take(_) :-
+    i_am_at(crash_site),
+    not(examined(plane)),
+    write('I don''t know where the supplies are.'),
+    !, nl.
+
+take(_) :-
+    i_am_at(crash_site),
+    not(examined(compartment)),
+    write('I should check the luggage COMPARTMENT.'),
     !, nl.
 
 take(X) :-
@@ -96,6 +124,11 @@ take(_) :-
     nl.
 
 /* These rules describe how to put down an object. */
+drop(_) :-
+    finished_act(2),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 drop(X) :-
     supply(X),
     holding(X),
@@ -118,6 +151,11 @@ drop(_) :-
     nl.
 
 /* Examine objects */
+examine(_) :-
+    finished_act(2),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 examine(diary) :-
     i_am_at(cockpit),
     write('*It is open on the coordinates*'), nl,
@@ -155,6 +193,8 @@ examine(compartment) :-
     i_am_at(crash_site),
     is_injured(clara),
     not(holding(medkit)),
+    assert(examined(compartment)),
+    assert(examined(plane)),
     write('You check the plane compartment for supplies.'), nl,
     findall(X, (supply(X), at(X, compartment)), CompartmentSupplies),
     (member(medkit, CompartmentSupplies) ->
@@ -194,11 +234,21 @@ examine(pistol) :-
     write('An old German Mauser C96 pistol. Still looks functional.'),
     !, nl.
 
+examine(cave) :-
+    talked(clara, cave_advice),
+    write('This isn''t natural—someone or something shaped it.'),
+    !, nl.
+
 examine(_) :-
     write('There''s nothing special about it.'),
     !, nl.
 
 /* Talk to people */
+talk(_) :-
+    finished_act(2),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 talk(clara) :-
     i_am_at(cockpit),
     used(radio),
@@ -236,6 +286,13 @@ talk(clara) :-
     !, nl.
 
 talk(clara) :-
+    i_am_at(cockpit),
+    not(crashed),
+    write('You: "We''re bound to find something there—I can feel it in my bones."'), nl,
+    write('Clara: "Hopefully, or all our efforts will be for nothing."'),
+    !, nl.
+
+talk(clara) :-
     i_am_at(crash_site),
     crashed,
     is_injured(clara),
@@ -258,7 +315,7 @@ talk(clara) :-
 
 talk(clara) :-
     i_am_at(cave),
-    retractall(talked(clara, wreck_discovery)),
+    not(examined(wreck)),
     assert(talked(clara, wreck_discovery)),
     write('Clara: "Hey, what''s that? Do you see it?"'), nl,
     write('On the right side of the tunnel, you see a disk-shaped WRECK.'), nl,
@@ -267,12 +324,23 @@ talk(clara) :-
     !, nl.
 
 talk(clara) :-
-    i_am_at(wreck),
+    i_am_at(cave),
+    examined(wreck),
+    not(entered(wreck)),
+    assert(talked(clara, wreck_discovery2)),
     write('You: "This is incredible. A Nazi flying saucer?"'), nl,
     write('Clara: "Looks like it. But how did it get here? And why?"'), nl,
     write('You: "Maybe they were experimenting with advanced technology in Antarctica."'), nl,
     write('Clara: "Or maybe they found something here. Either way, it''s creepy."'), nl,
     write('Clara: "Do you think we should try to get inside it or don''t risk and GO DEEPER?"'),
+    !, nl.
+
+talk(clara) :-
+    (i_am_at(wreck); i_am_at(cave)),
+    entered(wreck),
+    write('Clara: "This place gives me the creeps. Look at these controls—they’re way ahead of their time."'), nl,
+    write('You: "Yeah, it’s like something out of science fiction. But it’s real."'), nl,
+    write('Clara: "I think we’ve seen enough. Let’s keep moving; there might be more ahead. We should GO DEEPER."'),
     !, nl.
 
 talk(_) :-
@@ -321,6 +389,11 @@ process_clara_german_background(2) :-
     !, nl.
 
 /* Special actions */
+use(_) :-
+    finished_act(2),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 use(radio) :-
     i_am_at(cockpit),
     write('You playfully switch frequencies.'), nl,
@@ -359,7 +432,8 @@ use(medkit) :-
     !, nl.
 
 use(geiger) :-
-    i_am_at(wreck),
+    (i_am_at(cave);i_am_at(wreck)),
+    talked(clara, wreck_discovery),
     holding(geiger),
     write('It ticks softly near the wreck.'), nl,
     write('You: "Low radiation. Could''ve been nuclear-powered."'), nl,
@@ -371,6 +445,11 @@ use(_) :-
     !, nl.
 
 /* Movement between locations */
+go(_) :-
+    finished_act(2),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 go(cockpit) :-
     crashed,
     write('You can''t go back to the cockpit; the plane has crashed.'),
@@ -379,6 +458,12 @@ go(cockpit) :-
 go(_) :-
     is_injured(clara),
     write('I need to help Clara first'),
+    !, nl.
+
+go(cave) :-
+    i_am_at(crash_site),
+    at(_, compartment),
+    write('I should check the luggage COMPARTMENT for the rest of the supplies first.'),
     !, nl.
 
 go(cave) :-
@@ -397,6 +482,12 @@ go(wreck) :-
     !, nl.
 
 go(deeper) :-
+    i_am_at(cave),
+    not(talked(clara, wreck_discovery)),
+    write('Clara: "Hey, what''s that? Do you see it?"'),
+    !, nl.
+
+go(deeper) :-
     (i_am_at(cave); i_am_at(wreck)),
     not(examined(wreck)),
     not(entered(wreck)),
@@ -406,6 +497,7 @@ go(deeper) :-
 
 go(deeper) :-
     (i_am_at(cave); i_am_at(wreck)),
+    (entered(wreck) -> describe(cave) ; true),
     change_location(tunnel),
     write('As you descend deeper into the tunnel, a roar shakes the walls as a bat-winged aircraft'), nl,
     write('rockets past, vanishing higher, toward the outside world.'),
@@ -432,11 +524,21 @@ change_location(Place) :-
     assert(at(clara, Place)).
 
 look :-
+    finished_act(2),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
+look :-
     i_am_at(Place),
     describe(Place),
     !, nl.
 
 /* Hint system */
+hint :-
+    finished_act(2),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
 hint :-
     i_am_at(cockpit),
     not(examined(radio)),
@@ -489,15 +591,29 @@ hint :-
 
 hint :-
     i_am_at(cave),
-    not(talked(clara, wreck_discovery)),
+    talked(clara, wreck_discovery),
+    not(examined(wreck)),
+    write('I should EXAMINE the WRECK.'),
+    !, nl.
+
+hint :-
+    i_am_at(cave),
+    examined(wreck),
+    not(entered(wreck)),
+    not(talked(clara, wreck_discovery2)),
     write('I should talk to Clara.'),
     !, nl.
 
 hint :-
     i_am_at(cave),
-    talked(clara, wreck_discovery),
+    talked(clara, wreck_discovery2),
     not(entered(wreck)),
     write('I must decide, should I GO to WRECK or GO DEEPER?'),
+    !, nl.
+
+hint :-
+    i_am_at(cave),
+    write('I should talk to Clara.'),
     !, nl.
 
 hint :-
@@ -510,12 +626,6 @@ hint :-
     i_am_at(wreck),
     holding(pistol),
     write('I should talk to Clara.'),
-    !, nl.
-
-hint :-
-    i_am_at(cave),
-    talked(radio, german),
-    write('I should talk to Clara about that.'),
     !, nl.
 
 hint :-
@@ -553,6 +663,12 @@ describe(crash_site) :-
     write('This place offers no shelter from the biting Antarctic cold.'), nl,
     write('The crash site aligns with Byrd''s coordinates.'), nl,
     !.
+
+describe(cave) :-
+    entered(wreck),
+    write('Slowly and carefully, you emerge from the wreckage.'), nl,
+    write('The dark cave corridor stretches before you.'),
+    !, nl.
 
 describe(cave) :-
     not(talked(clara, wreck_discovery)),
