@@ -1,6 +1,7 @@
 :- module(act3, []).
 
 :- dynamic(attempts/2).
+:- dynamic(looked/1).
 
 wrong_count(A, B, C, Count) :-
     (A =:= 4 -> WA = 0 ; WA = 1),
@@ -62,12 +63,27 @@ intro :-
     look.
 
 /* This rule tells how to look about you. */
+look :- 
+    finished_act(3),
+    write('You''ve already finished this act. Enter "halt." to quit.'),
+    !, nl.
+
 look :-
     i_am_at(Place),
     describe(Place),
     !, nl.
 
 /* Describe locations */
+describe(ruins) :-
+    i_am_at(ruins),
+    write('PLACEHOLDER'), 
+    !, nl.
+
+describe(city) :-
+    i_am_at(city),
+    write('PLACEHOLDER'),
+    !, nl.
+
 describe(ledge) :-
     task(ledge_talk),
     write('You both stand on a rocky ledge overlooking a hidden realm-an expansive, verdant valley cradled beneath Antarctica''s icy crust.'), nl,
@@ -81,6 +97,7 @@ describe(ledge) :-
     assert(described(tree)),
     write('Ahead looms a massive TREE, its gnarled trunk wider than a barn, its branches clawing toward the cavern''s glowing ceiling.'), nl,
     write('Bioluminescent moss clings to its bark, pulsing faintly, while its leaves shimmer with an unearthly light, swaying as if whispering secrets to the wind.'),
+    assert(looked(ledge)),
     !, nl.
 
 describe(tree) :-
@@ -99,8 +116,21 @@ describe(tunnel) :-
     write('Your breath fogs in the frigid air as you clutch the RADIO, your last lifeline.'),
     !, nl.
 
+describe(tunnel) :-
+    i_am_at(tunnel),
+    task(radio),
+    write('The crash site lies in ruins, the plane''s twisted metal half-buried in snow.'), nl,
+    write('The wind howls mercilessly, and the sky above is a bleak, unforgiving gray.'), nl,
+    write('Your breath fogs in the frigid air as you clutch the RADIO, your last lifeline.'),
+    !, nl.
+
 
 /* Hint system */
+hint :-
+    finished_act(3),
+    write('You''ve already finished this act. Enter "halt." to quit.'),
+    !, nl.
+
 hint :-
     task(woods),
     write('We should GO to the WOODS.'),
@@ -170,6 +200,7 @@ hint :-
 hint :-
     i_am_at(ledge),
     task(tree),
+    looked(ledge),
     write('I think I could GO up on that TREE.'),
     nl, !.
 
@@ -186,7 +217,55 @@ hint :-
 
 hint :-
     i_am_at(ruins),
+    at(creature, ruins),
     write('Is the TALK the answer?'),
+    !, nl.
+
+hint :-
+    i_am_at(ruins),
+    task(hide),
+    write('I should hide behind that ROCK'),
+    !, nl.
+
+hint :-
+    i_am_at(city),
+    task(hide),
+    write('I should hide behind that ROCK'),
+    !, nl.
+
+hint :-
+    i_am_at(ruins),
+    task(tunnel),
+    write('I should GO to the TUNNEL'),
+    !, nl.
+
+hint :-
+    i_am_at(city),
+    task(tunnel),
+    write('I should GO to the TUNNEL'),
+    !, nl.
+
+hint :-
+    i_am_at(ruins),
+    task(woods),
+    write('I should GO to the WOODS'),
+    !, nl.
+
+hint :-
+    i_am_at(city),
+    task(woods),
+    write('I should GO to the WOODS'),
+    !, nl.
+
+examined(_) :-
+    finished_act(3),
+    write('You''ve already finished this act. Enter "halt." to quit.'),
+    !, nl.
+
+examine(creature) :-
+    i_am_at(ruins),
+    at(creature, ruins),
+    write('PLACEHOLDER'),
     !, nl.
 
 examine(tree) :-
@@ -202,13 +281,26 @@ examine(radio) :-
     !, nl.
 
 examine(note) :-
-    assert(examined(note)),
     task(radio),
     holding(radio),
     write('The note is weathered, its ink blurred but readable: "Marine Corps Frequency: Alpha-Bravo-Charlie. Remember the code: Four''s might, Seven''s luck, Two''s the root."'),
     !, nl.
 
+examine(X) :-
+    holding(X),
+    write('I''m holding it.'),
+    !, nl.
+
+examine(_) :-
+    write('I can''t see it here or there''s nothing special about it.'),
+    !, nl.
+
 /* Define actions */
+use(_) :-
+    finished_act(3),
+    write('You''ve already finished this act. Enter "halt." to quit.'),
+    !, nl.
+
 use(pistol) :-
     holding(pistol),
     task(fight),
@@ -281,6 +373,11 @@ use(radio) :-
             radio_hint(radio)
     ), nl.
 
+talk(_) :-
+    finished_act(3),
+    write('You''ve already finished this act. Enter "halt." to quit.'),
+    !, nl.
+
 talk(clara) :- 
     task(after_radio),
     write('You turn to Clara, her face illuminated by the dim cabin lights.'), nl,
@@ -308,7 +405,58 @@ talk(clara) :-
     write('Your wife: "Honestly, those conspiracy channels will be the death of you. Go to bed on time for once."'), nl,
     write('You muster a faint smile, the last echoes of the dream fading into nothingness.'), nl,
     write('The adventure is over, and the real world beckons.'), nl,
+    asserta(user:finished_act(3)),
     write('THE END'), !, nl.
+
+talk(clara) :-
+    task(hide),
+    i_am_at(ruins),
+    write('Clara: "Here, give me the pistol and get behind that ROCK-now!"'),
+    !, nl.
+
+talk(clara) :-
+    task(hide),
+    i_am_at(city),
+    write('Clara: "Here, give me the pistol and get behind that ROCK-now!"'),
+    !, nl.
+
+talk(clara) :-
+    task(tunnel),
+    i_am_at(ruins),
+    write('Clara: "It''s a long shot, but let''s GO to the TUNNEL now!"'),
+    !, nl.
+
+talk(clara) :-
+    task(tunnel),
+    i_am_at(city),
+    write('Clara: "It''s a long shot, but let''s GO to the TUNNEL now!"'),
+    !, nl.
+
+talk(clara) :-
+    task(tunnel),
+    i_am_at(tunnel),
+    not(used(radio)),
+    write('Clara: "You should USE the RADIO"'),
+    !, nl.
+
+talk(clara) :-
+    task(radio),
+    i_am_at(tunnel),
+    not(used(radio)),
+    write('Clara: "You should USE the RADIO"'),
+    !, nl.
+
+talk(clara) :-
+    task(woods),
+    i_am_at(ruins),
+    write('Clara: "It''s a long shot, but let''s GO to the WOODS now!"'),
+    !, nl.
+
+talk(clara) :-
+    task(woods),
+    i_am_at(city),
+    write('Clara: "It''s a long shot, but let''s GO to the WOODS now!"'),
+    !, nl.
 
 talk(clara) :-
     task(after_fight),
@@ -338,16 +486,21 @@ talk(clara) :-
 
 talk(clara) :-
     i_am_at(ledge),
+    (not(talked(clara, ledge)),
     write('Clara: "This place... it''s like stepping into a dream. Or maybe a nightmare-I can''t decide."'), nl,
     write('You: "It''s incredible-Byrd wasn''t exaggerating in that diary."'), nl,
     write('Clara: "Sure, but that diary was written before the war. No mention of Nazis anywhere in it. Do you think they beat us to this discovery?"'), nl,
     write('1. "Maybe they found it during their Antarctic expeditions in the ''30s."'), nl,
     write('2. "Or they stumbled across it after the war, looking for a place to hide."'), nl,
+    assert(talked(clara, ledge)),
     read(Choice), !,
-    process_clara_ledge_talk(Choice).
+    process_clara_ledge_talk(Choice); true),
+    (talked(clara, ledge),
+    after_ledge_talk; true), !.
 
 talk(clara) :-
     i_am_at(ruins),
+    at(creature, ruins),
     write('Clara: "Do you think we should TALK to it?"'),
     !, nl.
 
@@ -365,6 +518,10 @@ talk(creature) :-
     write('2. "They''re exploiting you. They''ll strip this valley bare and leave nothing behind."'), nl,
     read(Choice),
     process_creature_talk(Choice).
+
+talk(_) :-
+    write('There''s no one here to talk to or I can''t talk to it.'),
+    nl.
 
 process_creature_talk(1) :-
     i_am_at(ruins),
@@ -471,29 +628,10 @@ process_clara_tunnel_talk_radio :-
     write('Without a radio or supplies, we wouldn''t last a day on the surface. Our only chance is to keep moving, find shelter or someone who knows what''s going on-anything''s better than retreating empty-handed."'),
     !, nl.
 
-go(tunnel) :-
-    i_am_at(city),
-    retractall(task(_)),
-    assert(task(tunnel)),
-    retractall(i_am_at(_)),
-    assert(i_am_at(tunnel)),
-    write('You bolt through the undergrowth, the Nazis'' shouts and revving engines hot on your heels.'), nl,
-    write('Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.'), nl,
-    write('The icy wind bites at your face, a cruel reminder of the surface''s hostility.'), nl, !,
-    (not(holding(radio)), tunnel_game_over; true).
-
-go(tunnel) :-
-    i_am_at(ruins),
-    retractall(task(_)),
-    assert(task(tunnel)),
-    retractall(i_am_at(_)),
-    assert(i_am_at(tunnel)),
-    write('You bolt through the undergrowth, the Nazis'' shouts and revving engines hot on your heels.'), nl,
-    write('Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.'), nl,
-    write('The icy wind bites at your face, a cruel reminder of the surface''s hostility.'), nl, !,
-    (not(holding(radio)), write('You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'), nl,
-    write('Survival hangs by a thread, your fate uncertain.'), nl,
-    write('GAME OVER.'), nl; true).
+go(_) :-
+    finished_act(3),
+    write('You''ve already finished this act. Enter "halt." to quit.'),
+    !, nl.
 
 go(woods) :-
     i_am_at(ruins),
@@ -551,7 +689,38 @@ go(ruins) :-
     !, nl.
 
 go(tunnel) :-
+    i_am_at(city),
+    retractall(task(_)),
+    assert(task(tunnel)),
+    retractall(i_am_at(_)),
+    assert(i_am_at(tunnel)),
+    write('You bolt through the undergrowth, the Nazis'' shouts and revving engines hot on your heels.'), nl,
+    write('Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.'), nl,
+    write('The icy wind bites at your face, a cruel reminder of the surface''s hostility.'), nl, !,
+    (not(holding(radio)), tunnel_game_over; true),
+    !.
+
+go(tunnel) :-
+    i_am_at(ruins),
+    retractall(task(_)),
+    assert(task(tunnel)),
+    retractall(i_am_at(_)),
+    assert(i_am_at(tunnel)),
+    write('You bolt through the undergrowth, the Nazis'' shouts and revving engines hot on your heels.'), nl,
+    write('Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.'), nl,
+    write('The icy wind bites at your face, a cruel reminder of the surface''s hostility.'), nl, !,
+    (not(holding(radio)), write('You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'), nl,
+    write('Survival hangs by a thread, your fate uncertain.'), nl,
+    write('GAME OVER.'), nl; true),
+    !.
+
+go(tunnel) :-
     i_am_at(tree),
+    (talked(clara, tunnel), 
+    write('We can''t GO to TUNNEL. We went to far.'), nl;
+    true),
+    (not(talked(clara, tunnel)),
+    assert(talked(clara, tunnel)),
     write('Clara grabs your sleeve, her grip tight.'), nl,
     write('Clara: "Hold on! We can''t just run back now-there''s too much we don''t understand."'), nl,
     write('Your choices: '), nl,
@@ -559,7 +728,8 @@ go(tunnel) :-
     write('2. "No, it''s too risky. Let''s head back while we can."'), nl,
     read(Choice),
     process_clara_tunnel_talk(Choice),
-    !, nl.
+    !, nl; true),
+    !.
 
 go(city) :-
     i_am_at(tree),
@@ -605,12 +775,14 @@ to_be_continued :-
     write('lingers: this is not the end, but a dark new beginning. Your fate hangs in the '), nl,
     write('balance, and the next chapter of your journey waits just beyond the horizon.'), nl,
     write('TO BE CONTINUED...'), 
+    asserta(user:finished_act(3)),
     !, nl.
 
 tunnel_game_over :-
     write('You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'), nl,
     write('Survival hangs by a thread, your fate uncertain.'), nl,
     write('GAME OVER.'), 
+    asserta(user:finished_act(3)),
     !, nl.
 
 radio_game_end :-
