@@ -43,6 +43,7 @@ take(X) :-
     supply(X),
     i_am_at(Place),
     at(X, Place),
+    task(supplies),
     findall(Y, (holding(Y), supply(Y)), SupplyList),
     length(SupplyList, Count),
     Count < 5,
@@ -53,6 +54,7 @@ take(X) :-
 
 take(X) :-
     supply(X),
+    task(supplies),
     findall(Y, (holding(Y), supply(Y)), SupplyList),
     length(SupplyList, Count),
     Count >= 5,
@@ -96,10 +98,8 @@ take(X) :-
 take(X) :-
     i_am_at(Place),
     at(X, Place),
-    can_take(X),
-    retract(at(X, Place)),
-    assert(holding(X)),
-    write('OK.'),
+    not(task(supplies)),
+    write('I don''t need this right now. I should TALK to Clara first.'),
     !, nl.
 
 take(_) :-
@@ -119,7 +119,7 @@ use(X) :-
     !, nl.
 
 use(_) :-
-    write('I don''t have it.'),
+    write('I don''t have it or I can''t use it.'),
     nl.
 
 /* These rules describe how to put down an object. */
@@ -255,6 +255,8 @@ examine(tanks) :-
     !, nl.
 
 examine(canister) :-
+    i_am_at(Place),
+    at(canister, Place),
     not(can_take(canister)),
     write('I should check the fuel tanks first.'),
     !, nl.
@@ -265,8 +267,47 @@ examine(canister) :-
     assert(examined(canister)),
     !, nl.
 
+examine(clara) :-
+    i_am_at(runway),
+    write('Clara stands near the plane, wearing a military pilot''s uniform with rolled-up sleeves.'), nl,
+    write('Her dark hair is tied back, with a few strands escaping to frame her sharp eyes.'),
+    !, nl.
+
+examine(clara) :-
+    write('I can''t see her clearly from here.'),
+    !, nl.
+
+examine(runway) :-
+    (i_am_at(runway); i_am_at(yard)),
+    write('The runway is a makeshift strip of concrete slabs, cleared of snow.'),
+    !, nl.
+
+examine(depot) :-
+    (i_am_at(depot); i_am_at(yard)),
+    write('The depot is a simple structure, but it keeps the fuel canisters safe from the cold.'),
+    !, nl.
+
+examine(tent) :-
+    (i_am_at(tent); i_am_at(yard)),
+    write('The tent is cramped but well-stocked with supplies.'),
+    !, nl.
+
+examine(barrack) :-
+    (i_am_at(barrack); i_am_at(yard)),
+    write('Your resting place during the mission.'),
+    !, nl.
+
+examine(yard) :-
+    write('The yard is covered in snow.'),
+    !, nl.
+
+examine(X) :-
+    holding(X),
+    write('I''m holding it.'),
+    !, nl.
+
 examine(_) :-
-    write('There''s nothing special about it.'),
+    write('I can''t see it here or there''s nothing special about it.'),
     !, nl.
 
 /* Talk to people */
@@ -291,7 +332,8 @@ talk(clara) :-
     i_am_at(runway),
     holding(canister),
     task(fuel),
-    write('I have it!'), nl,
+    retract(holding(canister)),
+    write('You: "I have it!"'), nl,
     write('Clara: "Nice, hand it over - our bird''s thirsty."'), nl,
     write('*starts fueling the plane*'), nl,
     write('Clara: "Why don''t you gather some supplies while I finish fueling?"'), nl,
@@ -308,7 +350,7 @@ talk(clara) :-
     length(SupplyList, Count),
     Count > 0,
     retractall(task(_)),
-    write('Thank you!'), nl,
+    write('You: "Thank you!"'), nl,
     write('*a moment of silence*'), nl,
     write('Clara: "So, tell me again why we''re risking our necks for this?'), nl,
     write('A diary from some explorer doesn''t scream ''top priority'' to me."'), nl,
@@ -325,11 +367,19 @@ talk(clara) :-
     findall(Y, (holding(Y), supply(Y)), SupplyList),
     length(SupplyList, Count),
     not(Count > 0),
+    write('Clara: "What are you waiting for? Go grab some supplies from the TENT."'), nl,
     write('You have to grab at least one item.'),
     !, nl.
 
+talk(clara) :-
+    i_am_at(runway),
+    task(fuel),
+    not(holding(canister)),
+    write('Clara: "What are you waiting for? Go grab a fuel CANISTER from the DEPOT."'),
+    !, nl.
+
 talk(_) :-
-    write('There''s no one here to talk to.'),
+    write('There''s no one here to talk to or I can''t talk to it.'),
     nl.
 
 /* Process dialog choices */
@@ -437,7 +487,7 @@ hint :-
 hint :-
     task(fuel),
     holding(canister),
-    write('I should give the CANISRER to Clara.'),
+    write('I should give the CANISTER to Clara.'),
     !, nl.
 
 hint :-
@@ -447,6 +497,7 @@ hint :-
 
 hint :-
     task(supplies),
+    i_am_at(runway),
     findall(Y, (holding(Y), supply(Y)), SupplyList),
     length(SupplyList, Count),
     Count > 0,
