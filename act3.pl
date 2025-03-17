@@ -4,9 +4,9 @@
 :- dynamic(looked/1).
 
 wrong_count(A, B, C, Count) :-
-    (A =:= 4 -> WA = 0 ; WA = 1),
+    (A =:= 2 -> WA = 0 ; WA = 1),
     (B =:= 7 -> WB = 0 ; WB = 1),
-    (C =:= 2 -> WC = 0 ; WC = 1),
+    (C =:= 4 -> WC = 0 ; WC = 1),
     Count is WA + WB + WC.
 
 increment_attempts(radio) :-
