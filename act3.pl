@@ -74,6 +74,12 @@ look :-
     !, nl.
 
 /* Describe locations */
+describe(marines_plane) :-
+    i_am_at(marines_plane),
+    write('The Marines'' plane is a sturdy transport, its fuselage bearing the marks of countless missions.'), nl,
+    write('Inside, the cabin is a tight, warm space, alive with the hum of engines and the focused energy of the Marines.'),
+    !, nl.
+
 describe(ruins) :-
     i_am_at(ruins),
     write('The ruins before you are a marvel of ancient architecture, reminiscent of Egypt’s pyramids or the jungle temples of South America, yet distinctly alien.'), nl,
@@ -216,7 +222,7 @@ hint :-
 
 hint :-
     i_am_at(tree),
-    write('We should decide where to go.'),
+    write('I should LOOK around and decide where to GO.'),
     !, nl.
 
 hint :-
@@ -396,7 +402,6 @@ talk(clara) :-
     write('You: "What? What lectures?"'), nl,
     write('Your wife: "You were up late watching TV again. You''ve got to stop with those'), nl,
     write('ridiculous pseudo-historical documentaries on FOCUS TV or TV4-they''re frying your brain."'), nl,
-    write('ridiculous pseudo-historical documentaries on FOCUS TV or TV4-they''re frying your brain."'), nl, nl,
     write('The Antarctic adventure dissolves like mist. You blink, disoriented, as the soft '), nl,
     write('glow of your bedside lamp replaces the plane''s harsh lights. The hum of Warsaw''s '), nl,
     write('morning traffic seeps through the window, a mundane rhythm far removed from the  '), nl,
@@ -525,6 +530,11 @@ talk(creature) :-
     read(Choice),
     process_creature_talk(Choice).
 
+talk(clara) :-
+    i_am_at(tree),
+    write('Clara: Do you see anything interesting?'),
+    !, nl.
+
 talk(_) :-
     write('There''s no one here to talk to or I can''t talk to it.'),
     nl.
@@ -637,6 +647,10 @@ process_clara_tunnel_talk_radio :-
 go(_) :-
     finished_act(3),
     write('You''ve already finished this act. Enter "halt." to quit.'),
+    !, nl.
+
+go(ledge) :-
+    write('We must decide where to go.'),
     !, nl.
 
 go(woods) :-
@@ -792,6 +806,7 @@ tunnel_game_over :-
     !, nl.
 
 radio_game_end :-
+    assert(i_am_at(marines_plane)),
     write('After a tense wait, the roar of engines fills the air. A Marine transport plane descends through the snow, its lights cutting through the gloom.'), nl,
     write('You and CLARA board, the warmth of the cabin a stark contrast to the biting cold.'), nl,
     write('As the plane lifts off, a Marine hands you a stack of nondisclosure agreements.'), nl,
