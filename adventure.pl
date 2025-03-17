@@ -272,6 +272,7 @@ take(2, X) :- act2:take(X).
 
 drop(1, X) :- act1:drop(X).
 drop(2, X) :- act2:drop(X).
+drop(3, X) :- act3:drop(X).
 
 go(1, X) :- act1:go(X).
 go(2, X) :- act2:go(X).

@@ -284,6 +284,21 @@ examine(tree) :-
     write('The tree stands ancient and imposing, its roots plunging into the earth like the veins of the valley itself.'),
     nl, !.
 
+examine(ruins) :-
+    (i_am_at(ruins); i_am_at(tree)),
+    write('The ruins are a marvel of ancient architecture, reminiscent of Egypt’s pyramids or the jungle temples of South America, yet distinctly alien.'),
+    nl, !.
+
+examine(city) :-
+    (i_am_at(city); i_am_at(tree)),
+    write('The city cuts a stark silhouette against the valley’s greenery, its dark gray buildings rising like monolithic sentinels.'),
+    nl, !.
+
+examine(tunnel) :-
+    (i_am_at(tunnel); i_am_at(tree)),
+    write('The tunnel exit gapes like a dark maw, leading back to the frozen surface-a lifeline or a trap, depending on your next move.'),
+    nl, !.
+
 examine(radio) :-
     task(radio),
     holding(radio),
@@ -306,6 +321,48 @@ examine(X) :-
 examine(_) :-
     write('I can''t see it here or there''s nothing special about it.'),
     !, nl.
+
+/* drop an object */
+/* These rules describe how to put down an object. */
+drop(_) :-
+    finished_act(3),
+    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    !, nl.
+
+drop(pistol) :-
+    holding(pistol),
+    task(fight),
+    retract(holding(pistol)),
+    retract(task(fight)),
+    assert(task(after_fight)),
+    write('You hand the PISTOL to Clara.'), nl,
+    write('She aims the old Mauser and squeezes the trigger-a sharp crack echoes through the valley, but the gun jams mid-shot, smoke curling from the barrel like a dying breath.'), nl,
+    write('The Nazis roar in fury, their rifles spitting fire in response.'), nl,
+    write('Bullets chip the rock, showering you with dust and shards.'), nl,
+    write('The leader bellows, his voice thick with venom:'), nl,
+    write('Nazi Leader: "Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!"'),
+    !, nl.
+
+drop(X) :-
+    supply(X),
+    holding(X),
+    i_am_at(Place),
+    retract(holding(X)),
+    assert(at(X, Place)),
+    comment_drop(X),
+    !, nl.
+
+drop(X) :-
+    holding(X),
+    i_am_at(Place),
+    retract(holding(X)),
+    assert(at(X, Place)),
+    write('OK.'),
+    !, nl.
+
+drop(_) :-
+    write('You aren''t holding it!'),
+    nl.
 
 /* Define actions */
 use(_) :-
