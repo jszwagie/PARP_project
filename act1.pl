@@ -350,7 +350,7 @@ talk(clara) :-
     write('1. "Okay, I''ll handle it now."'), nl,
     write('2. "I think it''s good enough, but I could double-check."'), nl,
     write('3. "Why don''t you take care of it?"'), nl,
-    read(Choice),
+    read(Choice), nl,
     process_clara_fuel_talk(Choice).
 
 talk(clara) :-
@@ -365,7 +365,7 @@ talk(clara) :-
     write('Your choices:'), nl,
     write('1. "On my way."'), nl,
     write('2. "Are you sure you can handle it by yourself?"'), nl,
-    read(Choice),
+    read(Choice), nl,
     process_clara_supplies_talk(Choice).
 
 talk(clara) :-
@@ -383,7 +383,7 @@ talk(clara) :-
     write('1."Because it could be the discovery of the century."'), nl,
     write('2."Orders are orders. The government wants answers."'), nl,
     write('3."I''ve got a feeling there''s something big waiting for us."'), nl,
-    read(Choice),
+    read(Choice), nl,
     process_clara_explain(Choice).
 
 talk(clara) :-
@@ -451,7 +451,7 @@ process_clara_explain(1) :-
     write("Your choice:"), nl,
     write("1. Byrd wasn't a dreamer. Those coordinates mean something."), nl,
     write("2. Even if it's nothing, the science alone is worth it."), nl,
-    read(Choice),
+    read(Choice), nl,
     process_further_explain(Choice).
 
 process_clara_explain(2) :-
@@ -640,10 +640,10 @@ act_epilog :-
     write('You: "What do you think we''ll find out there?"'), nl,
     write('Clara: "Best case? A rock formation worth naming. Worst case? A grave with our names on it. I don''t buy the unearthly land garbage."'), nl,
     write('You: "Neither do I, but the government does."'), nl,
-    write('Clara: "I think it''s time we have a good weather"'), nl,
+    write('Clara: "I think it''s time we have a good weather"'), nl, nl,
     write('Preparations complete, you and Clara climb into the plane''s hatch.'), nl,
     write('Clara starts the engines, ready to challenge the icy wilderness.'), nl,
-    write('The plane roars to life, cutting through swirling snow as it lifts off.'), nl,
+    write('The plane roars to life, cutting through swirling snow as it lifts off.'), nl, nl,
     write('Inside, you study the diary while Clara grips the yoke.'), nl,
     write('The horizon swallows the base camp, leaving you with a mix of anticipation-and a hint of lurking danger.'), nl,
     !, act_end.

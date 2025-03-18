@@ -223,8 +223,8 @@ examine(compartment) :-
 examine(wreck) :-
     i_am_at(cave),
     write('A disk-shaped craft protrudes from the ice, marked with a Nazi Balkenkreuz'), nl,
-    write('and "Hergestellt in Deutschland. 1944. Danzig". Machine gun nests bristle from its surface.'), nl,
-    write('Clara: "Made in Germany. 1944. Danzig. I think that''s Nazi tech-what''s it doing here?"'), nl,
+    write('and "Hergestellt in Deutschland. 1944. Danzig". Machine gun nests bristle from its surface.'), nl, nl,
+    write('Clara: "Made in Germany. 1944. Danzig. I think that''s Nazi tech-what''s it doing here?"'), nl, nl,
     write('There appears to be an entrance. I could GO inside the wreck to investigate further.'), nl,
     assert(examined(wreck)),
     !.
@@ -255,8 +255,8 @@ talk(clara) :-
     not(crashed),
     write('You: "Is everything okay?"'), nl,
     write('Clara: "I don''t know; the compass and the altimeter suddenly started going crazy,'), nl,
-    write('but we''re close to our destination, so it shouldn''t be a problem-"'), nl,
-    write('Suddenly, turbulence slams the plane. Lights flicker, instruments fail, and the engines choke.'), nl,
+    write('but we''re close to our destination, so it shouldn''t be a probl-"'), nl, nl,
+    write('Suddenly, turbulence slams the plane. Lights flicker, instruments fail, and the engines choke.'), nl, nl,
     write('Clara (shouting): "Brace yourself! Everything''s shutting down!"'), nl,
     write('You (screaming in panic): "Ahh, what''s happening!?"'), nl,
     write('The plane spirals down, crashing into the ice. Darkness falls.'), nl,
@@ -280,7 +280,7 @@ talk(clara) :-
     write('1. "Byrd''s diary points to 70S, 10E. The coordinates are too specific to be nothing."'), nl,
     write('2. "I don''t know, but the weather''s turning ugly. We need to stay sharp."'), nl,
     write('3. "Whether it''s real or not, the mission''s worth it for the discovery alone."'), nl,
-    read(Choice),
+    read(Choice), nl,
     process_clara_cockpit_talk(Choice),
     assert(talked(clara, cockpit)),
     !, nl.
@@ -317,7 +317,7 @@ talk(clara) :-
     i_am_at(cave),
     not(examined(wreck)),
     assert(talked(clara, wreck_discovery)),
-    write('Clara: "Hey, what''s that? Do you see it?"'), nl,
+    write('Clara: "Hey, what''s that? Do you see it?"'), nl, nl,
     write('On the right side of the tunnel, you see a disk-shaped WRECK.'), nl,
     write('A massive, saucer-like craft embedded in the ice, its metallic surface scarred and dented.'), nl,
     write('It looks futuristic yet ancient.'),
@@ -331,7 +331,7 @@ talk(clara) :-
     write('You: "This is incredible. A Nazi flying saucer?"'), nl,
     write('Clara: "Looks like it. But how did it get here? And why?"'), nl,
     write('You: "Maybe they were experimenting with advanced technology in Antarctica."'), nl,
-    write('Clara: "Or maybe they found something here. Either way, it''s creepy."'), nl,
+    write('Clara: "Or maybe they found something here. Either way, it''s creepy."'), nl, nl,
     write('Clara: "Do you think we should try to get inside it or don''t risk and GO DEEPER?"'),
     !, nl.
 
@@ -374,7 +374,7 @@ process_clara_german_talk(2) :-
     write('Your choices:'), nl,
     write('1. "Byrd''s diary doesn''t mention Germans, but hey, we''re in what Nazi Germany claimed as their territory in Antarctica."'), nl,
     write('2. "Ah, Uncle Sam, a shelter for all the world''s people in need."'), nl,
-    read(Choice),
+    read(Choice), nl,
     process_clara_german_background(Choice),
     !.
 
@@ -396,16 +396,17 @@ use(_) :-
 
 use(radio) :-
     i_am_at(cockpit),
+    assert(examined(radio)),
     write('You playfully switch frequencies.'), nl,
     write('Clara: "What is it, doc? Are you bored?"'), nl,
-    write('You: "Kind of."'), nl,
-    write('After a while, you run into something. The radio spits static until a garbled voice breaks through.'), nl,
+    write('You: "Kind of."'), nl, nl,
+    write('After a while, you run into something. The radio spits static until a garbled voice breaks through.'), nl, nl,
     write('Clara: "Wait, what? I think I hear German, but the audio is too distorted; I can''t make out the words."'), nl,
     assert(used(radio)),
     write('Your choices:'), nl,
     write('1. "Nah, you''re freaking out; that''s just some usual anomalies. Focus on piloting."'), nl,
     write('2. "Oh, you know German? I should have guessed from your surname."'), nl,
-    read(Choice),
+    read(Choice), nl,
     process_clara_german_talk(Choice),
     assert(talked(clara, german_radio)),
     !, nl.
@@ -440,9 +441,14 @@ use(geiger) :-
     write('Clara: "That''s odd, from what I know nazis never discovered nuclear energy"'),
     !, nl.
 
-use(_) :-
-    write('You can''t use that right now.'),
+use(X) :-
+    holding(X),
+    write('I can''t use that right now.'),
     !, nl.
+
+use(_) :-
+    write('I don''t have it or I can''t use it.'),
+    nl.
 
 /* Movement between locations */
 go(_) :-
@@ -500,9 +506,9 @@ go(deeper) :-
     (entered(wreck) -> describe(cave) ; true),
     change_location(tunnel),
     write('As you descend deeper into the tunnel, a roar shakes the walls as a bat-winged aircraft'), nl,
-    write('rockets past, vanishing higher, toward the outside world.'),
+    write('rockets past, vanishing higher, toward the outside world.'),nl, nl,
     write('Clara: "That''s Nazi design-straight out of the war!"'), nl,
-    write('You: "I''m freaking out; let''s get out of here. I think I see light ahead."'), nl,
+    write('You: "I''m freaking out; let''s get out of here. I think I see light ahead."'), nl, nl,
     write('A steady glow blooms from the tunnel''s depths, pulling you forward.'), nl,
     act_end,
     !, nl.
@@ -716,11 +722,11 @@ tell(Choice) :-
 
 game_over_no_medkit :-
     write('You realize you forgot to take the MEDKIT before departure.'), nl,
-    write('How could I forget it? What can I do now?'), nl,
-    write('You start to panic, gasping heavily.'), nl,
-    write('Clara, Clara, wake up!'), nl,
+    write('You: "How could I forget it? What can I do now?"'), nl,
+    write('You start to panic, gasping heavily.'), nl, nl,
+    write('You: "Clara, Clara, wake up!"'), nl,
     write('You try to rouse Clara, but it''s futile.'), nl,
-    write('(crying) Clara, please, I can''t do this alone.'), nl,
+    write('You: (crying) "Clara, please, I can''t do this alone."'), nl, nl,
     write('With her wound untreated, Clara continues to bleed. Suddenly, her heart stops beating.'), nl,
     write('As the cold overwhelms you, the Antarctic claims you both.'), nl,
     write('GAME OVER'),

@@ -18,9 +18,9 @@ increment_attempts(radio) :-
 radio_hint(radio) :-
     attempts(radio, Count),
     ( Count =:= 2 ->
-        write('HINT: "The plaque mentions ''A=Even, B=Prime, C=Square.'' And the note says ''Four''s might''-could A be 4?"'), nl
+        write('HINT: "The plaque mentions ''A=Even, B=Prime, C=Square.'' And the note says ''Two''s pair''-could A be 2?"'), nl
     ; Count =:= 3 ->
-        write('HINT: "Think it through: 4 is even, 7 is prime, and 2 ties to the square root of 4. That matches all the clues."'), nl
+        write('HINT: "Think it through: 2 is even, 7 is prime, and 4 ties to the square of 2. That matches all the clues."'), nl
     ; true ).
 
 initialize_act :-
@@ -186,7 +186,7 @@ hint :-
     task(radio),
     holding(radio),
     examined(note),
-    write('The note says ''Four''s might, Seven''s luck, Two''s the root.'' That could point to the settings for A, B, and C. The plaque might help confirm it.'),
+    write('The note says ''Four''s the square, Seven''s luck, Two''s pair.'' That could point to the settings for A, B, and C. The plaque might help confirm it.'),
     !, nl.
 
 hint :-
@@ -310,7 +310,7 @@ examine(radio) :-
 examine(note) :-
     task(radio),
     holding(radio),
-    write('The note is weathered, its ink blurred but readable: "Marine Corps Frequency: Alpha-Bravo-Charlie. Remember the code: Four''s might, Seven''s luck, Two''s the root."'),
+    write('The note is weathered, its ink blurred but readable: "Marine Corps Frequency: Alpha-Bravo-Charlie. Remember the code: Four''s the square, Seven''s luck, Two''s pair."'),
     !, nl.
 
 examine(X) :-
@@ -332,6 +332,7 @@ drop(_) :-
 drop(pistol) :-
     holding(pistol),
     task(fight),
+    i_am_at(rock),
     retract(holding(pistol)),
     retract(task(fight)),
     assert(task(after_fight)),
@@ -339,8 +340,14 @@ drop(pistol) :-
     write('She aims the old Mauser and squeezes the trigger-a sharp crack echoes through the valley, but the gun jams mid-shot, smoke curling from the barrel like a dying breath.'), nl,
     write('The Nazis roar in fury, their rifles spitting fire in response.'), nl,
     write('Bullets chip the rock, showering you with dust and shards.'), nl,
-    write('The leader bellows, his voice thick with venom:'), nl,
+    write('The leader bellows, his voice thick with venom:'), nl, nl,
     write('Nazi Leader: "Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!"'),
+    !, nl.
+
+drop(pistol) :-
+    holding(pistol),
+    task(fight),
+    write('Clara: "Hide behind the ROCK, now!"'),
     !, nl.
 
 drop(X) :-
@@ -373,6 +380,7 @@ use(_) :-
 use(pistol) :-
     holding(pistol),
     task(fight),
+    i_am_at(rock),
     retract(holding(pistol)),
     retract(task(fight)),
     assert(task(after_fight)),
@@ -380,8 +388,14 @@ use(pistol) :-
     write('She aims the old Mauser and squeezes the trigger-a sharp crack echoes through the valley, but the gun jams mid-shot, smoke curling from the barrel like a dying breath.'), nl,
     write('The Nazis roar in fury, their rifles spitting fire in response.'), nl,
     write('Bullets chip the rock, showering you with dust and shards.'), nl,
-    write('The leader bellows, his voice thick with venom:'), nl,
+    write('The leader bellows, his voice thick with venom:'), nl, nl,
     write('Nazi Leader: "Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!"'),
+    !, nl.
+
+use(pistol) :-
+    holding(pistol),
+    task(fight),
+    write('Clara: "Hide behind the ROCK, now!"'),
     !, nl.
 
 use(radio) :-
@@ -389,7 +403,7 @@ use(radio) :-
     task(tunnel),
     retractall(task(tunnel)),
     assert(task(radio)),
-    write('The RADIO crackles in your hands, its three dials labeled A, B, and C glinting faintly in the dim light of the crash site.'), nl,
+    write('The RADIO crackles in your hands, its three dials labeled A, B, and C glinting faintly in the dim light of the crash site.'), nl, nl,
     write('Each dial can be set to a number between 1 and 9.'), nl,
     write('A faded, crumpled NOTE taped to the side reads: "Marine Corps Frequency: Alpha-Bravo-Charlie."'), nl,
     write('The wind howls outside, urging you to hurry.'), nl,
@@ -415,22 +429,22 @@ use(radio) :-
     wrong_count(A, B, C, Count),
     (
         Count =:= 0 ->
-            write('The RADIO hums as it locks onto a strong signal. A clear voice cuts through:'), nl,
+            write('The RADIO hums as it locks onto a strong signal. A clear voice cuts through:'), nl, nl,
             write('"Mission 334, this is the 32nd Marine Corps. Coordinates received. Extraction team inbound. Over."'), nl,
             write('Clara: "Copy that. We''ll hold tight. Over."'), nl,
-            write('Marine: "Copy that. We''re tracking your signal. Hold tight, over."'), nl,
+            write('Marine: "Copy that. We''re tracking your signal. Hold tight, over."'), nl, nl,
             write('The steady signal brings a flicker of relief amidst the chaos.'), nl,
             retract(holding(radio)),
             assert(used(radio)),
             radio_game_end
         ; Count =:= 1 ->
-            writeln('The RADIO picks up a faint Marine transmission, but it''s garbled:'),
+            writeln('The RADIO picks up a faint Marine transmission, but it''s garbled:'), nl,
             writeln('"Mission... [static]... coordinates... [static]... hold..."'),
             writeln('Clara: "Almost there, but it''s too weak. They won''t get our position like this."'),
             increment_attempts(radio),
             radio_hint(radio)
         ; Count =:= 2 ->
-            writeln('A sharp burst of static erupts from the RADIO, followed by a chilling German voice:'),
+            writeln('A sharp burst of static erupts from the RADIO, followed by a chilling German voice:'), nl,
             writeln('"Achtung! Feindliche Ubertragung entdeckt!"'),
             writeln('Clara: "That''s the Germans-they''ve intercepted us. We''ve got to fix this now!"'),
             increment_attempts(radio),
@@ -442,6 +456,29 @@ use(radio) :-
             radio_hint(radio)
     ), nl.
 
+use(radio) :-
+    holding(radio),
+    write('The radio has no use here, this place blocks the signal.'),
+    !, nl.
+
+use(pistol) :-
+    holding(pistol),
+    write('Who do you want me to shoot, you psycho?'),
+    !, nl.
+
+use(geiger) :-
+    write('Radiation levels - normal.'),
+    !, nl.
+
+use(X) :-
+    holding(X),
+    write('I can''t use that right now.'),
+    !, nl.
+
+use(_) :-
+    write('I don''t have it or I can''t use it.'),
+    nl.
+
 talk(_) :-
     finished_act(3),
     write('You''ve already finished this act. Enter "halt." to quit.'),
@@ -449,28 +486,28 @@ talk(_) :-
 
 talk(clara) :-
     task(after_radio),
-    write('You turn to Clara, her face illuminated by the dim cabin lights.'), nl,
+    write('You turn to Clara, her face illuminated by the dim cabin lights.'), nl, nl,
     write('You: "So, what—this is how it ends?"'), nl,
     write('Clara: "Wake up!"'), nl,
     write('You: "What?!"'), nl,
-    write('Clara: "WAKE UP!"'), nl,
+    write('Clara: "WAKE UP!"'), nl, nl,
     write('Suddenly, a sharper voice breaks through the haze.'), nl,
     write('Your wife: "Damn it, wake up! You''ll be late for your lectures!"'), nl,
     write('You: "What? What lectures?"'), nl,
     write('Your wife: "You were up late watching TV again. You''ve got to stop with those'), nl,
-    write('ridiculous pseudo-historical documentaries on FOCUS TV or TV4-they''re frying your brain."'), nl,
+    write('ridiculous pseudo-historical documentaries on FOCUS TV or TV4-they''re frying your brain."'), nl, nl,
     write('The Antarctic adventure dissolves like mist. You blink, disoriented, as the soft '), nl,
     write('glow of your bedside lamp replaces the plane''s harsh lights. The hum of Warsaw''s '), nl,
     write('morning traffic seeps through the window, a mundane rhythm far removed from the  '), nl,
     write('valley''s eerie pulse. It was all a dream—a vivid fantasy spun from late-night '), nl,
     write('television and a restless mind. You''re not an adventurer escaping a hidden'), nl,
     write('world; you''re an ordinary professor at the Warsaw University of Technology, with'), nl,
-    write('lectures to deliver and papers to grade. Reality sinks in, familiar and unrelenting.'), nl,
+    write('lectures to deliver and papers to grade. Reality sinks in, familiar and unrelenting.'), nl, nl,
     write('You sit up, rubbing your eyes as the dream''s vivid details—Clara''s determined '), nl,
     write('gaze, the snow-swept valley, the roar of the plane—slip away like sand through '), nl,
     write('your fingers. Your wife moves about the room, muttering about your late-night '), nl,
-    write('habits, oblivious to the epic journey you''ve just imagined.'), nl,
-    write('Your wife: "Honestly, those conspiracy channels will be the death of you. Go to bed on time for once."'), nl,
+    write('habits, oblivious to the epic journey you''ve just imagined.'), nl, nl,
+    write('Your wife: "Honestly, those conspiracy channels will be the death of you. Go to bed on time for once."'), nl, nl,
     write('You muster a faint smile, the last echoes of the dream fading into nothingness.'), nl,
     write('The adventure is over, and the real world beckons.'), nl,
     asserta(user:finished_act(3)),
@@ -530,7 +567,7 @@ talk(clara) :-
     task(after_fight),
     write('You: "What did he say?"'), nl,
     write('Clara: *breathing heavily* "Nothing good. I don''t know if we can get out of this alive."'), nl,
-    write('Clara: *shouting in fright* "Wir kapitulieren! Halt!"'), nl,
+    write('Clara: *shouting in fright* "Wir kapitulieren! Halt!"'), nl, nl,
     write('The soldiers cease fire, their eyes still burning with rage.'), nl,
     write('They swarm closer, boots pounding the earth like war drums, and you''re wrestled to the ground, wrists bound tight with rough cord.'), nl,
     write('Their treatment is brutal - fists and threats of execution, though they spare you for now, muttering darkly about your potential value.'), nl,
@@ -549,7 +586,7 @@ talk(clara) :-
     (holding(radio), write('We can try the RADIO one more time!'); true), nl,
     write('3. "We surrender. Maybe we can talk our way out."'), nl,
     write('4. "Into the WOODS-lose them in the trees!"'), nl,
-    read(Choice),
+    read(Choice), nl,
     process_ambush(Choice).
 
 talk(clara) :-
@@ -561,7 +598,7 @@ talk(clara) :-
     write('1. "Maybe they found it during their Antarctic expeditions in the ''30s."'), nl,
     write('2. "Or they stumbled across it after the war, looking for a place to hide."'), nl,
     assert(talked(clara, ledge)),
-    read(Choice), !,
+    read(Choice), nl, !,
     process_clara_ledge_talk(Choice); true),
     (talked(clara, ledge),
     after_ledge_talk; true), !.
@@ -575,7 +612,7 @@ talk(clara) :-
 talk(creature) :-
     i_am_at(ruins),
     at(creature, ruins),
-    write('*The creature''s voice resonates in your mind, a melodic hum that bypasses your ears entirely.*'), nl,
+    write('*The creature''s voice resonates in your mind, a melodic hum that bypasses your ears entirely.*'), nl, nl,
     write('Creature: "Wanderers, greetings. Sentinel of this realm, I am, keeper of wisdom older than your civilization, hmm.'), nl,
     write('Answers you seek, yes? Give them to you, I shall.'), nl,
     write('Tied to what you call ''Atlantis,'' our kin are, though lost to your tongue, our true name is.'), nl,
@@ -584,7 +621,7 @@ talk(creature) :-
     write('Your choices: '), nl,
     write('1. "Those Germans-the Nazis-are monsters. They''ve waged war and killed millions."'), nl,
     write('2. "They''re exploiting you. They''ll strip this valley bare and leave nothing behind."'), nl,
-    read(Choice),
+    read(Choice), nl,
     process_creature_talk(Choice).
 
 talk(clara) :-
@@ -631,8 +668,8 @@ process_ambush(3) :-
     retractall(task(_)),
     write('You: "We surrender. Maybe we can talk our way out."'), nl,
     write('You raise your hands slowly. Clara mirrors your movement and calls out to the soldiers:'), nl,
-    write('Clara: "Wir kapitulieren! Kein Problem."'), nl,
-    write('The Nazis lower their rifles slightly, though their glares remain sharp as knives. The leader smirks, holstering his Luger with a flourish.'), nl,
+    write('Clara: "Wir kapitulieren! Kein Problem."'), nl, nl,
+    write('The Nazis lower their rifles slightly, though their glares remain sharp as knives. The leader smirks, holstering his Luger with a flourish.'), nl, nl,
     write('Nazi Leader: "Kluger Schachzug, Amerikaner. Unser Kommandant mochte Sie unbedingt sehen."'), nl,
     write('They bind your hands with coarse rope, the knots biting into your wrists, and march you toward the CITY, their motorcycles roaring triumphantly.'), nl,
     to_be_continued,
@@ -671,7 +708,7 @@ after_ledge_talk :-
     assert(task(tree)),
     write('You stand together, awestruck by the valley''s haunting beauty.'), nl,
     write('The bioluminescent flora bathes the landscape in a shimmering, otherworldly hue, while the faint hum of the valley''s life-chirps, rustles, and distant cries-wraps around you like a living tapestry.'), nl,
-    write('It''s a paradise untouched by time, yet the shadow of danger looms just out of sight.'), nl,
+    write('It''s a paradise untouched by time, yet the shadow of danger looms just out of sight.'), nl, nl,
     write('Clara: *gasps* "Okay, enough gawking. If we want to survive this, we need a better lay of the land. Let''s find a high spot for reconnaissance."'),
     !, nl.
 
@@ -716,7 +753,7 @@ go(woods) :-
     retractall(task(_)),
     write('You sprint into the dense forest, branches snapping underfoot as you weave through the shadows.'), nl,
     write('The Nazis'' shouts fade briefly-you dare to hope-until the sky hums with menace.'), nl,
-    write('A flying saucer descends, its beam of light slashing through the canopy like a blade, pinning you in its merciless glare.'), nl,
+    write('A flying saucer descends, its beam of light slashing through the canopy like a blade, pinning you in its merciless glare.'), nl, nl,
     write('Nazi Pilot (over loudspeaker): "Kein Entkommen, ihr Narren! Das Reich sieht alles!"'), nl,
     write('Riflemen emerge from the trees, their grips iron as they drag you back to the group. They bind your hands with coarse rope and march you toward the CITY, their motorcycles roaring triumphantly.'), nl,
     to_be_continued,
@@ -728,7 +765,7 @@ go(woods) :-
     retractall(task(_)),
     write('You sprint into the dense forest, branches snapping underfoot as you weave through the shadows.'), nl,
     write('The Nazis'' shouts fade briefly-you dare to hope-until the sky hums with menace.'), nl,
-    write('A flying saucer descends, its beam of light slashing through the canopy like a blade, pinning you in its merciless glare.'), nl,
+    write('A flying saucer descends, its beam of light slashing through the canopy like a blade, pinning you in its merciless glare.'), nl, nl,
     write('Nazi Pilot (over loudspeaker): "Kein Entkommen, ihr Narren! Das Reich sieht alles!"'), nl,
     write('Riflemen emerge from the trees, their grips iron as they drag you back to the group. They bind your hands with coarse rope and march you toward the CITY, their motorcycles roaring triumphantly.'), nl,
     to_be_continued,
@@ -803,7 +840,7 @@ go(tunnel) :-
     write('Your choices: '), nl,
     write('1. "You''re right. We need to explore and figure this out."'), nl,
     write('2. "No, it''s too risky. Let''s head back while we can."'), nl,
-    read(Choice),
+    read(Choice), nl,
     process_clara_tunnel_talk(Choice),
     !, nl; true),
     !.
@@ -832,9 +869,9 @@ nazi_ambush :-
     assert(task(ambush_beginning)),
     write('The Nazis lock eyes on you, their motorcycles skidding to a halt in a crescent of dust and menace.'), nl,
     write('Their leader, a wiry man with a scar slashing across his cheek, leaps off his bike, his black uniform pristine despite the grime of the valley.'), nl,
-    write('He levels a Luger at you, his voice a guttural snarl that cuts through the humid air.'), nl,
+    write('He levels a Luger at you, his voice a guttural snarl that cuts through the humid air.'), nl, nl,
     write('Nazi Leader: "Halt! Amerikanische Spione! Werft die Waffen nieder!"'), nl,
-    write('Clara (whispering): "They think we are spies. They''ve got us wrong, but I doubt they''ll listen to reason."'), nl,
+    write('Clara (whispering): "They think we are spies. They''ve got us wrong, but I doubt they''ll listen to reason."'), nl, nl,
     write('The air thickens with tension as the Nazis fan out, their boots crunching on the gravel, rifles glinting in the bioluminescent glow.'), nl,
     write('Above, a flying saucer hums into view, its searchlight slicing through the foliage like a predator''s gaze.'), nl,
     write('Time slows-your heart pounds, and the valley''s beauty fades behind the cold reality of danger.'),
@@ -842,15 +879,15 @@ nazi_ambush :-
 
 to_be_continued :-
     write('The CITY looms ahead, its dark spires piercing the bioluminescent sky like '), nl,
-    write('jagged teeth. Clara stumbles beside you, her face pale but defiant, though her eyes betray a flicker of fear.'), nl,
+    write('jagged teeth. Clara stumbles beside you, her face pale but defiant, though her eyes betray a flicker of fear.'), nl, nl,
     write('You steal a glance at the leader, his scar twisting as he smirks, satisfied with '), nl,
     write('his prize. What awaits in the CITY? Interrogation? Imprisonment? Or something '), nl,
     write('far worse, tied to the secrets buried in this impossible valley? The questions '), nl,
     write('gnaw at you, but answers remain elusive, shrouded in the same mystery that'), nl,
-    write('cloaks this hidden world.'), nl,
+    write('cloaks this hidden world.'), nl, nl,
     write('As the CITY gates creak open, swallowing you into its shadowed maw, one thought'), nl,
     write('lingers: this is not the end, but a dark new beginning. Your fate hangs in the '), nl,
-    write('balance, and the next chapter of your journey waits just beyond the horizon.'), nl,
+    write('balance, and the next chapter of your journey waits just beyond the horizon.'), nl, nl,
     write('TO BE CONTINUED...'),
     asserta(user:finished_act(3)),
     !, nl.
@@ -866,8 +903,8 @@ radio_game_end :-
     assert(i_am_at(marines_plane)),
     write('After a tense wait, the roar of engines fills the air. A Marine transport plane descends through the snow, its lights cutting through the gloom.'), nl,
     write('You and CLARA board, the warmth of the cabin a stark contrast to the biting cold.'), nl,
-    write('As the plane lifts off, a Marine hands you a stack of nondisclosure agreements.'), nl,
-    write('Marine: "Sign these. What you saw down there stays buried. Understood?"'), nl,
+    write('As the plane lifts off, a Marine hands you a stack of nondisclosure agreements.'), nl, nl,
+    write('Marine: "Sign these. What you saw down there stays buried. Understood?"'), nl, nl,
     write('You nod, a heavy, unspoken weight settling over you.'), nl,
     write('The valley''s mysteries fade into the distance, shrouded in silence, as the plane carries you away.'), nl,
     retractall(task(_)),
