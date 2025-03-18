@@ -425,7 +425,8 @@ process_clara_fuel_talk(2) :-
 
 process_clara_fuel_talk(3) :-
     write('You: "Why don''t you take care of it?"'), nl,
-    write('Clara: (frowning) "Oh, you''re lazy, aren''t you? Fine, I''ll handle it after I finish checking the oil, but you''re not off the hook, doc. Go gather mandatory supplies and drop them near the plane."'),
+    write('Clara: (frowning) "Oh, you''re lazy, aren''t you? Fine, I''ll handle it after I finish checking the oil,'), nl,
+    write('but you''re not off the hook, doc. Go gather mandatory supplies and drop them near the plane."'), nl,
     retractall(task(_)),
     assert(talked(clara, fuel_request)),
     assert(task(supplies)),
