@@ -1,5 +1,7 @@
 :- module(act2, []).
 
+:- dynamic game_over/0.
+
 initialize_act :-
     retractall(i_am_at(_)),
     assert(i_am_at(cockpit)),
@@ -52,9 +54,16 @@ accessible(Item, Place) :-
     at(Item, compartment),
     accessible(compartment, Place).
 
+end_game_message :-
+    (not(game_over) ->
+        write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.')
+    ;
+        write('Game over. Enter "halt." to quit or "act2." to play again.')
+    ).
+
 take(_) :-
     finished_act(2),
-    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    end_game_message,
     !, nl.
 
 take(radio) :-
@@ -126,7 +135,7 @@ take(_) :-
 /* These rules describe how to put down an object. */
 drop(_) :-
     finished_act(2),
-    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    end_game_message,
     !, nl.
 
 drop(X) :-
@@ -153,7 +162,7 @@ drop(_) :-
 /* Examine objects */
 examine(_) :-
     finished_act(2),
-    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    end_game_message,
     !, nl.
 
 examine(diary) :-
@@ -246,7 +255,7 @@ examine(_) :-
 /* Talk to people */
 talk(_) :-
     finished_act(2),
-    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    end_game_message,
     !, nl.
 
 talk(clara) :-
@@ -391,7 +400,7 @@ process_clara_german_background(2) :-
 /* Special actions */
 use(_) :-
     finished_act(2),
-    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    end_game_message,
     !, nl.
 
 use(radio) :-
@@ -453,7 +462,7 @@ use(_) :-
 /* Movement between locations */
 go(_) :-
     finished_act(2),
-    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    end_game_message,
     !, nl.
 
 go(cockpit) :-
@@ -531,7 +540,7 @@ change_location(Place) :-
 
 look :-
     finished_act(2),
-    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    end_game_message,
     !, nl.
 
 look :-
@@ -542,7 +551,7 @@ look :-
 /* Hint system */
 hint :-
     finished_act(2),
-    write('You''ve already finished this act. Enter "next." to proceed or "halt." to quit.'),
+    end_game_message,
     !, nl.
 
 hint :-
@@ -730,6 +739,8 @@ game_over_no_medkit :-
     write('With her wound untreated, Clara continues to bleed. Suddenly, her heart stops beating.'), nl,
     write('As the cold overwhelms you, the Antarctic claims you both.'), nl,
     write('GAME OVER'),
+    asserta(user:finished_act(2)),
+    assert(game_over),
     !, nl.
 
 act_end :-
