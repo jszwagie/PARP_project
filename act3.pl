@@ -385,11 +385,16 @@ use(pistol) :-
     retract(task(fight)),
     assert(task(after_fight)),
     write('You hand the PISTOL to Clara.'), nl,
-    write('She aims the old Mauser and squeezes the trigger-a sharp crack echoes through the valley, but the gun jams mid-shot, smoke curling from the barrel like a dying breath.'), nl,
-    write('The Nazis roar in fury, their rifles spitting fire in response.'), nl,
-    write('Bullets chip the rock, showering you with dust and shards.'), nl,
-    write('The leader bellows, his voice thick with venom:'), nl, nl,
-    write('Nazi Leader: "Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!"'),
+    random(C),
+    (C > 0.5 ->
+        write('She aims the old Mauser and squeezes the trigger-a sharp crack echoes through the valley, but the gun jams mid-shot, smoke curling from the barrel like a dying breath.'), nl,
+        write('The Nazis roar in fury, their rifles spitting fire in response.'), nl,
+        write('Bullets chip the rock, showering you with dust and shards.'), nl,
+        write('The leader bellows, his voice thick with venom:'), nl, nl,
+        write('Nazi Leader: "Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!"')
+    ;
+        write('WIP'), nl /* TODO: Shot missed text */
+    ),
     !, nl.
 
 use(pistol) :-
