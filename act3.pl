@@ -333,15 +333,7 @@ drop(pistol) :-
     holding(pistol),
     task(fight),
     i_am_at(rock),
-    retract(holding(pistol)),
-    retract(task(fight)),
-    assert(task(after_fight)),
-    write('You hand the PISTOL to Clara.'), nl,
-    write('She aims the old Mauser and squeezes the trigger-a sharp crack echoes through the valley, but the gun jams mid-shot, smoke curling from the barrel like a dying breath.'), nl,
-    write('The Nazis roar in fury, their rifles spitting fire in response.'), nl,
-    write('Bullets chip the rock, showering you with dust and shards.'), nl,
-    write('The leader bellows, his voice thick with venom:'), nl, nl,
-    write('Nazi Leader: "Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!"'),
+    use(pistol),
     !, nl.
 
 drop(pistol) :-
@@ -387,13 +379,16 @@ use(pistol) :-
     write('You hand the PISTOL to Clara.'), nl,
     random(C),
     (C > 0.5 ->
-        write('She aims the old Mauser and squeezes the trigger-a sharp crack echoes through the valley, but the gun jams mid-shot, smoke curling from the barrel like a dying breath.'), nl,
+        write('She aims the old Mauser and fires—a sharp crack echoes through the valley, the shot strikes one of the soldiers, who collapses with a cry.'), nl,
         write('The Nazis roar in fury, their rifles spitting fire in response.'), nl,
         write('Bullets chip the rock, showering you with dust and shards.'), nl,
         write('The leader bellows, his voice thick with venom:'), nl, nl,
         write('Nazi Leader: "Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!"')
     ;
-        write('WIP'), nl /* TODO: Shot missed text */
+        write('She aims the old Mauser and pulls the trigger, but it jams with a dull click, refusing to fire.'), nl,
+        write('The Nazis burst into mocking laughter, their sneers cutting through the air.'), nl,
+        write('The leader steps forward, his voice dripping with scorn:'), nl, nl,
+        write('Nazi Leader: "Ihr erbärmlichen Narren! Dafür werdet ihr sterben!"')
     ),
     !, nl.
 
