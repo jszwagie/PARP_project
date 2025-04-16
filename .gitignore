@@ -1,1 +1,4 @@
 temp
+*.o
+*.hi
+main
