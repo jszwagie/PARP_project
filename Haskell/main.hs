@@ -1,5 +1,8 @@
 module Main where
 
+import Data.Char (toLower)
+import Data.List (find)
+import Data.Maybe (fromJust, fromMaybe, isJust)
 import System.IO (hFlush, stdout)
 
 introductionText :: [String]
