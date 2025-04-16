@@ -6,22 +6,27 @@ import Data.Maybe (fromJust, fromMaybe, isJust)
 import System.IO (hFlush, stdout)
 
 introductionText :: [String]
-introductionText = [
-    "Welcome to the game",
-    "",
-    "Commands are 'go', 'look'",
-    ""
+introductionText =
+    [ "Welcome to The Hidden Realm"
+    , "An interactive fiction adventure set in the icy depths of Antarctica."
+    , "Unravel ancient secrets, face modern dangers, and shape your fate through your choices."
+    , ""
     ]
 
 instructionsText :: [String]
-instructionsText = [
-    "Available commands are:",
-    "",
-    "instructions  -- to see these instructions.",
-    "quit          -- to end the game and quit.",
-    "go <place> -- to move to a place.",
-    "look         -- to look around.",
-    ""
+instructionsText =
+    [ "Available commands are:"
+    , "look           -- to look around you and describe surroundings"
+    , "go <place>     -- to go to a place."
+    , "examine <obj>  -- to examine an object or person closely."
+    , "talk <person>  -- to talk to someone."
+    , "take <obj>     -- to pick up an object."
+    , "drop <obj>     -- to put down an object."
+    , "inventory      -- list currently held items."
+    , "instructions   -- to see these instructions."
+    , "hint           -- to get a hint if you're stuck."
+    , "quit           -- to end the game and quit."
+    , ""
     ]
 
 data Location = Barrack | Yard | Runway | Depot | Tent | Unknown deriving (Eq, Show)
