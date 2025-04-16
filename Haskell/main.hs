@@ -122,13 +122,33 @@ canMove Depot Yard = True
 canMove Tent Yard = True
 canMove _ _ = False
 
-describeLocation :: Location -> String
-describeLocation location = "This is the " ++ case location of
-    Barrack -> "barrack"
-    Yard -> "yard"
-    Runway -> "runway"
-    Depot -> "depot"
-    Tent -> "tent"
+-- Description for each location
+describeLocation Yard =
+    "You're on the BARRACK yard. Nearby, a sturdy twin-engine plane rests\n"
+        ++ "on a makeshift RUNWAY, its metal hull glinting faintly in the weak sunlight.\n"
+        ++ "To the side, there's a fuel DEPOT and a supply TENT. The air is frigid,\n"
+        ++ "the wind howls intermittently, and the isolation weighs heavily."
+describeLocation Barrack =
+    "This is your resting place during the mission - small but convenient.\n"
+        ++ "Your bed is neatly made, and a PHOTO of your late wife sits on the dresser beside it.\n"
+        ++ "Across the room, your working desk holds mission documents, a small lamp, and a LIGHTER.\n"
+        ++ "A CALENDAR hangs above the desk.\n"
+        ++ "Outside - the YARD, covered in snow."
+describeLocation Runway =
+    "The sunlight, reflected off the steel plates, blinds you as you approach the aircraft - \n"
+        ++ "a Douglas A-20 Havoc. It's not the newest PLANE, but it's reliable.\n"
+        ++ "CLARA is tinkering with one of the engines.\n"
+        ++ "There are fuel TANKS that need to be checked.\n"
+        ++ "Behind you - the YARD, covered in snow."
+describeLocation Depot =
+    "You step into the depot, a rough but functional structure shielding fuel CANISTERs from the Antarctic cold.\n"
+        ++ "Outside - the YARD, covered in snow."
+describeLocation Tent =
+    "You enter the supply tent, a cramped space cluttered with gear.\n"
+        ++ "Boxes and crates are labeled with essentials: FOOD, WATER, scientific tools, and survival equipment.\n"
+        ++ "A LIST of stock hangs on the wall.\n"
+        ++ "You see a GEIGER counter, MEDKIT, RADIO, climbing GEAR, and navigation TOOLS.\n"
+        ++ "Outside - the YARD, covered in snow."
 
 parseLocation :: String -> Location
 parseLocation str = case str of
