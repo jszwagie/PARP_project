@@ -31,11 +31,86 @@ instructionsText =
 
 data Location = Barrack | Yard | Runway | Depot | Tent | Unknown deriving (Eq, Show)
 
-newtype GameState = GameState { currentLocation :: Location }
+-- Entity represents either an item or a person
+data EntityType = Item | Person deriving (Eq, Show)
+data Entity = Entity
+    { entityType :: EntityType
+    , entityName :: String
+    , entityDescription :: String
+    , canTake :: Bool -- Whether the entity can be picked up
+    }
+    deriving (Eq, Show)
+
+-- For dialog options
+data DialogOption = DialogOption
+    { optionText :: String
+    , optionResponse :: String
+    , optionEffect :: GameState -> GameState
+    }
+
+data GameState = GameState
+    { currentLocation :: Location
+    , locationEntities :: [(Location, [Entity])]
+    , inventory :: [Entity]
+    , examined :: [String] -- Names of things that have been examined
+    , talked :: [String] -- Names of people that have been talked to
+    , tasks :: [String] -- Current tasks/quests
+    }
+    deriving (Show)
 
 initialState :: GameState
-initialState = GameState { currentLocation = Yard }
+initialState =
+    GameState
+        { currentLocation = Yard
+        , locationEntities = initialEntities
+        , inventory = []
+        , examined = []
+        , talked = []
+        , tasks = []
+        }
 
+-- Define the entities in the game world
+initialEntities :: [(Location, [Entity])]
+initialEntities =
+    [ (Yard, [])
+    ,
+        ( Barrack
+        ,
+            [ Entity Item "photo" "A photo of your late wife sits on the dresser." False
+            , Entity Item "lighter" "A simple silver lighter. You should really quit smoking." True
+            , Entity Item "calendar" "August 26, 1946" False
+            ]
+        )
+    ,
+        ( Runway
+        ,
+            [ Entity Person "clara" "Clara stands near the plane, wearing a military pilot's uniform with rolled-up sleeves." False
+            , Entity Item "plane" "Your type served well in the war." False
+            , Entity Item "tanks" "Fuel tanks for the plane. They're running low." False
+            ]
+        )
+    ,
+        ( Depot
+        ,
+            [ Entity Item "canister" "A heavy fuel canister. Necessary for the journey." True
+            ]
+        )
+    ,
+        ( Tent
+        ,
+            [ Entity Item "food" "Canned goods and dried meals." True
+            , Entity Item "water" "Fresh water in sealed containers." True
+            , Entity Item "geiger" "A standard radiation detector." True
+            , Entity Item "medkit" "Bandages, antiseptic, morphine..." True
+            , Entity Item "radio" "A shortwave field radio." True
+            , Entity Item "gear" "Ropes, pitons, carabiners." True
+            , Entity Item "tools" "A compass, maps, and a sextant." True
+            , Entity Item "list" "A supply list showing available items to take." False
+            ]
+        )
+    ]
+
+-- Define which locations connect to each other
 canMove :: Location -> Location -> Bool
 canMove Yard Barrack = True
 canMove Yard Runway = True
