@@ -6,9 +6,10 @@ module Act1
   )
 where
 
+import Control.Applicative ((<|>))
 import Data.Char (toLower)
 import Data.List (delete, find)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import System.IO (hFlush, stdout)
 
 type Lines = [String]
@@ -143,6 +144,24 @@ parseCommand ["use", o] = CmdUse o
 parseCommand ("go" : p : _) = CmdGo p
 parseCommand ("examine" : x : _) = CmdExamine x
 parseCommand _ = CmdUnknown
+
+entitiesAt :: Location -> GameState -> [Entity]
+entitiesAt loc st = fromMaybe [] (lookup loc (locationEntities st))
+
+findHere :: String -> GameState -> Maybe Entity
+findHere nm st =
+  let lname = map toLower nm
+   in find ((== lname) . map toLower . entityName) (entitiesAt (currentLocation st) st)
+
+findVisible :: String -> GameState -> Maybe Entity
+findVisible nm st =
+  findHere nm st
+    <|> find
+      ( (== map toLower nm)
+          . map toLower
+          . entityName
+      )
+      (inventory st)
 
 canMove :: Location -> Location -> Bool
 canMove Yard Barrack = True
@@ -667,45 +686,48 @@ step st (CmdTalk p)
   | otherwise = return (st, ["There's no one here to talk to by that name.", ""])
 step st (CmdTake o) =
   let name = map toLower o
-   in case name of
-        "photo" -> return (st, ["Sorry, my love, but I can't take you with me.", ""])
-        "calendar" -> return (st, ["I doubt this will be useful.", ""])
-        "lighter" -> return (st, ["I'm not going to smoke now.", ""])
-        "canister"
-          | "can_take_canister" `notElem` tasks st ->
-              return (st, ["I should check the fuel TANKS first.", ""])
-          | isInInventory "canister" st ->
-              return (st, ["You're already holding it!", ""])
-          | otherwise -> case findEntity "canister" st of
-              Just e -> return (addToInventory e st, ["This should be enough.", ""])
-              Nothing -> return (st, ["I don't see a canister here.", ""])
-        _
-          | isSupply name ->
-              if "collect_supplies" `notElem` tasks st
-                then return (st, ["I don't need this right now. I should TALK to Clara first.", ""])
-                else
-                  if isInInventory name st
-                    then return (st, ["You're already holding it!", ""])
-                    else
-                      let cnt = countSupplies (inventory st)
-                       in if cnt >= 5
-                            then return (st, ["You cannot take this - you've reached the limit (5 items).", ""])
-                            else case findEntity name st of
-                              Just e ->
-                                return
+      inv = isInInventory name st
+      here = findHere name st 
+      notHere = return (st, ["I don't see " ++ o ++ " here.", ""])
+      limitFull = return (st, ["You cannot take this - you've reached the limit (5 items).", ""])
+   in 
+      if inv
+        then return (st, ["You're already holding it!", ""])
+        else
+          if isNothing here
+            then notHere
+            else case name of
+              "photo" -> return (st, ["Sorry, my love, but I can't take you with me.", ""])
+              "calendar" -> return (st, ["I doubt this will be useful.", ""])
+              "lighter" -> return (st, ["I'm not going to smoke now.", ""])
+              "canister"
+                | "can_take_canister" `notElem` tasks st ->
+                    return (st, ["I should check the fuel TANKS first.", ""])
+                | otherwise ->
+                    let Just e = here
+                     in return (addToInventory e st, ["This should be enough.", ""])
+              _
+                | isSupply name ->
+                    if "collect_supplies" `notElem` tasks st
+                      then return (st, ["I don't need this right now. I should TALK to Clara first.", ""])
+                      else
+                        if countSupplies (inventory st) >= 5
+                          then limitFull
+                          else
+                            let Just e = here
+                             in return
                                   ( addToInventory e st,
                                     ["You take the " ++ entityName e ++ ".", ""]
                                   )
-                              Nothing -> return (st, ["I don't see " ++ o ++ " here.", ""])
-          | otherwise -> case findEntity name st of
-              Just e
-                | isInInventory name st ->
-                    return (st, ["You're already holding it!", ""])
-                | takeableByDefault e ->
-                    return (addToInventory e st, ["You take the " ++ entityName e ++ ".", ""])
                 | otherwise ->
-                    return (st, ["You can't take that.", ""])
-              Nothing -> return (st, ["I don't see " ++ o ++ " here.", ""])
+                    let Just e = here
+                     in if takeableByDefault e
+                          then
+                            return
+                              ( addToInventory e st,
+                                ["You take the " ++ entityName e ++ ".", ""]
+                              )
+                          else return (st, ["You can't take that.", ""])
 step st (CmdDrop o) =
   let name = map toLower o
    in if not (isInInventory name st)
