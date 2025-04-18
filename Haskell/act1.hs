@@ -1,6 +1,7 @@
 module Act1
   ( GameState
   , startAct1
+  , printLines
   ) where
 
 import Data.Char (toLower)
@@ -10,12 +11,12 @@ import System.IO  (hFlush, stdout)
 
 type Lines = [String]
 
-introductionText :: Lines
-introductionText =
-    [ "ACT 1: DEPARTURE FROM THE EDGE OF THE WORLD"
+act1Prolog :: Lines
+act1Prolog =
+    [ "ACT 1: DEPARTURE FROM THE EDGE OF THE WORLD"
     , ""
     , "You awaken to a stark view from your window at an Antarctic base camp in"
-    , "New Swabia. A desolate expanse of ice and snow stretches endlessly under"
+    , "New Swabia. A desolate expanse of ice and snow stretches endlessly under"
     , "a pale, gray sky. You get up, dress in layers against the cold and step"
     , "outside."
     , ""
@@ -84,10 +85,10 @@ initialEntities =
     , (Barrack,
         [ Entity Item   "photo"    "A photo of your late wife sits on the dresser."           False
         , Entity Item   "lighter"  "A simple silver lighter. You should really quit smoking." True
-        , Entity Item   "calendar" "August 26, 1946."                                         False
+        , Entity Item   "calendar" "August 26, 1946."                                         False
         ])
     , (Runway,
-        [ Entity Person "clara" "Clara stands near the plane, wearing a military pilot's uniform with rolled‑up sleeves." False
+        [ Entity Person "clara" "Clara stands near the plane, wearing a military pilot's uniform with rolled-up sleeves." False
         , Entity Item   "plane" "Your type served well in the war."                          False
         , Entity Item   "tanks" "Fuel tanks for the plane. They're running low."             False
         ])
@@ -166,29 +167,29 @@ describeLocation Unknown = "You see nothing special."
 
 yardDesc, barrackDesc, depotDesc, tentDesc :: String
 yardDesc =
-  "You're on the BARRACK yard. Nearby, a sturdy twin‑engine plane rests\n\
+  "You're on the BARRACK yard. Nearby, a sturdy twin-engine plane rests\n\
   \on a makeshift RUNWAY, its metal hull glinting faintly in the weak sunlight.\n\
   \To the side, there's a fuel DEPOT and a supply TENT. The air is frigid,\n\
   \the wind howls intermittently, and the isolation weighs heavily. By the plane,\n\
-  \you spot your partner, Lt. CLARA Voss, a pragmatic military pilot assigned\n\
+  \you spot your partner, Lt. CLARA Voss, a pragmatic military pilot assigned\n\
   \to join you on this mission."
 
 barrackDesc =
-  "This is your resting place during the mission – small but convenient.\n\
+  "This is your resting place during the mission - small but convenient.\n\
   \Your bed is neatly made, and a PHOTO of your late wife sits on the dresser beside it.\n\
   \Across the room, your working desk holds mission documents, a small lamp, and a LIGHTER.\n\
   \A CALENDAR hangs above the desk.\n\
-  \Outside – the YARD, covered in snow."
+  \Outside - the YARD, covered in snow."
 
 depotDesc =
   "You step into the depot, a rough but functional structure shielding fuel CANISTERs from the Antarctic cold.\n\
-  \Outside – the YARD, covered in snow."
+  \Outside - the YARD, covered in snow."
 
 tentDesc =
   "You enter the supply tent, a cramped space cluttered with gear.\n\
   \Boxes and crates are labeled with essentials: FOOD, WATER, scientific tools, and survival equipment.\n\
   \A LIST of stock hangs on the wall.\n\
-  \Outside – the YARD, covered in snow."
+  \Outside - the YARD, covered in snow."
 
 getHint :: GameState -> String
 getHint st
@@ -262,19 +263,19 @@ describeRunway st
   | countSupplies (inventory st) > 0 =
       "Clara has finished fueling and has something waiting for you.\n\
       \You pack the supplies into the plane. The reason for your journey –\n\
-      \Admiral Byrd's diary – lies open on a box in front of you, its cryptic\n\
-      \coordinates circled in red ink: 70S, 10E.\n\
+      \Admiral Byrd's diary - lies open on a box in front of you, its cryptic\n\
+      \coordinates circled in red ink: 70S, 10E.\n\
       \Clara hands you a cup of lukewarm coffee."
   | not (isInInventory "canister" st) =
       "The sunlight, reflected off the steel plates, blinds you as you approach\n\
-      \the aircraft – a Douglas A‑20 Havoc. It's not the newest PLANE, but it's\n\
+      \the aircraft - a Douglas A-20 Havoc. It's not the newest PLANE, but it's\n\
       \reliable. CLARA is tinkering with one of the engines.\n\
-      \Behind you – the YARD, covered in snow."
+      \Behind you - the YARD, covered in snow."
   | otherwise =
       "The sunlight, reflected off the steel plates, blinds you as you approach\n\
-      \the Douglas A‑20 Havoc – a reliable, if not modern, PLANE.\n\
+      \the Douglas A-20 Havoc - a reliable, if not modern, PLANE.\n\
       \Clara is still tinkering with one of the engines.\n\
-      \Behind you – the YARD, covered in snow."
+      \Behind you - the YARD, covered in snow."
 
 
 pureDialogWithClara :: GameState -> (GameState, Lines)
@@ -290,7 +291,7 @@ pureDialogWithClara st
           st2      = removeTask "fuel_request" $ addTask "supplies" st1
       in ( st2
          , [ "You: \"I have it!\""
-           , "Clara: \"Nice, hand it over – our bird's thirsty.\""
+           , "Clara: \"Nice, hand it over - our bird's thirsty.\""
            , "*starts fueling the plane*"
            , "Clara: \"Why don't you gather some supplies while I finish fueling?\""
            ] )
@@ -344,7 +345,7 @@ pureClaraChoice choice st
            , "Clara (frowning): \"Oh, you're lazy, aren't you? Fine, I'll handle it after I check the oil,"
            , "but you're not off the hook, doc. Go gather mandatory supplies and drop them near the plane.\""
            ] )
-  | otherwise = (st, ["Invalid choice – enter 1, 2, or 3."])
+  | otherwise = (st, ["Invalid choice - enter 1, 2, or 3."])
 
 pureExplainChoice :: String -> GameState -> (GameState, Lines)
 pureExplainChoice choice st
@@ -370,9 +371,9 @@ pureExplainChoice choice st
       in actEpilog
            [ "You: \"I've got a feeling there's something big waiting for us.\""
            , "Clara: \"Feelings don't keep us warm, doc. What's in that diary that's got you hooked?\""
-           , "You: \"Hints of a hidden land – geological oddities, maybe more.\""
+           , "You: \"Hints of a hidden land - geological oddities, maybe more.\""
            ] st1
-  | otherwise = (st, ["Invalid choice – enter 1, 2, or 3."])
+  | otherwise = (st, ["Invalid choice - enter 1, 2, or 3."])
 
 pureFurtherChoice :: String -> GameState -> (GameState, Lines)
 pureFurtherChoice choice st
@@ -388,7 +389,7 @@ pureFurtherChoice choice st
            [ "You: \"Even if it's nothing, the science alone is worth it.\""
            , "Clara: \"Maybe. But I'd rather not die proving him right.\""
            ] st1
-  | otherwise = (st, ["Invalid choice – enter 1 or 2."])
+  | otherwise = (st, ["Invalid choice - enter 1 or 2."])
 
 actEpilog :: Lines -> GameState -> (GameState, Lines)
 actEpilog pre st =
@@ -407,10 +408,10 @@ actEpilog pre st =
        , "The plane roars to life, cutting through swirling snow as it lifts off."
        , ""
        , "Inside, you study the diary while Clara grips the yoke."
-       , "The horizon swallows the base camp, leaving you with a mix of anticipation –"
+       , "The horizon swallows the base camp, leaving you with a mix of anticipation -"
        , "and a hint of lurking danger."
        , ""
-       , "----------------------------ACT 1 OVER----------------------------"
+       , "----------------------------ACT 1 OVER----------------------------"
        ] )
 
 
@@ -466,10 +467,10 @@ examineSpecial key st = case key of
   "tools"  | currentLocation st == Tent ->
       Just ( markExamined "tools" st
            , [ "A compass, maps, and a sextant."
-             , "Old‑school but reliable.", "" ] )
+             , "Old-school but reliable.", "" ] )
   "calendar" | currentLocation st == Barrack ->
       Just ( markExamined "calendar" st
-           , ["August 26, 1946", ""] )
+           , ["August 26, 1946", ""] )
   "plane" | currentLocation st == Runway ->
       Just ( markExamined "plane" st
            , ["Your type served well in the war.", ""] )
@@ -483,7 +484,7 @@ examineSpecial key st = case key of
              , ["Heavy, but necessary.", ""] )
   "clara" | currentLocation st == Runway ->
       Just ( st
-           , [ "Clara stands near the plane, wearing a military pilot's uniform with rolled‑up sleeves."
+           , [ "Clara stands near the plane, wearing a military pilot's uniform with rolled-up sleeves."
              , "Her dark hair is tied back, with a few strands escaping to frame her sharp eyes."
              , "" ] )
   "clara" ->
@@ -564,7 +565,7 @@ step st (CmdTake o) =
             then return (st, ["You're already holding it!", ""])
             else let cnt = countSupplies (inventory st)
                  in if cnt >= 5
-                      then return (st, ["You cannot take this – you've reached the limit (5 items).", ""])
+                      then return (st, ["You cannot take this - you've reached the limit (5 items).", ""])
                       else case findEntity name st of
                              Just e  -> return ( addToInventory e st
                                                , ["You take the " ++ entityName e ++ ".", ""] )
@@ -643,6 +644,6 @@ gameLoop st = do
 startAct1 :: IO ()
 startAct1 = do
   printLines instructionsText
-  printLines introductionText
+  printLines act1Prolog
   printLines [ describeLocation (currentLocation initialState), "" ]
   gameLoop initialState
