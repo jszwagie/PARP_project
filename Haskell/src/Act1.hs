@@ -687,10 +687,10 @@ step st (CmdTalk p)
 step st (CmdTake o) =
   let name = map toLower o
       inv = isInInventory name st
-      here = findHere name st 
+      here = findHere name st
       notHere = return (st, ["I don't see " ++ o ++ " here.", ""])
       limitFull = return (st, ["You cannot take this - you've reached the limit (5 items).", ""])
-   in 
+   in
       if inv
         then return (st, ["You're already holding it!", ""])
         else
