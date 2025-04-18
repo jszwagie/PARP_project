@@ -2,3 +2,4 @@ temp
 *.o
 *.hi
 main
+dist-newstyle/
