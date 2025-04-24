@@ -599,4 +599,5 @@ startAct2 :: PlayerState -> IO PlayerState
 startAct2 ps0 = do
   let ps = moveSuppliesToCompartment ps0
   printLines act2Prolog
-  pure ps
+  printLines [cockpitDesc, ""]
+  gameLoopA2 initialState {inventory = inventory_ ps}
