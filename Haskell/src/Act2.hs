@@ -167,6 +167,43 @@ getHint st
   | otherwise =
       "I should try to LOOK around to get my bearings."
 
+
+describeCrashSite :: GameState -> String
+describeCrashSite st
+  | "crash_site_described" `notElem` tasks st =
+      "You wake amid the wreckage, cold seeping into your bones."
+
+  | "injured_clara" `elem` tasks st =
+      "The PLANE is a ruin, and CLARA lies injured nearby.\n\
+      \Twisted metal juts from the snow, half-burying the fuselage; engine debris still smoulders.\n\
+      \Wind howls, stinging your face with ice.\n\
+      \CLARA slumps a few feet away, blood staining the snow beneath her head."
+
+  | otherwise =
+      "The wreckage of your plane lies scattered across the frozen landscape.\n\
+      \Clara stands nearby, looking shaken but determined.\n\
+      \This place offers no shelter from the biting Antarctic cold.\n\
+      \The crash site aligns with Byrd's coordinates."
+
+describeCave :: GameState -> String
+describeCave st
+  | "entered_wreck" `elem` tasks st =
+      "Slowly and carefully, you emerge from the wreckage.\n\
+      \The dark cave corridor stretches before you."
+
+  | "wreck_discovery" `notElem` tasks st =
+      "The cave twists downward, its walls polished and warm. A low hum vibrates the air.\n\
+      \Smooth, spiralling walls funnel you DEEPER; faint lights pulse below."
+
+  | otherwise =
+      "The entrance to the ice cave stretches before you.\n\
+      \The unnatural smoothness of the walls suggests intelligent design.\n\
+      \To the right, the Nazi flying-saucer WRECK remains embedded in the ice.\n\
+      \A path leads DEEPER into the tunnel, where faint blue light pulses.\n\
+      \A massive disk-shaped craft protrudes from the wall, its metallic surface scarred and dented—\n\
+      \futuristic yet ancient."
+
+
 startAct2 :: PlayerState -> IO PlayerState
 startAct2 ps0 = do
   let ps = moveSuppliesToCompartment ps0
