@@ -4,7 +4,7 @@ import Control.Applicative ((<|>))
 import Data.Bool (Bool (False, True))
 import Data.Char (toLower)
 import Data.Function ((&))
-import Data.List (find, init, partition)
+import Data.List (delete, find, init, partition)
 import Utils
   ( Command (..),
     Entity (..),
@@ -73,6 +73,15 @@ initialEntities =
       ]
     )
   ]
+
+removeFromLocation :: Location -> Entity -> GameState -> GameState
+removeFromLocation loc ent st =
+  let remaining = delete ent (entitiesAt loc st)
+      newLocs =
+        map
+          (\(l, es) -> if l == loc then (l, remaining) else (l, es))
+          (locationEntities st)
+   in st {locationEntities = newLocs}
 
 moveSuppliesToCompartment :: PlayerState -> PlayerState
 moveSuppliesToCompartment ps =
@@ -454,11 +463,6 @@ examineSpecialA2 key st = case map toLower key of
           )
   _ -> Nothing
 
-visibleFromCrash :: GameState -> Entity -> Bool
-visibleFromCrash st e =
-  currentLocation st == CrashSite
-    && e `elem` entitiesAt Compartment st
-
 stepA2 :: GameState -> Command -> IO (GameState, Lines)
 stepA2 st _
   | hasTask "act2_finished" st =
@@ -516,35 +520,44 @@ stepA2 st (CmdTalk who)
   | otherwise = pure (st, ["There's no one here by that name.", ""])
 stepA2 st (CmdTake raw) =
   let name = map toLower raw
-      inv = isInInventory name st
+      invAlready = isInInventory name st
       here =
         findHere name st
-          <|> find (visibleFromCrash st) (entitiesAt Compartment st)
+          <|> find
+            ((== name) . map toLower . entityName)
+            (entitiesAt Compartment st)
+
       limitFull = pure (st, ["You cannot take this - you've reached the limit (5 items).", ""])
       notHere = pure (st, ["I don't see " ++ raw ++ " here.", ""])
-   in if inv
+      removeFromLocation :: Location -> Entity -> GameState -> GameState
+      removeFromLocation loc ent gs =
+        let remaining = delete ent (entitiesAt loc gs)
+            newLocs =
+              map
+                (\(l, es) -> if l == loc then (l, remaining) else (l, es))
+                (locationEntities gs)
+         in gs {locationEntities = newLocs}
+      takeEntity :: Entity -> String -> IO (GameState, Lines)
+      takeEntity ent msg = do
+        let st1 = addToInventory ent st
+            st2 =
+              if ent `elem` entitiesAt Compartment st
+                then removeFromLocation Compartment ent st1
+                else st1
+        pure (st2, [msg, ""])
+   in if invAlready
         then pure (st, ["You're already holding it!", ""])
         else case here of
           Nothing -> notHere
           Just e
             | name == "pistol" ->
-                pure
-                  ( addToInventory e st,
-                    ["You take the PISTOL - hopefully it won't be needed.", ""]
-                  )
+                takeEntity e "You take the PISTOL - hopefully it won't be needed."
             | name == "medkit" ->
-                pure
-                  ( addToInventory e st,
-                    ["You take the MEDKIT.", ""]
-                  )
+                takeEntity e "You take the MEDKIT."
             | isSupply name ->
                 if length (filter (isSupply . entityName) (inventory st)) >= 5
                   then limitFull
-                  else
-                    pure
-                      ( addToInventory e st,
-                        ["You take the " ++ entityName e ++ ".", ""]
-                      )
+                  else takeEntity e ("You take the " ++ entityName e ++ ".")
             | otherwise ->
                 pure (st, ["You can't take that.", ""])
 stepA2 st (CmdDrop raw) =
