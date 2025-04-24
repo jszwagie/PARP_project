@@ -400,18 +400,16 @@ examineSpecialA2 key st = case map toLower key of
               addTask "compartment_checked" $
                 markExamined "compartment" $
                   markExamined "plane" st
-            haveMedkit = inventoryHas "medkit" st'
+            supplies = entitiesAt Compartment st'
             msgFound =
               [ "You check the plane compartment for supplies.",
                 "Inside you find:"
               ]
-                ++ map
-                  (("- " ++) . entityName)
-                  (filter (isSupply . entityName) (entitiesAt Compartment st'))
+                ++ map (("- " ++) . entityName) supplies
             msgEmpty = ["The compartment is empty."]
          in Just
               ( st',
-                (if haveMedkit then msgFound else msgEmpty) ++ [""]
+                (if null supplies then msgEmpty else msgFound) ++ [""]
               )
     | atLocation CrashSite st ->
         Just
