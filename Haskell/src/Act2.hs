@@ -2,26 +2,35 @@ module Act2 (startAct2) where
 
 import Data.Bool (Bool (False, True))
 import Data.Char (toLower)
+import Data.Function ((&))
 import Data.List (init)
-import GHC.Generics (C)
 import Utils
-  ( Entity (..),
+  ( Command (..),
+    Entity (..),
     EntityType (..),
     GameState (..),
     Lines,
     Location (..),
     PlayerState (..),
+    addTask,
+    addToInventory,
     emptyPlayer,
     entitiesAt,
     extractPlayerState,
+    findEntity,
     findHere,
     findVisible,
     instructionsText,
+    isInInventory,
     isSupply,
+    markExamined,
+    markTalked,
     parseCommand,
     printLines,
     printPrompt,
     readCommand,
+    removeFromInventory,
+    removeTask,
     supplyNames,
   )
 
@@ -72,6 +81,9 @@ moveSuppliesToCompartment ps =
           "The plane compartment for supplies."
           False
    in ps {inventory_ = compartment : inventory_ ps}
+
+setLocation :: Location -> GameState -> GameState
+setLocation loc gs = gs {currentLocation = loc}
 
 canMove :: Location -> Location -> Bool
 canMove CrashSite Cave = True
@@ -167,18 +179,15 @@ getHint st
   | otherwise =
       "I should try to LOOK around to get my bearings."
 
-
 describeCrashSite :: GameState -> String
 describeCrashSite st
   | "crash_site_described" `notElem` tasks st =
       "You wake amid the wreckage, cold seeping into your bones."
-
   | "injured_clara" `elem` tasks st =
       "The PLANE is a ruin, and CLARA lies injured nearby.\n\
       \Twisted metal juts from the snow, half-burying the fuselage; engine debris still smoulders.\n\
       \Wind howls, stinging your face with ice.\n\
       \CLARA slumps a few feet away, blood staining the snow beneath her head."
-
   | otherwise =
       "The wreckage of your plane lies scattered across the frozen landscape.\n\
       \Clara stands nearby, looking shaken but determined.\n\
@@ -190,11 +199,9 @@ describeCave st
   | "entered_wreck" `elem` tasks st =
       "Slowly and carefully, you emerge from the wreckage.\n\
       \The dark cave corridor stretches before you."
-
   | "wreck_discovery" `notElem` tasks st =
       "The cave twists downward, its walls polished and warm. A low hum vibrates the air.\n\
       \Smooth, spiralling walls funnel you DEEPER; faint lights pulse below."
-
   | otherwise =
       "The entrance to the ice cave stretches before you.\n\
       \The unnatural smoothness of the walls suggests intelligent design.\n\
@@ -203,6 +210,369 @@ describeCave st
       \A massive disk-shaped craft protrudes from the wall, its metallic surface scarred and dented—\n\
       \futuristic yet ancient."
 
+dialogClaraA2 :: GameState -> (GameState, Lines)
+dialogClaraA2 st
+  | atLocation Cockpit st,
+    hasTask "radio_used" st,
+    not (hasTask "crashed" st) =
+      let st1 = addTask "crashed" st
+          st2 = addTask "injured_clara" st1
+          st' = setLocation CrashSite st2
+       in ( st',
+            [ "You: \"Is everything okay?\"",
+              "Clara: \"I don't know; the compass and the altimeter suddenly started going crazy,",
+              "but we're close to our destination, so it shouldn't be a probl-\"",
+              "",
+              "*Suddenly, turbulence slams the plane. Lights flicker, instruments fail, the engines choke.*",
+              "Clara (shouting): \"Brace yourself! Everything's shutting down!\"",
+              "You (screaming): \"Ahh, what's happening!?\"",
+              "*The plane spirals down, crashing into the ice. Darkness falls.*"
+            ]
+          )
+  | atLocation Cockpit st,
+    not (hasTask "crashed" st),
+    not (hasTask "cockpit_intro_done" st) =
+      let st' = addTask "awaiting_cockpit_choice" st
+       in ( st',
+            [ "Clara glances over: \"So, doc, what's your take? Are we on a wild goose chase,",
+              "or is there really something out here in this frozen wasteland?\"",
+              "Your choices:",
+              "1. \"Byrd's diary points to 70S, 10E. The coordinates are too specific to be nothing.\"",
+              "2. \"I don't know, but the weather's turning ugly. We need to stay sharp.\"",
+              "3. \"Whether it's real or not, the mission's worth it for the discovery alone.\""
+            ]
+          )
+  | atLocation Cockpit st,
+    not (hasTask "crashed" st) =
+      ( st,
+        [ "You: \"We're bound to find something there—-I can feel it in my bones.\"",
+          "Clara: \"Hopefully, or all our efforts will be for nothing.\""
+        ]
+      )
+  | atLocation CrashSite st,
+    hasTask "injured_clara" st,
+    not (inventoryHas "medkit" st) =
+      (st, ["She's unconscious and needs medical attention urgently."])
+  | atLocation CrashSite st,
+    not (hasTask "injured_clara" st),
+    not (hasTask "cave_advice" st) =
+      ( addTask "cave_advice" st,
+        [ "Clara: \"We can't stay exposed out here. That CAVE might be our only shot,",
+          "but it's giving me a bad feeling. We must GO now, before it gets dark.\""
+        ]
+      )
+  | atLocation Cave st,
+    not (hasTask "wreck_discovery" st) =
+      ( addTask "wreck_discovery" st,
+        [ "Clara: \"Hey, what's that? Do you see it?\"",
+          "",
+          "On the right side of the tunnel you see a disk-shaped WRECK –",
+          "a massive saucer-like craft embedded in the ice, its metallic surface scarred and dented.",
+          "It looks futuristic yet ancient."
+        ]
+      )
+  | atLocation Cave st,
+    hasTask "wreck_examined" st,
+    not (hasTask "entered_wreck" st),
+    not (hasTask "wreck_discovery2" st) =
+      ( addTask "wreck_discovery2" st,
+        [ "You: \"This is incredible. A Nazi flying saucer?\"",
+          "Clara: \"Looks like it. But how did it get here? And why?\"",
+          "You: \"Maybe they were experimenting with advanced technology in Antarctica.\"",
+          "Clara: \"Or maybe they found something here. Either way, it's creepy.\"",
+          "",
+          "Clara: \"Do you think we should try to get INSIDE it or don't risk and GO DEEPER?\""
+        ]
+      )
+  | atLocation Wreck st =
+      ( st,
+        [ "Clara: \"This place gives me the creeps. Look at these controls — they're way ahead of their time.\"",
+          "You: \"Yeah, it's like something out of science-fiction. But it's real.\"",
+          "Clara: \"I think we've seen enough. Let's keep moving; there might be more ahead. We should GO DEEPER.\""
+        ]
+      )
+  | otherwise = (st, ["There's no one here to talk to."])
+
+processCockpitChoice :: String -> GameState -> (GameState, Lines)
+processCockpitChoice choice st
+  | choice == "1" =
+      ( stDone,
+        [ "You: \"Byrd's diary points to 70S, 10E. The coordinates are too specific to be nothing.\"",
+          "Clara: \"Specific or not, Antarctica's a maze. Let's hope those coordinates don't lead us straight into trouble.\""
+        ]
+      )
+  | choice == "2" =
+      ( stDone,
+        [ "You: \"I don't know, but the weather's turning ugly. We need to stay sharp.\"",
+          "Clara: \"Yeah, I feel it too. This storm's got teeth. Keep your eyes peeled.\""
+        ]
+      )
+  | choice == "3" =
+      ( stDone,
+        [ "You: \"Whether it's real or not, the mission's worth it for the discovery alone.\"",
+          "Clara: \"Discovery's great until the ice swallows us whole. Still, I like your optimism.\""
+        ]
+      )
+  | otherwise =
+      (st, ["Invalid choice - enter 1, 2, or 3."])
+  where
+    stDone =
+      addTask "cockpit_intro_done"
+        . removeTask "awaiting_cockpit_choice"
+        $ st
+
+atLocation :: Location -> GameState -> Bool
+atLocation loc gs = currentLocation gs == loc
+
+inventoryHas :: String -> GameState -> Bool
+inventoryHas n gs =
+  any ((== map toLower n) . map toLower . entityName) (inventory gs)
+
+hasTask :: String -> GameState -> Bool
+hasTask t gs = t `elem` tasks gs
+
+examineSpecialA2 :: String -> GameState -> Maybe (GameState, Lines)
+examineSpecialA2 key st = case map toLower key of
+  "diary"
+    | atLocation Cockpit st ->
+        Just
+          ( markExamined "diary" st,
+            [ "*It is open on the coordinates*",
+              "There must be some truth in it.",
+              ""
+            ]
+          )
+  "radio"
+    | atLocation Cockpit st ->
+        Just
+          ( addTask "radio_examined" $
+              markExamined "radio" st,
+            [ "*The radio has a frequency adjuster*",
+              "Maybe I could run into something interesting by switching frequencies.",
+              ""
+            ]
+          )
+  "clara"
+    | atLocation Cockpit st,
+      not (hasTask "crashed" st) ->
+        Just
+          ( st,
+            [ "Clara pilots beside you, focused on the controls.",
+              ""
+            ]
+          )
+    | atLocation CrashSite st,
+      hasTask "crashed" st ->
+        Just
+          ( st,
+            [ "She's unconscious, her forehead gashed, her breathing shallow.",
+              "Blood soaks the snow around her leg.",
+              ""
+            ]
+          )
+  "plane"
+    | atLocation CrashSite st ->
+        Just
+          ( markExamined "plane" st,
+            [ "The plane's a lost cause, but the luggage COMPARTMENT is intact.",
+              "The supplies you took are probably still there.",
+              ""
+            ]
+          )
+  "compartment"
+    | atLocation CrashSite st,
+      hasTask "injured_clara" st,
+      not (inventoryHas "medkit" st) ->
+        let st' =
+              addTask "compartment_checked" $
+                markExamined "compartment" $
+                  markExamined "plane" st
+            haveMedkit = inventoryHas "medkit" st'
+            msgFound =
+              [ "You check the plane compartment for supplies.",
+                "Inside you find:"
+              ]
+                ++ map (("- " ++) . entityName) (entitiesAt CrashSite st')
+            msgEmpty = ["The compartment is empty."]
+         in Just
+              ( st',
+                (if haveMedkit then msgFound else msgEmpty) ++ [""]
+              )
+    | atLocation CrashSite st ->
+        Just
+          ( markExamined "compartment" st,
+            [ "You check the plane compartment for supplies.",
+              "In the compartment you find:"
+            ]
+              ++ map (("- " ++) . entityName) (entitiesAt CrashSite st)
+              ++ [""]
+          )
+  "wreck"
+    | atLocation Cave st ->
+        let st' = addTask "wreck_examined" $ markExamined "wreck" st
+         in Just
+              ( st',
+                [ "A disk-shaped craft protrudes from the ice, marked with a Nazi Balkenkreuz,",
+                  "\"Hergestellt in Deutschland. 1944. Danzig\". Machine-gun nests bristle from",
+                  "its surface.",
+                  "",
+                  "Clara: \"Made in Germany… What's it doing here?\"",
+                  "",
+                  "There appears to be an entrance. You could GO inside to investigate further.",
+                  ""
+                ]
+              )
+  "pistol"
+    | atLocation Wreck st ->
+        Just
+          ( markExamined "pistol" st,
+            [ "An old German Mauser C96 pistol. Still looks functional.",
+              ""
+            ]
+          )
+  "cave"
+    | atLocation Cave st,
+      hasTask "cave_advice" st ->
+        Just
+          ( st,
+            [ "This isn't natural — someone or something shaped it.",
+              ""
+            ]
+          )
+  _ -> Nothing
+
+stepA2 :: GameState -> Command -> IO (GameState, Lines)
+stepA2 st _
+  | hasTask "act2_finished" st =
+      pure (st, ["You've already finished this act. Type \"quit\" to exit.", ""])
+stepA2 st CmdQuit = pure (st, ["Good-bye."])
+stepA2 st CmdLook =
+  let out =
+        case currentLocation st of
+          Cockpit -> cockpitDesc
+          CrashSite -> describeCrashSite st
+          Cave -> describeCave st
+          Wreck -> wreckDesc
+          Tunnel -> describeCave st 
+          _ -> describeLocation (currentLocation st)
+   in pure (st, [out, ""])
+stepA2 st CmdInventory =
+  let inv = inventory st
+   in if null inv
+        then pure (st, ["You are not carrying anything.", ""])
+        else pure (st, "You are carrying:" : map entityName inv ++ [""])
+stepA2 st CmdHint = pure (st, [getHint st, ""])
+stepA2 st CmdInstructions = pure (st, instructionsText)
+stepA2 st (CmdGo p) =
+  case parseLocation p of
+    Unknown -> pure (st, ["Unknown place: " ++ p, ""])
+    loc
+      | canMove (currentLocation st) loc ->
+          let st' = st {currentLocation = loc}
+              out = case loc of
+                CrashSite -> describeCrashSite st'
+                Cave -> describeCave st'
+                _ -> describeLocation loc
+           in pure (st', [out, ""])
+      | otherwise ->
+          pure (st, ["You can't go to " ++ p ++ " from here.", ""])
+stepA2 st (CmdExamine obj) =
+  case examineSpecialA2 (map toLower obj) st of
+    Just res -> pure res 
+    Nothing ->
+      case findEntity obj st of
+        Just e ->
+          pure
+            ( markExamined (entityName e) st,
+              [entityDescription e, ""]
+            )
+        Nothing ->
+          pure
+            ( st,
+              [ "I can't see " ++ obj ++ " here or there's nothing special about it.",
+                ""
+              ]
+            )
+
+stepA2 st (CmdTalk who)
+  | map toLower who == "clara" = pure (dialogClaraA2 st)
+  | otherwise = pure (st, ["There's no one here by that name.", ""])
+stepA2 st (CmdTake raw) =
+  let name = map toLower raw
+      inv = isInInventory name st
+      here = findHere name st
+      limitFull = pure (st, ["You cannot take this - you've reached the limit (5 items).", ""])
+      notHere = pure (st, ["I don't see " ++ raw ++ " here.", ""])
+   in if inv
+        then pure (st, ["You're already holding it!", ""])
+        else case here of
+          Nothing -> notHere
+          Just e
+            | name == "pistol" ->
+                pure
+                  ( addToInventory e st,
+                    ["You take the PISTOL - hopefully it won't be needed.", ""]
+                  )
+            | name == "medkit" ->
+                pure
+                  ( addToInventory e st,
+                    ["You take the MEDKIT.", ""]
+                  )
+            | isSupply name ->
+                if length (filter (isSupply . entityName) (inventory st)) >= 5
+                  then limitFull
+                  else
+                    pure
+                      ( addToInventory e st,
+                        ["You take the " ++ entityName e ++ ".", ""]
+                      )
+            | otherwise ->
+                pure (st, ["You can't take that.", ""])
+stepA2 st (CmdDrop raw) =
+  let name = map toLower raw
+   in if not (isInInventory name st)
+        then pure (st, ["You aren't carrying that!", ""])
+        else do
+          let Just e = findEntity name st
+              st' = removeFromInventory e st
+              msg =
+                if isSupply name
+                  then "You drop the " ++ entityName e ++ "."
+                  else "OK."
+          pure (st', [msg, ""])
+stepA2 st (CmdUse raw)
+  | name == "radio",
+    atLocation Cockpit st,
+    not (hasTask "radio_used" st) =
+      let st' = addTask "radio_used" st
+       in pure
+            ( st',
+              [ "You playfully switch frequencies. After a moment German voices crackle through the static.",
+                "Clara throws you a worried glance…",
+                ""
+              ]
+            )
+  | name == "medkit",
+    atLocation CrashSite st,
+    hasTask "injured_clara" st =
+      let st' = removeTask "injured_clara" st
+       in pure
+            ( st',
+              [ "You bandage Clara's wounds; she stirs awake.",
+                "Clara: \"Thanks, doc… I thought I was a goner.\"",
+                ""
+              ]
+            )
+  | isInInventory name st =
+      pure (st, ["I can't use that right now.", ""])
+  | otherwise =
+      pure (st, ["I don't have it or I can't use it.", ""])
+  where
+    name = map toLower raw
+stepA2 st CmdUnknown = pure (st, ["Unknown command.", ""])
+stepA2 st CmdNext
+  | hasTask "act2_finished" st = pure (st, ["Preparing Act 3…"])
+  | otherwise = pure (st, ["You need to finish this act first."])
 
 startAct2 :: PlayerState -> IO PlayerState
 startAct2 ps0 = do
