@@ -67,6 +67,7 @@ data Location
   | Cave
   | Wreck
   | Tunnel
+  | Compartment
   | Unknown
   deriving (Eq, Show)
 

@@ -1,9 +1,10 @@
 module Act2 (startAct2) where
 
+import Control.Applicative ((<|>))
 import Data.Bool (Bool (False, True))
 import Data.Char (toLower)
 import Data.Function ((&))
-import Data.List (init)
+import Data.List (find, init, partition)
 import Utils
   ( Command (..),
     Entity (..),
@@ -65,6 +66,7 @@ initialEntities =
         Entity Item "compartment" "The plane compartment for supplies." False
       ]
     ),
+    (Compartment, []),
     ( Wreck,
       [ Entity Item "wreck object" "A wrecked plane" False,
         Entity Item "pistol" "A pistol, probably from the wreck." True
@@ -293,6 +295,17 @@ dialogClaraA2 st
       )
   | otherwise = (st, ["There's no one here to talk to."])
 
+injectSupplies ::
+  PlayerState ->
+  [(Location, [Entity])] ->
+  ([(Location, [Entity])], [Entity])
+injectSupplies ps locs =
+  let (supplies, restInv) = partition (isSupply . entityName) (inventory_ ps)
+      locs' = map addSupplies locs
+      addSupplies (Compartment, es) = (Compartment, es ++ supplies)
+      addSupplies pair = pair
+   in (locs', restInv)
+
 processCockpitChoice :: String -> GameState -> (GameState, Lines)
 processCockpitChoice choice st
   | choice == "1" =
@@ -392,7 +405,9 @@ examineSpecialA2 key st = case map toLower key of
               [ "You check the plane compartment for supplies.",
                 "Inside you find:"
               ]
-                ++ map (("- " ++) . entityName) (entitiesAt CrashSite st')
+                ++ map
+                  (("- " ++) . entityName)
+                  (filter (isSupply . entityName) (entitiesAt Compartment st'))
             msgEmpty = ["The compartment is empty."]
          in Just
               ( st',
@@ -404,7 +419,7 @@ examineSpecialA2 key st = case map toLower key of
             [ "You check the plane compartment for supplies.",
               "In the compartment you find:"
             ]
-              ++ map (("- " ++) . entityName) (entitiesAt CrashSite st)
+              ++ map (("- " ++) . entityName) (entitiesAt Compartment st)
               ++ [""]
           )
   "wreck"
@@ -440,6 +455,11 @@ examineSpecialA2 key st = case map toLower key of
             ]
           )
   _ -> Nothing
+
+visibleFromCrash :: GameState -> Entity -> Bool
+visibleFromCrash st e =
+  currentLocation st == CrashSite
+    && e `elem` entitiesAt Compartment st
 
 stepA2 :: GameState -> Command -> IO (GameState, Lines)
 stepA2 st _
@@ -499,7 +519,9 @@ stepA2 st (CmdTalk who)
 stepA2 st (CmdTake raw) =
   let name = map toLower raw
       inv = isInInventory name st
-      here = findHere name st
+      here =
+        findHere name st
+          <|> find (visibleFromCrash st) (entitiesAt Compartment st)
       limitFull = pure (st, ["You cannot take this - you've reached the limit (5 items).", ""])
       notHere = pure (st, ["I don't see " ++ raw ++ " here.", ""])
    in if inv
@@ -597,7 +619,12 @@ gameLoopA2 st = do
 
 startAct2 :: PlayerState -> IO PlayerState
 startAct2 ps0 = do
-  let ps = moveSuppliesToCompartment ps0
+  let (locWithSupplies, invAfter) = injectSupplies ps0 initialEntities
+      gs0 =
+        initialState
+          { locationEntities = locWithSupplies,
+            inventory = invAfter
+          }
   printLines act2Prolog
   printLines [cockpitDesc, ""]
-  gameLoopA2 initialState {inventory = inventory_ ps}
+  gameLoopA2 gs0
