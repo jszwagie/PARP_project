@@ -1,6 +1,7 @@
 module Main where
 
-import Act1 (Lines, printLines, startAct1)
+import Act1 (startAct1)
+import Utils (Lines, printLines)
 
 introductionText :: Lines
 introductionText =

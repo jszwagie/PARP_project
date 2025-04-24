@@ -1,8 +1,6 @@
 module Act1
   ( GameState,
     startAct1,
-    printLines,
-    Lines,
   )
 where
 
@@ -11,8 +9,7 @@ import Data.Char (toLower)
 import Data.List (delete, find)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import System.IO (hFlush, stdout)
-
-type Lines = [String]
+import Utils (Lines, instructionsText, printLines, printPrompt, readCommand)
 
 act1Prolog :: Lines
 act1Prolog =
@@ -22,23 +19,6 @@ act1Prolog =
     "New Swabia. A desolate expanse of ice and snow stretches endlessly under",
     "a pale, gray sky. You get up, dress in layers against the cold and step",
     "outside.",
-    ""
-  ]
-
-instructionsText :: Lines
-instructionsText =
-  [ "Available commands are:",
-    "look               -- look around you and describe surroundings",
-    "go <place>         -- go to a place",
-    "examine <obj>      -- examine an object or person closely",
-    "talk <person>      -- talk to someone",
-    "take <obj>         -- pick up an object",
-    "drop <obj>         -- put down an object",
-    "use <obj>          -- use an object you're carrying",
-    "inventory          -- list currently held items",
-    "instructions       -- see these instructions",
-    "hint               -- get a hint if you're stuck",
-    "quit               -- end the game and quit",
     ""
   ]
 
@@ -690,8 +670,7 @@ step st (CmdTake o) =
       here = findHere name st
       notHere = return (st, ["I don't see " ++ o ++ " here.", ""])
       limitFull = return (st, ["You cannot take this - you've reached the limit (5 items).", ""])
-   in
-      if inv
+   in if inv
         then return (st, ["You're already holding it!", ""])
         else
           if isNothing here
@@ -759,15 +738,6 @@ step st (CmdUse x)
   | otherwise =
       return (st, ["I don't have it or I can't use it.", ""])
 step st CmdUnknown = return (st, ["Unknown command.", ""])
-
-printPrompt :: IO ()
-printPrompt = putStr "> " >> hFlush stdout
-
-readCommand :: IO String
-readCommand = printPrompt >> getLine
-
-printLines :: Lines -> IO ()
-printLines = mapM_ putStrLn
 
 gameLoop :: GameState -> IO ()
 gameLoop st = do
