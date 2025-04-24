@@ -4,6 +4,7 @@ module Act1
   )
 where
 
+import Act2 (startAct2)
 import Control.Applicative ((<|>))
 import Data.Char (toLower)
 import Data.List (delete, find)
@@ -106,6 +107,7 @@ data Command
   | CmdTake String
   | CmdDrop String
   | CmdUse String
+  | CmdNext
   | CmdUnknown
   deriving (Eq, Show)
 
@@ -123,6 +125,7 @@ parseCommand ["drop", o] = CmdDrop o
 parseCommand ["use", o] = CmdUse o
 parseCommand ("go" : p : _) = CmdGo p
 parseCommand ("examine" : x : _) = CmdExamine x
+parseCommand ["next"] = CmdNext
 parseCommand _ = CmdUnknown
 
 entitiesAt :: Location -> GameState -> [Entity]
@@ -447,7 +450,9 @@ actEpilog pre st =
                "The horizon swallows the base camp, leaving you with a mix of anticipation -",
                "and a hint of lurking danger.",
                "",
-               "----------------------------ACT 1 OVER----------------------------"
+               "----------------------------ACT 1 OVER----------------------------",
+               "",
+               "Type \"next\" to continue, or \"quit\" to leave."
              ]
       )
 
@@ -738,6 +743,12 @@ step st (CmdUse x)
   | otherwise =
       return (st, ["I don't have it or I can't use it.", ""])
 step st CmdUnknown = return (st, ["Unknown command.", ""])
+-- next
+step st CmdNext
+  | "act_finished" `elem` tasks st =
+      return (st, ["Preparing Act 2..."])
+step st CmdNext =
+  return (st, ["You need to finish this act first."])
 
 gameLoop :: GameState -> IO ()
 gameLoop st = do
@@ -765,6 +776,7 @@ gameLoop st = do
   printLines out
   case cmd of
     CmdQuit -> return ()
+    CmdNext | "act_finished" `elem` tasks st' -> startAct2
     _ -> gameLoop st'
 
 startAct1 :: IO ()
