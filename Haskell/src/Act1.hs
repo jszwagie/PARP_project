@@ -10,7 +10,27 @@ import Data.Char (toLower)
 import Data.List (delete, find)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import System.IO (hFlush, stdout)
-import Utils (Entity (..), EntityType (..), Lines, PlayerState (..), instructionsText, printLines, printPrompt, readCommand)
+import Utils
+  ( Command (..),
+    Entity (..),
+    EntityType (..),
+    GameState (..),
+    Lines,
+    Location (..),
+    PlayerState (..),
+    emptyPlayer,
+    entitiesAt,
+    extractPlayerState,
+    findHere,
+    findVisible,
+    instructionsText,
+    isSupply,
+    parseCommand,
+    printLines,
+    printPrompt,
+    readCommand,
+    supplyNames,
+  )
 
 act1Prolog :: Lines
 act1Prolog =
@@ -22,32 +42,6 @@ act1Prolog =
     "outside.",
     ""
   ]
-
-data Location = Barrack | Yard | Runway | Depot | Tent | Unknown
-  deriving (Eq, Show)
-
-supplyNames :: [String]
-supplyNames =
-  ["food", "water", "geiger", "medkit", "radio", "gear", "tools"]
-
-isSupply :: String -> Bool
-isSupply n = map toLower n `elem` supplyNames
-
-extractPlayerState :: GameState -> PlayerState
-extractPlayerState st =
-  PlayerState
-    { inventory_ = inventory st
-    }
-
-data GameState = GameState
-  { currentLocation :: Location,
-    locationEntities :: [(Location, [Entity])],
-    inventory :: [Entity],
-    examined :: [String],
-    talked :: [String],
-    tasks :: [String]
-  }
-  deriving (Show)
 
 initialState :: GameState
 initialState =
@@ -90,57 +84,6 @@ initialEntities =
       ]
     )
   ]
-
-data Command
-  = CmdLook
-  | CmdQuit
-  | CmdInventory
-  | CmdHint
-  | CmdInstructions
-  | CmdGo String
-  | CmdExamine String
-  | CmdTalk String
-  | CmdTake String
-  | CmdDrop String
-  | CmdUse String
-  | CmdNext
-  | CmdUnknown
-  deriving (Eq, Show)
-
-type Args = [String]
-
-parseCommand :: Args -> Command
-parseCommand ["look"] = CmdLook
-parseCommand ["quit"] = CmdQuit
-parseCommand ["inventory"] = CmdInventory
-parseCommand ["hint"] = CmdHint
-parseCommand ["instructions"] = CmdInstructions
-parseCommand ["talk", p] = CmdTalk p
-parseCommand ["take", o] = CmdTake o
-parseCommand ["drop", o] = CmdDrop o
-parseCommand ["use", o] = CmdUse o
-parseCommand ("go" : p : _) = CmdGo p
-parseCommand ("examine" : x : _) = CmdExamine x
-parseCommand ["next"] = CmdNext
-parseCommand _ = CmdUnknown
-
-entitiesAt :: Location -> GameState -> [Entity]
-entitiesAt loc st = fromMaybe [] (lookup loc (locationEntities st))
-
-findHere :: String -> GameState -> Maybe Entity
-findHere nm st =
-  let lname = map toLower nm
-   in find ((== lname) . map toLower . entityName) (entitiesAt (currentLocation st) st)
-
-findVisible :: String -> GameState -> Maybe Entity
-findVisible nm st =
-  findHere nm st
-    <|> find
-      ( (== map toLower nm)
-          . map toLower
-          . entityName
-      )
-      (inventory st)
 
 canMove :: Location -> Location -> Bool
 canMove Yard Barrack = True
