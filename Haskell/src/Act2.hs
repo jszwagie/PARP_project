@@ -1,6 +1,6 @@
 module Act2 (startAct2) where
 
-import Utils (Lines, printLines, printPrompt, readCommand)
+import Utils (Lines, PlayerState (..), printLines, printPrompt, readCommand)
 
 act2Prolog :: Lines
 act2Prolog =
@@ -9,7 +9,7 @@ act2Prolog =
     "Antarctica's icy expanse. Clara pilots beside you, and you hold Admiral Byrd's diary."
   ]
 
-startAct2 :: IO ()
-startAct2 = do
+startAct2 :: PlayerState -> IO PlayerState
+startAct2 ps = do
   printLines act2Prolog
-
+  return ps

@@ -10,7 +10,7 @@ import Data.Char (toLower)
 import Data.List (delete, find)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import System.IO (hFlush, stdout)
-import Utils (Lines, instructionsText, printLines, printPrompt, readCommand)
+import Utils (Entity (..), EntityType (..), Lines, PlayerState (..), instructionsText, printLines, printPrompt, readCommand)
 
 act1Prolog :: Lines
 act1Prolog =
@@ -26,22 +26,18 @@ act1Prolog =
 data Location = Barrack | Yard | Runway | Depot | Tent | Unknown
   deriving (Eq, Show)
 
-data EntityType = Item | Person deriving (Eq, Show)
-
-data Entity = Entity
-  { entityType :: EntityType,
-    entityName :: String,
-    entityDescription :: String,
-    takeableByDefault :: Bool
-  }
-  deriving (Eq, Show)
-
 supplyNames :: [String]
 supplyNames =
   ["food", "water", "geiger", "medkit", "radio", "gear", "tools"]
 
 isSupply :: String -> Bool
 isSupply n = map toLower n `elem` supplyNames
+
+extractPlayerState :: GameState -> PlayerState
+extractPlayerState st =
+  PlayerState
+    { inventory_ = inventory st
+    }
 
 data GameState = GameState
   { currentLocation :: Location,
@@ -750,7 +746,7 @@ step st CmdNext
 step st CmdNext =
   return (st, ["You need to finish this act first."])
 
-gameLoop :: GameState -> IO ()
+gameLoop :: GameState -> IO PlayerState
 gameLoop st = do
   line <- readCommand
   let cmdLine = map toLower line
@@ -775,12 +771,12 @@ gameLoop st = do
 
   printLines out
   case cmd of
-    CmdQuit -> return ()
-    CmdNext | "act_finished" `elem` tasks st' -> startAct2
+    CmdQuit -> pure (extractPlayerState st')
+    CmdNext | "act_finished" `elem` tasks st' -> return (extractPlayerState st')
     _ -> gameLoop st'
 
-startAct1 :: IO ()
-startAct1 = do
+startAct1 :: PlayerState -> IO PlayerState
+startAct1 _ = do
   printLines instructionsText
   printLines act1Prolog
   printLines [describeLocation (currentLocation initialState), ""]

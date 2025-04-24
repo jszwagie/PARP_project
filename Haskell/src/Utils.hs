@@ -1,8 +1,15 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Use newtype instead of data" #-}
 module Utils
   ( printLines,
     printPrompt,
     readCommand,
     instructionsText,
+    Entity (..),
+    EntityType (..),
+    emptyPlayer,
+    PlayerState (..),
     Lines,
   )
 where
@@ -27,6 +34,23 @@ instructionsText =
     "quit               -- end the game and quit",
     ""
   ]
+
+data EntityType = Item | Person deriving (Eq, Show)
+
+data Entity = Entity
+  { entityType :: EntityType,
+    entityName :: String,
+    entityDescription :: String,
+    takeableByDefault :: Bool
+  }
+  deriving (Eq, Show)
+
+data PlayerState = PlayerState
+  {inventory_ :: [Entity]}
+  deriving (Eq, Show)
+
+emptyPlayer :: PlayerState
+emptyPlayer = PlayerState {inventory_ = []}
 
 printPrompt :: IO ()
 printPrompt = putStr "> " >> hFlush stdout

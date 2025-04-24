@@ -1,7 +1,8 @@
 module Main where
 
 import Act1 (startAct1)
-import Utils (Lines, printLines)
+import Act2 (startAct2)
+import Utils (Lines, emptyPlayer, printLines)
 
 introductionText :: Lines
 introductionText =
@@ -17,4 +18,6 @@ introductionText =
 main :: IO ()
 main = do
   printLines introductionText
-  startAct1
+  ps1 <- startAct1 emptyPlayer
+  ps2 <- startAct2 ps1
+  return ()
