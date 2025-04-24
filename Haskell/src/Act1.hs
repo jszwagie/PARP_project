@@ -18,17 +18,25 @@ import Utils
     Lines,
     Location (..),
     PlayerState (..),
+    addTask,
+    addToInventory,
     emptyPlayer,
     entitiesAt,
     extractPlayerState,
+    findEntity,
     findHere,
     findVisible,
     instructionsText,
+    isInInventory,
     isSupply,
+    markExamined,
+    markTalked,
     parseCommand,
     printLines,
     printPrompt,
     readCommand,
+    removeFromInventory,
+    removeTask,
     supplyNames,
   )
 
@@ -163,40 +171,6 @@ getHint st
       "I should take only the most necessary items for the mission."
   | otherwise =
       "I think I should talk with Clara."
-
-findEntity :: String -> GameState -> Maybe Entity
-findEntity nm st =
-  let locEs = fromMaybe [] (lookup (currentLocation st) (locationEntities st))
-      allEs = locEs ++ inventory st
-   in find ((== map toLower nm) . map toLower . entityName) allEs
-
-isInInventory :: String -> GameState -> Bool
-isInInventory nm st = any ((== map toLower nm) . map toLower . entityName) (inventory st)
-
-addToInventory :: Entity -> GameState -> GameState
-addToInventory ent st =
-  let loc = currentLocation st
-      remaining = delete ent (fromMaybe [] (lookup loc (locationEntities st)))
-      newLocs = map (\(l, es) -> if l == loc then (l, remaining) else (l, es)) (locationEntities st)
-   in st {inventory = ent : inventory st, locationEntities = newLocs}
-
-removeFromInventory :: Entity -> GameState -> GameState
-removeFromInventory ent st =
-  let loc = currentLocation st
-      inv' = delete ent (inventory st)
-      locEs = fromMaybe [] (lookup loc (locationEntities st))
-      newLocs = map (\(l, es) -> if l == loc then (l, ent : locEs) else (l, es)) (locationEntities st)
-   in st {inventory = inv', locationEntities = newLocs}
-
-markExamined :: String -> GameState -> GameState
-markExamined nm st = st {examined = nm : examined st}
-
-markTalked :: String -> String -> GameState -> GameState
-markTalked p t st = st {talked = (p ++ "_" ++ t) : talked st}
-
-addTask, removeTask :: String -> GameState -> GameState
-addTask t st = if t `elem` tasks st then st else st {tasks = t : tasks st}
-removeTask t st = st {tasks = filter (/= t) (tasks st)}
 
 countSupplies :: [Entity] -> Int
 countSupplies = length . filter (isSupply . entityName)
