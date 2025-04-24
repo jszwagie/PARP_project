@@ -453,7 +453,7 @@ stepA2 st CmdLook =
           CrashSite -> describeCrashSite st
           Cave -> describeCave st
           Wreck -> wreckDesc
-          Tunnel -> describeCave st 
+          Tunnel -> describeCave st
           _ -> describeLocation (currentLocation st)
    in pure (st, [out, ""])
 stepA2 st CmdInventory =
@@ -478,7 +478,7 @@ stepA2 st (CmdGo p) =
           pure (st, ["You can't go to " ++ p ++ " from here.", ""])
 stepA2 st (CmdExamine obj) =
   case examineSpecialA2 (map toLower obj) st of
-    Just res -> pure res 
+    Just res -> pure res
     Nothing ->
       case findEntity obj st of
         Just e ->
@@ -493,7 +493,6 @@ stepA2 st (CmdExamine obj) =
                 ""
               ]
             )
-
 stepA2 st (CmdTalk who)
   | map toLower who == "clara" = pure (dialogClaraA2 st)
   | otherwise = pure (st, ["There's no one here by that name.", ""])
@@ -573,6 +572,28 @@ stepA2 st CmdUnknown = pure (st, ["Unknown command.", ""])
 stepA2 st CmdNext
   | hasTask "act2_finished" st = pure (st, ["Preparing Act 3…"])
   | otherwise = pure (st, ["You need to finish this act first."])
+
+gameLoopA2 :: GameState -> IO PlayerState
+gameLoopA2 st = do
+  line <- readCommand
+  let cmdLine = map toLower line
+      args = words cmdLine
+      cmd = parseCommand args
+
+  (st', out) <-
+    if hasTask "awaiting_cockpit_choice" st
+      then return (processCockpitChoice cmdLine st)
+      else case cmd of
+        CmdTalk "clara" -> return (dialogClaraA2 st)
+        _ -> stepA2 st cmd
+
+  printLines out
+
+  case cmd of
+    CmdQuit -> pure (extractPlayerState st')
+    CmdNext
+      | hasTask "act2_finished" st' -> pure (extractPlayerState st')
+    _ -> gameLoopA2 st'
 
 startAct2 :: PlayerState -> IO PlayerState
 startAct2 ps0 = do
