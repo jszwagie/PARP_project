@@ -4,7 +4,7 @@ import Control.Applicative ((<|>))
 import Data.Bool (Bool (False, True))
 import Data.Char (toLower)
 import Data.Function ((&))
-import Data.List (delete, find, init, partition)
+import Data.List (delete, find, partition)
 import Utils
   ( Command (..),
     Entity (..),
@@ -146,6 +146,9 @@ hasItem n st = any ((== map toLower n) . map toLower . entityName) (inventory st
 
 getHint :: GameState -> String
 getHint st
+  | currentLocation st == CrashSite,
+    "crash_site_described" `notElem` tasks st =
+      "I should first LOOK around to get my bearings."
   | currentLocation st == Cockpit,
     not (st `has` "radio_examined") =
       "I need to find something to pass the time."
@@ -158,19 +161,19 @@ getHint st
     not (st `has` "crashed") =
       "I should talk to Clara."
   | currentLocation st == CrashSite,
-    st `has` "injured_clara",
-    not (st `has` "plane_examined") =
+    hasTask "injured_clara" st,
+    not (hasTask "plane_examined" st) =
       "Clara needs help fast, and the wreckage of the PLANE might have something useful."
   | currentLocation st == CrashSite,
-    st `has` "injured_clara",
-    st `has` "plane_examined" =
+    hasTask "injured_clara" st,
+    hasTask "plane_examined" st =
       "Clara needs help fast, and a MEDKIT should be in the luggage COMPARTMENT."
   | currentLocation st == CrashSite,
-    not (st `has` "injured_clara"),
-    not (st `has` "compartment_checked") =
+    not (hasTask "injured_clara" st),
+    not (hasTask "compartment_checked" st) =
       "I should check the luggage COMPARTMENT for the rest of the supplies."
   | currentLocation st == CrashSite,
-    not (st `has` "injured_clara") =
+    not (hasTask "injured_clara" st) =
       "I should talk to Clara about our next move."
   | currentLocation st == Cave,
     st `has` "wreck_discovery",
@@ -352,6 +355,64 @@ processCockpitChoice choice st
         . removeTask "awaiting_cockpit_choice"
         $ st
 
+processRadioChoice :: String -> GameState -> (GameState, Lines)
+processRadioChoice choice st
+  | choice == "1" =
+      ( stDoneChoice1,
+        [ "You: \"Nah, you're freaking out; that's just some usual anomalies. Focus on piloting.\"",
+          "Clara: \"Yeah, you're right; there''s no time for that.\""
+        ]
+      )
+  | choice == "2" =
+      ( stDoneChoice2,
+        [ "You: \"Oh, you know German? I should have guessed from your surname.\"",
+          "Clara: \"Yes, my father was a German immigrant. He went to the USA when WWI started.\"",
+          "Your choices:",
+          "1. \"Byrd's diary doesn't mention Germans, but hey, we're in what Nazi Germany claimed as their territory in Antarctica.\"",
+          "2. \"Ah, Uncle Sam, a shelter for all the world's people in need.\""
+        ]
+      )
+  | otherwise =
+      (st, ["Invalid choice - enter 1 or 2."])
+  where
+    stDoneChoice1 =
+      addTask "radio_used"
+        . removeTask "awaiting_radio_choice"
+        $ st
+
+    stDoneChoice2 =
+      addTask "awaiting_radio_background"
+        . removeTask "awaiting_radio_choice"
+        $ st
+
+processRadioBackgroundChoice :: String -> GameState -> (GameState, Lines)
+processRadioBackgroundChoice choice st
+  | choice == "1" =
+      ( stDoneChoice1,
+        [ "You: \"Byrd's diary doesn't mention Germans, but hey, we're in what Nazi Germany claimed as their territory in Antarctica.\"",
+          "Clara: \"I'm sure the last thing we want is for my German to come in handy. This whole mission feels unreal and ridiculous.\""
+        ]
+      )
+  | choice == "2" =
+      ( stDoneChoice2,
+        [ "You: \"Ah, Uncle Sam, a shelter for all the world''s people in need.\"",
+          "Clara: \"Until he sends you on a mission like this, haha.\"",
+          ""
+        ]
+      )
+  | otherwise =
+      (st, ["Invalid choice - enter 1 or 2."])
+  where
+    stDoneChoice1 =
+      addTask "radio_used"
+        . removeTask "awaiting_radio_background"
+        $ st
+
+    stDoneChoice2 =
+      addTask "radio_used"
+        . removeTask "awaiting_radio_background"
+        $ st
+
 atLocation :: Location -> GameState -> Bool
 atLocation loc gs = currentLocation gs == loc
 
@@ -403,13 +464,16 @@ examineSpecialA2 key st = case map toLower key of
           )
   "plane"
     | atLocation CrashSite st ->
-        Just
-          ( markExamined "plane" st,
-            [ "The plane's a lost cause, but the luggage COMPARTMENT is intact.",
-              "The supplies you took are probably still there.",
-              ""
-            ]
-          )
+        let st' =
+              addTask "plane_examined" $
+                markExamined "plane" st
+         in Just
+              ( st',
+                [ "The plane's a lost cause, but the luggage COMPARTMENT is intact.",
+                  "The supplies you took are probably still there.",
+                  ""
+                ]
+              )
   "compartment"
     | atLocation CrashSite st
         && hasTask "injured_clara" st
@@ -455,14 +519,15 @@ examineSpecialA2 key st = case map toLower key of
                         ]
                       )
     | atLocation CrashSite st ->
-        Just
-          ( markExamined "compartment" st,
-            [ "You check the plane compartment for supplies.",
-              "In the compartment you find:"
-            ]
-              ++ map (("- " ++) . entityName) (entitiesAt Compartment st)
-              ++ [""]
-          )
+        let st' = addTask "compartment_checked" st
+         in Just
+              ( markExamined "compartment" st',
+                [ "You check the plane compartment for supplies.",
+                  "In the compartment you find:"
+                ]
+                  ++ map (("- " ++) . entityName) (entitiesAt Compartment st')
+                  ++ [""]
+              )
   "wreck"
     | atLocation Cave st ->
         let st' = addTask "wreck_examined" $ markExamined "wreck" st
@@ -510,7 +575,7 @@ goDeeper st
     not (hasTask "entered_wreck" st) =
       pure
         ( st,
-          [ "Clara: \"Hold up, doc. We can't ignore this—it’s too weird.\"",
+          [ "Clara: \"Hold up, doc. We can't ignore this—it's too weird.\"",
             "You should EXAMINE the WRECK.",
             ""
           ]
@@ -521,9 +586,10 @@ goDeeper st
               then setLocation Cave st
               else st
           st2 = setLocation Tunnel st1
-          st3 = addTask "act2_finished" st2
+          st3 = addTask "entered_cave" st2
+          st4 = addTask "act2_finished" st3
        in pure
-            ( st3,
+            ( st4,
               [ "Slowly and carefully, you emerge from the wreckage.",
                 "The dark cave corridor stretches before you.",
                 "As you descend deeper into the tunnel, a roar shakes the walls as a",
@@ -547,22 +613,23 @@ stepA2 st _
       pure (st, ["You've already finished this act. Type \"quit\" to exit.", ""])
 stepA2 st CmdQuit = pure (st, ["Good-bye."])
 stepA2 st CmdLook =
-  let st' =
-        case currentLocation st of
-          CrashSite
-            | "crash_site_described" `notElem` tasks st ->
-                addTask "crash_site_described" st
-          _ -> st
-
-      out =
-        case currentLocation st' of
-          Cockpit -> cockpitDesc
-          CrashSite -> describeCrashSite st'
-          Cave -> describeCave st'
-          Wreck -> wreckDesc
-          Tunnel -> describeCave st'
-          _ -> describeLocation (currentLocation st')
-   in pure (st', [out, ""])
+  case currentLocation st of
+    CrashSite
+      | "crash_site_described" `notElem` tasks st ->
+          let st1 = addTask "crash_site_described" st
+              out =
+                "You wake amid the wreckage, cold seeping into your bones.\n"
+                  ++ describeCrashSite st1
+           in pure (st1, [out, ""])
+    _ ->
+      let out = case currentLocation st of
+            Cockpit -> cockpitDesc
+            CrashSite -> describeCrashSite st
+            Cave -> describeCave st
+            Wreck -> wreckDesc
+            Tunnel -> describeCave st
+            _ -> describeLocation (currentLocation st)
+       in pure (st, [out, ""])
 stepA2 st CmdInventory =
   let inv = inventory st
    in if null inv
@@ -576,6 +643,12 @@ stepA2 st (CmdGo p)
       case parseLocation p of
         Unknown -> pure (st, ["Unknown place: " ++ p, ""])
         loc
+          | atLocation CrashSite st,
+            hasTask "injured_clara" st ->
+              pure (st, ["I need to help Clara first.", ""])
+          | atLocation CrashSite st,
+            not (null (entitiesAt Compartment st)) ->
+              pure (st, ["I should check the luggage COMPARTMENT for the rest of the supplies first.", ""])
           | canMove (currentLocation st) loc ->
               let st' = st {currentLocation = loc}
                   out = case loc of
@@ -606,48 +679,60 @@ stepA2 st (CmdExamine obj) =
 stepA2 st (CmdTalk who)
   | map toLower who == "clara" = pure (dialogClaraA2 st)
   | otherwise = pure (st, ["There's no one here by that name.", ""])
-stepA2 st (CmdTake raw) =
-  let name = map toLower raw
-      invAlready = isInInventory name st
-      here =
-        findHere name st
-          <|> find
-            ((== name) . map toLower . entityName)
-            (entitiesAt Compartment st)
+stepA2 st (CmdTake raw)
+  | atLocation CrashSite st,
+    hasTask "injured_clara" st =
+      pure (st, ["I need to help Clara first.", ""])
+  | atLocation CrashSite st,
+    not (hasTask "plane_examined" st) =
+      pure (st, ["I don't know where the supplies are.", ""])
+  | atLocation CrashSite st,
+    not (hasTask "compartment_checked" st) =
+      pure (st, ["I should check the luggage COMPARTMENT.", ""])
+  | otherwise =
+      let name = map toLower raw
+          invAlready = isInInventory name st
+          here =
+            findHere name st
+              <|> find
+                ((== name) . map toLower . entityName)
+                (entitiesAt Compartment st)
 
-      limitFull = pure (st, ["You cannot take this - you've reached the limit (5 items).", ""])
-      notHere = pure (st, ["I don't see " ++ raw ++ " here.", ""])
-      removeFromLocation :: Location -> Entity -> GameState -> GameState
-      removeFromLocation loc ent gs =
-        let remaining = delete ent (entitiesAt loc gs)
-            newLocs =
-              map
-                (\(l, es) -> if l == loc then (l, remaining) else (l, es))
-                (locationEntities gs)
-         in gs {locationEntities = newLocs}
-      takeEntity :: Entity -> String -> IO (GameState, Lines)
-      takeEntity ent msg = do
-        let st1 = addToInventory ent st
-            st2 =
-              if ent `elem` entitiesAt Compartment st
-                then removeFromLocation Compartment ent st1
-                else st1
-        pure (st2, [msg, ""])
-   in if invAlready
-        then pure (st, ["You're already holding it!", ""])
-        else case here of
-          Nothing -> notHere
-          Just e
-            | name == "pistol" ->
-                takeEntity e "You take the PISTOL - hopefully it won't be needed."
-            | name == "medkit" ->
-                takeEntity e "Thank God I took it."
-            | isSupply name ->
-                if length (filter (isSupply . entityName) (inventory st)) >= 5
-                  then limitFull
-                  else takeEntity e ("You take the " ++ entityName e ++ ".")
-            | otherwise ->
-                pure (st, ["You can't take that.", ""])
+          limitFull = pure (st, ["You cannot take this - you've reached the limit (5 items).", ""])
+          notHere = pure (st, ["I don't see " ++ raw ++ " here.", ""])
+
+          removeFromLocation :: Location -> Entity -> GameState -> GameState
+          removeFromLocation loc ent gs =
+            let remaining = delete ent (entitiesAt loc gs)
+                newLocs =
+                  map
+                    (\(l, es) -> if l == loc then (l, remaining) else (l, es))
+                    (locationEntities gs)
+             in gs {locationEntities = newLocs}
+
+          takeEntity :: Entity -> String -> IO (GameState, Lines)
+          takeEntity ent msg = do
+            let st1 = addToInventory ent st
+                st2 =
+                  if ent `elem` entitiesAt Compartment st
+                    then removeFromLocation Compartment ent st1
+                    else st1
+            pure (st2, [msg, ""])
+       in if invAlready
+            then pure (st, ["You're already holding it!", ""])
+            else case here of
+              Nothing -> notHere
+              Just e
+                | name == "pistol" ->
+                    takeEntity e "You take the PISTOL - hopefully it won't be needed."
+                | name == "medkit" ->
+                    takeEntity e "Thank God I took it."
+                | isSupply name ->
+                    if length (filter (isSupply . entityName) (inventory st)) >= 5
+                      then limitFull
+                      else takeEntity e ("You take the " ++ entityName e ++ ".")
+                | otherwise ->
+                    pure (st, ["You can't take that.", ""])
 stepA2 st (CmdDrop raw) =
   let name = map toLower raw
    in if not (isInInventory name st)
@@ -664,20 +749,50 @@ stepA2 st (CmdUse raw)
   | name == "radio",
     atLocation Cockpit st,
     not (hasTask "radio_used" st) =
-      let st' = addTask "radio_used" st
+      let st' =
+            addTask "radio_used"
+              . addTask "awaiting_radio_choice"
+              $ st
        in pure
             ( st',
-              [ "You playfully switch frequencies. After a moment German voices crackle through the static.",
-                "Clara throws you a worried glance…",
+              [ "You playfully switch frequencies.",
+                "Clara: \"What is it, doc? Are you bored?\"",
+                "You: \"Kind of.\"",
+                "",
+                "After a while, you run into something. The radio spits static until a garbled voice breaks through.",
+                "",
+                "Clara: \"Wait, what? I think I hear German, but the audio is too distorted; I can't make out the words.\"",
+                "Your choices:",
+                "1. \"Nah, you're freaking out; that's just some usual anomalies. Focus on piloting.\"",
+                "2. \"Oh, you know German? I should have guessed from your surname.\"",
                 ""
               ]
             )
+  | name == "radio",
+    inventoryHas "radio" st,
+    not (hasTask "entered_cave" st),
+    not (hasTask "injured_clara" st) =
+      pure
+        ( st,
+          [ "No signal to base, but switching channels catches German again:",
+            "\"Herr [distortion], wann ist die Glocke fertig? Ich denke, wir [distortion] die Arbeit nachste Woche been...\"",
+            "can be heard between the static noise.",
+            ""
+          ]
+        )
   | name == "medkit",
     atLocation CrashSite st,
     hasTask "injured_clara" st =
       let st' = removeTask "injured_clara" st
+          st'' = removeTask "compartment_checked" st'
+          st''' = case findEntity name st of
+            Just e -> removeFromInventory e st''
+            Nothing -> st''
+          st'''' = case findEntity name st of
+            Just e -> removeFromLocation Compartment e st'''
+            Nothing -> st'''
        in pure
-            ( st',
+            ( st'''',
               [ "You bandage Clara's wounds; she stirs awake.",
                 "Clara (mumbling): \"...what happened? Where are we?\"",
                 "You: \"Thank God, you're alive. We crashed, and you're injured, but I think you'll be okay.\"",
@@ -706,9 +821,15 @@ gameLoopA2 st = do
   (st', out) <-
     if hasTask "awaiting_cockpit_choice" st
       then return (processCockpitChoice cmdLine st)
-      else case cmd of
-        CmdTalk "clara" -> return (dialogClaraA2 st)
-        _ -> stepA2 st cmd
+      else
+        if hasTask "awaiting_radio_choice" st
+          then return (processRadioChoice cmdLine st)
+          else
+            if hasTask "awaiting_radio_background" st
+              then return (processRadioBackgroundChoice cmdLine st)
+              else case cmd of
+                CmdTalk "clara" -> return (dialogClaraA2 st)
+                _ -> stepA2 st cmd
 
   printLines out
 
