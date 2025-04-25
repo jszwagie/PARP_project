@@ -411,24 +411,49 @@ examineSpecialA2 key st = case map toLower key of
             ]
           )
   "compartment"
-    | atLocation CrashSite st,
-      hasTask "injured_clara" st,
-      not (inventoryHas "medkit" st) ->
-        let st' =
+    | atLocation CrashSite st
+        && hasTask "injured_clara" st
+        && not (inventoryHas "medkit" st) ->
+        let stExamined =
               addTask "compartment_checked" $
                 markExamined "compartment" $
                   markExamined "plane" st
-            supplies = entitiesAt Compartment st'
-            msgFound =
-              [ "You check the plane compartment for supplies.",
-                "Inside you find:"
-              ]
-                ++ map (("- " ++) . entityName) supplies
-            msgEmpty = ["The compartment is empty."]
-         in Just
-              ( st',
-                (if null supplies then msgEmpty else msgFound) ++ [""]
-              )
+
+            supplies = entitiesAt Compartment stExamined
+            hasMedkit = any ((== "medkit") . map toLower . entityName) supplies
+         in if hasMedkit
+              then
+                Just
+                  ( stExamined,
+                    [ "You check the plane compartment for supplies.",
+                      "Inside you find:"
+                    ]
+                      ++ map (("- " ++) . entityName) supplies
+                      ++ [""]
+                  )
+              else
+                let stGameOver =
+                      addTask "game_over"
+                        . addTask "act2_finished"
+                        $ stExamined
+                 in Just
+                      ( stGameOver,
+                        [ "You check the plane compartment for supplies.",
+                          "You realize you forgot to take the MEDKIT before departure.",
+                          "You: \"How could I forget it? What can I do now?\"",
+                          "You start to panic, gasping heavily.",
+                          "",
+                          "You: \"Clara, Clara, wake up!\"",
+                          "You try to rouse Clara, but it's futile.",
+                          "You: (crying) \"Clara, please, I can't do this alone.\"",
+                          "",
+                          "With her wound untreated, Clara continues to bleed.",
+                          "Suddenly, her heart stops beating.",
+                          "As the cold overwhelms you, the Antarctic claims you both.",
+                          "GAME OVER",
+                          ""
+                        ]
+                      )
     | atLocation CrashSite st ->
         Just
           ( markExamined "compartment" st,
@@ -520,15 +545,22 @@ stepA2 st _
       pure (st, ["You've already finished this act. Type \"quit\" to exit.", ""])
 stepA2 st CmdQuit = pure (st, ["Good-bye."])
 stepA2 st CmdLook =
-  let out =
+  let st' =
         case currentLocation st of
+          CrashSite
+            | "crash_site_described" `notElem` tasks st ->
+                addTask "crash_site_described" st
+          _ -> st
+
+      out =
+        case currentLocation st' of
           Cockpit -> cockpitDesc
-          CrashSite -> describeCrashSite st
-          Cave -> describeCave st
+          CrashSite -> describeCrashSite st'
+          Cave -> describeCave st'
           Wreck -> wreckDesc
-          Tunnel -> describeCave st
-          _ -> describeLocation (currentLocation st)
-   in pure (st, [out, ""])
+          Tunnel -> describeCave st'
+          _ -> describeLocation (currentLocation st')
+   in pure (st', [out, ""])
 stepA2 st CmdInventory =
   let inv = inventory st
    in if null inv
