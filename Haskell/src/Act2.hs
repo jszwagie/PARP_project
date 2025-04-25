@@ -579,6 +579,7 @@ stepA2 st (CmdGo p)
                   out = case loc of
                     CrashSite -> "You step toward the entrance, driven by cold and curiosity." ++ describeCrashSite st'
                     Cave -> describeCave st'
+                    Wreck -> "You and Clara enter the wreck through its hatch." ++ describeLocation loc
                     _ -> describeLocation loc
                in pure (st', [out, ""])
           | otherwise ->
