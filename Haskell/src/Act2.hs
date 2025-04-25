@@ -638,7 +638,7 @@ stepA2 st (CmdTake raw) =
             | name == "pistol" ->
                 takeEntity e "You take the PISTOL - hopefully it won't be needed."
             | name == "medkit" ->
-                takeEntity e "You take the MEDKIT."
+                takeEntity e "Thank God I took it."
             | isSupply name ->
                 if length (filter (isSupply . entityName) (inventory st)) >= 5
                   then limitFull
@@ -676,6 +676,8 @@ stepA2 st (CmdUse raw)
        in pure
             ( st',
               [ "You bandage Clara's wounds; she stirs awake.",
+                "Clara (mumbling): \"...what happened? Where are we?\"",
+                "You: \"Thank God, you're alive. We crashed, and you're injured, but I think you'll be okay.\"",
                 "Clara: \"Thanks, doc… I thought I was a goner.\"",
                 ""
               ]
