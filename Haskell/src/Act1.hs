@@ -159,14 +159,14 @@ getHint st
   | "fuel_request" `elem` tasks st
       && isInInventory "canister" st =
       "I should give the CANISTER to Clara."
-  | "supplies" `elem` tasks st
+  | "collect_supplies" `elem` tasks st
       && currentLocation st == Runway
       && countSupplies (inventory st) > 0 =
       "I should thank her for the coffee."
-  | "supplies" `elem` tasks st
+  | "collect_supplies" `elem` tasks st
       && currentLocation st /= Tent =
       "I should gather supplies in the supply TENT."
-  | "supplies" `elem` tasks st
+  | "collect_supplies" `elem` tasks st
       && currentLocation st == Tent =
       "I should take only the most necessary items for the mission."
   | otherwise =
