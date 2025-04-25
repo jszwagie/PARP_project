@@ -577,7 +577,7 @@ stepA2 st (CmdGo p)
           | canMove (currentLocation st) loc ->
               let st' = st {currentLocation = loc}
                   out = case loc of
-                    CrashSite -> describeCrashSite st'
+                    CrashSite -> "You step toward the entrance, driven by cold and curiosity." ++ describeCrashSite st'
                     Cave -> describeCave st'
                     _ -> describeLocation loc
                in pure (st', [out, ""])
