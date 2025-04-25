@@ -472,7 +472,7 @@ examineSpecialA2 key st = case map toLower key of
                   "\"Hergestellt in Deutschland. 1944. Danzig\". Machine-gun nests bristle from",
                   "its surface.",
                   "",
-                  "Clara: \"Made in Germany… What's it doing here?\"",
+                  "Clara: \"Made in Germany. 1944. Danzig. I think that's Nazi tech-what's it doing here?\"",
                   "",
                   "There appears to be an entrance. You could GO inside to investigate further.",
                   ""
