@@ -83,6 +83,15 @@ removeFromLocation loc ent st =
           (locationEntities st)
    in st {locationEntities = newLocs}
 
+removeFromLocationByName :: Location -> String -> GameState -> GameState
+removeFromLocationByName loc n gs =
+  let remaining = filter ((/= map toLower n) . map toLower . entityName) (entitiesAt loc gs)
+      newLocs =
+        map
+          (\(l, es) -> if l == loc then (l, remaining) else (l, es))
+          (locationEntities gs)
+   in gs {locationEntities = newLocs}
+
 moveSuppliesToCompartment :: PlayerState -> PlayerState
 moveSuppliesToCompartment ps =
   let compartment =
@@ -783,16 +792,13 @@ stepA2 st (CmdUse raw)
   | name == "medkit",
     atLocation CrashSite st,
     hasTask "injured_clara" st =
-      let st' = removeTask "injured_clara" st
-          st'' = removeTask "compartment_checked" st'
-          st''' = case findEntity name st of
-            Just e -> removeFromInventory e st''
-            Nothing -> st''
-          st'''' = case findEntity name st of
-            Just e -> removeFromLocation Compartment e st'''
-            Nothing -> st'''
+      let st1 = removeTask "injured_clara" st
+          st2 = case findEntity "medkit" st1 of
+            Just medkit -> removeFromInventory medkit st1
+            Nothing -> st1
+          st3 = removeFromLocationByName Compartment "medkit" st2
        in pure
-            ( st'''',
+            ( st3,
               [ "You bandage Clara's wounds; she stirs awake.",
                 "Clara (mumbling): \"...what happened? Where are we?\"",
                 "You: \"Thank God, you're alive. We crashed, and you're injured, but I think you'll be okay.\"",
