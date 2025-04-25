@@ -193,7 +193,11 @@ getHint st
 describeCrashSite :: GameState -> String
 describeCrashSite st
   | "crash_site_described" `notElem` tasks st =
-      "You wake amid the wreckage, cold seeping into your bones."
+      "You wake amid the wreckage, cold seeping into your bones.\n"
+        ++ "The PLANE is a ruin, and CLARA lies injured nearby.\n\
+           \Twisted metal juts from the snow, half-burying the fuselage; engine debris still smoulders.\n\
+           \Wind howls, stinging your face with ice.\n\
+           \CLARA slumps a few feet away, blood staining the snow beneath her head."
   | "injured_clara" `elem` tasks st =
       "The PLANE is a ruin, and CLARA lies injured nearby.\n\
       \Twisted metal juts from the snow, half-burying the fuselage; engine debris still smoulders.\n\
@@ -463,6 +467,46 @@ examineSpecialA2 key st = case map toLower key of
           )
   _ -> Nothing
 
+goDeeper :: GameState -> IO (GameState, Lines)
+goDeeper st
+  | atLocation Cave st,
+    not (hasTask "wreck_discovery" st) =
+      pure
+        ( addTask "wreck_discovery" st,
+          ["Clara: \"Hey, what's that? Do you see it?\"", ""]
+        )
+  | atLocation Cave st || atLocation Wreck st,
+    not (hasTask "wreck_examined" st),
+    not (hasTask "entered_wreck" st) =
+      pure
+        ( st,
+          [ "Clara: \"Hold up, doc. We can't ignore this—it’s too weird.\"",
+            "You should EXAMINE the WRECK.",
+            ""
+          ]
+        )
+  | atLocation Cave st || atLocation Wreck st =
+      let st1 =
+            if atLocation Wreck st
+              then setLocation Cave st
+              else st
+          st2 = setLocation Tunnel st1
+          st3 = addTask "act2_finished" st2
+       in pure
+            ( st3,
+              [ "As you descend deeper into the tunnel, a roar shakes the walls as a",
+                "bat-winged aircraft rockets past, vanishing toward the outside world.",
+                "",
+                "Clara: \"That's Nazi design—straight out of the war!\"",
+                "You: \"I'm freaking out; let's get out of here. I think I see light ahead.\"",
+                "",
+                "A steady glow blooms from the tunnel's depths, pulling you forward.",
+                ""
+              ]
+            )
+  | otherwise =
+      pure (st, ["You can't go deeper from here.", ""])
+
 stepA2 :: GameState -> Command -> IO (GameState, Lines)
 stepA2 st _
   | hasTask "act2_finished" st =
@@ -485,19 +529,21 @@ stepA2 st CmdInventory =
         else pure (st, "You are carrying:" : map entityName inv ++ [""])
 stepA2 st CmdHint = pure (st, [getHint st, ""])
 stepA2 st CmdInstructions = pure (st, instructionsText)
-stepA2 st (CmdGo p) =
-  case parseLocation p of
-    Unknown -> pure (st, ["Unknown place: " ++ p, ""])
-    loc
-      | canMove (currentLocation st) loc ->
-          let st' = st {currentLocation = loc}
-              out = case loc of
-                CrashSite -> describeCrashSite st'
-                Cave -> describeCave st'
-                _ -> describeLocation loc
-           in pure (st', [out, ""])
-      | otherwise ->
-          pure (st, ["You can't go to " ++ p ++ " from here.", ""])
+stepA2 st (CmdGo p)
+    | map toLower p == "deeper" = goDeeper st
+    | otherwise =
+      case parseLocation p of
+      Unknown -> pure (st, ["Unknown place: " ++ p, ""])
+      loc
+        | canMove (currentLocation st) loc ->
+            let st' = st {currentLocation = loc}
+                out = case loc of
+                  CrashSite -> describeCrashSite st'
+                  Cave -> describeCave st'
+                  _ -> describeLocation loc
+            in pure (st', [out, ""])
+        | otherwise ->
+            pure (st, ["You can't go to " ++ p ++ " from here.", ""])
 stepA2 st (CmdExamine obj) =
   case examineSpecialA2 (map toLower obj) st of
     Just res -> pure res
