@@ -524,7 +524,9 @@ goDeeper st
           st3 = addTask "act2_finished" st2
        in pure
             ( st3,
-              [ "As you descend deeper into the tunnel, a roar shakes the walls as a",
+              [ "Slowly and carefully, you emerge from the wreckage.",
+                "The dark cave corridor stretches before you.",
+                "As you descend deeper into the tunnel, a roar shakes the walls as a",
                 "bat-winged aircraft rockets past, vanishing toward the outside world.",
                 "",
                 "Clara: \"That's Nazi design—straight out of the war!\"",
