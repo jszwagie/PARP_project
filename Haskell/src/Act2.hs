@@ -119,6 +119,11 @@ describeLocation Cockpit = cockpitDesc
 describeLocation Wreck = wreckDesc
 describeLocation Unknown = "You see nothing special."
 
+act2Epilog :: Lines
+act2Epilog =
+  [ "----------------------------ACT 2 OVER----------------------------"
+  ]
+
 cockpitDesc, wreckDesc :: String
 cockpitDesc =
   "The cockpit is tight and utilitarian, filled with glowing dials and humming switches.\n\
@@ -503,6 +508,8 @@ goDeeper st
                 "A steady glow blooms from the tunnel's depths, pulling you forward.",
                 ""
               ]
+                ++ act2Epilog
+                ++ [""]
             )
   | otherwise =
       pure (st, ["You can't go deeper from here.", ""])
@@ -530,20 +537,20 @@ stepA2 st CmdInventory =
 stepA2 st CmdHint = pure (st, [getHint st, ""])
 stepA2 st CmdInstructions = pure (st, instructionsText)
 stepA2 st (CmdGo p)
-    | map toLower p == "deeper" = goDeeper st
-    | otherwise =
+  | map toLower p == "deeper" = goDeeper st
+  | otherwise =
       case parseLocation p of
-      Unknown -> pure (st, ["Unknown place: " ++ p, ""])
-      loc
-        | canMove (currentLocation st) loc ->
-            let st' = st {currentLocation = loc}
-                out = case loc of
-                  CrashSite -> describeCrashSite st'
-                  Cave -> describeCave st'
-                  _ -> describeLocation loc
-            in pure (st', [out, ""])
-        | otherwise ->
-            pure (st, ["You can't go to " ++ p ++ " from here.", ""])
+        Unknown -> pure (st, ["Unknown place: " ++ p, ""])
+        loc
+          | canMove (currentLocation st) loc ->
+              let st' = st {currentLocation = loc}
+                  out = case loc of
+                    CrashSite -> describeCrashSite st'
+                    Cave -> describeCave st'
+                    _ -> describeLocation loc
+               in pure (st', [out, ""])
+          | otherwise ->
+              pure (st, ["You can't go to " ++ p ++ " from here.", ""])
 stepA2 st (CmdExamine obj) =
   case examineSpecialA2 (map toLower obj) st of
     Just res -> pure res
