@@ -797,8 +797,9 @@ stepA2 st (CmdUse raw)
             Just medkit -> removeFromInventory medkit st1
             Nothing -> st1
           st3 = removeFromLocationByName Compartment "medkit" st2
+          st4 = removeTask "compartment_checked" st3
        in pure
-            ( st3,
+            ( st4,
               [ "You bandage Clara's wounds; she stirs awake.",
                 "Clara (mumbling): \"...what happened? Where are we?\"",
                 "You: \"Thank God, you're alive. We crashed, and you're injured, but I think you'll be okay.\"",
