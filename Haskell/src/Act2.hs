@@ -22,6 +22,8 @@ import Utils
     findEntity,
     findHere,
     findVisible,
+    hasItem,
+    hasTask,
     instructionsText,
     isInInventory,
     isSupply,
@@ -146,62 +148,54 @@ wreckDesc =
   \Wires hang loosely, and a faint smell of oil lingers.\n\
   \On a seat, you spot an old German PISTOL—a Mauser C96—still holstered."
 
-infix 4 `has`
-
-has :: GameState -> String -> Bool
-has st t = t `elem` tasks st
-
-hasItem :: String -> GameState -> Bool
-hasItem n st = any ((== map toLower n) . map toLower . entityName) (inventory st)
-
 getHint :: GameState -> String
 getHint st
   | currentLocation st == CrashSite,
     "crash_site_described" `notElem` tasks st =
       "I should first LOOK around to get my bearings."
   | currentLocation st == Cockpit,
-    not (st `has` "radio_examined") =
+    not (st `hasTask` "radio_examined") =
       "I need to find something to pass the time."
   | currentLocation st == Cockpit,
-    st `has` "radio_examined",
-    not (st `has` "radio_used") =
+    st `hasTask` "radio_examined",
+    not (st `hasTask` "radio_used") =
       "I could USE the radio to pass some time."
   | currentLocation st == Cockpit,
-    st `has` "radio_used",
-    not (st `has` "crashed") =
+    st `hasTask` "radio_used",
+    not (st `hasTask` "crashed") =
       "I should talk to Clara."
   | currentLocation st == CrashSite,
-    hasTask "injured_clara" st,
-    not (hasTask "plane_examined" st) =
+    st `hasTask` "injured_clara",
+    not (st `hasTask` "plane_examined") =
       "Clara needs help fast, and the wreckage of the PLANE might have something useful."
   | currentLocation st == CrashSite,
-    hasTask "injured_clara" st,
-    hasTask "plane_examined" st =
+    st `hasTask`  "injured_clara",
+    st `hasTask`  "plane_examined" =
       "Clara needs help fast, and a MEDKIT should be in the luggage COMPARTMENT."
   | currentLocation st == CrashSite,
-    not (hasTask "injured_clara" st),
-    not (hasTask "compartment_checked" st) =
+    not (st `hasTask`  "injured_clara"),
+    not (st `hasTask`  "compartment_checked") =
       "I should check the luggage COMPARTMENT for the rest of the supplies."
   | currentLocation st == CrashSite,
-    not (hasTask "injured_clara" st) =
+    not (st `hasTask`  "injured_clara") =
       "I should talk to Clara about our next move."
   | currentLocation st == Cave,
-    st `has` "wreck_discovery",
-    not (st `has` "wreck_examined") =
+    st `hasTask` "wreck_discovery",
+    not (st `hasTask` "wreck_examined") =
       "I should EXAMINE the WRECK."
   | currentLocation st == Cave,
-    st `has` "wreck_examined",
-    not (st `has` "entered_wreck"),
-    not (st `has` "wreck_discovery2") =
+    st `hasTask` "wreck_examined",
+    not (st `hasTask` "entered_wreck"),
+    not (st `hasTask` "wreck_discovery2") =
       "I should talk to Clara."
   | currentLocation st == Cave,
-    st `has` "wreck_discovery2",
-    not (st `has` "entered_wreck") =
+    st `hasTask` "wreck_discovery2",
+    not (st `hasTask` "entered_wreck") =
       "I must decide, should I GO to WRECK or GO DEEPER?"
   | currentLocation st == Cave =
       "I should talk to Clara."
   | currentLocation st == Wreck,
-    not (hasItem "pistol" st) =
+    not (st `hasItem`  "pistol") =
       "I should look around for anything useful."
   | currentLocation st == Wreck =
       "I should talk to Clara."
@@ -246,8 +240,8 @@ describeCave st
 dialogClaraA2 :: GameState -> (GameState, Lines)
 dialogClaraA2 st
   | atLocation Cockpit st,
-    hasTask "radio_used" st,
-    not (hasTask "crashed" st) =
+    st `hasTask`  "radio_used",
+    not (st `hasTask`  "crashed") =
       let st1 = addTask "crashed" st
           st2 = addTask "injured_clara" st1
           st' = setLocation CrashSite st2
@@ -263,8 +257,8 @@ dialogClaraA2 st
             ]
           )
   | atLocation Cockpit st,
-    not (hasTask "crashed" st),
-    not (hasTask "cockpit_intro_done" st) =
+    not (st `hasTask`  "crashed"),
+    not (st `hasTask`  "cockpit_intro_done") =
       let st' = addTask "awaiting_cockpit_choice" st
        in ( st',
             [ "Clara glances over: \"So, doc, what's your take? Are we on a wild goose chase,",
@@ -276,26 +270,26 @@ dialogClaraA2 st
             ]
           )
   | atLocation Cockpit st,
-    not (hasTask "crashed" st) =
+    not (st `hasTask`  "crashed") =
       ( st,
         [ "You: \"We're bound to find something there—-I can feel it in my bones.\"",
           "Clara: \"Hopefully, or all our efforts will be for nothing.\""
         ]
       )
   | atLocation CrashSite st,
-    hasTask "injured_clara" st,
-    not (inventoryHas "medkit" st) =
+    st `hasTask`  "injured_clara",
+    not (st `hasItem`  "medkit") =
       (st, ["She's unconscious and needs medical attention urgently."])
   | atLocation CrashSite st,
-    not (hasTask "injured_clara" st),
-    not (hasTask "cave_advice" st) =
+    not (st `hasTask`  "injured_clara"),
+    not (st `hasTask`  "cave_advice") =
       ( addTask "cave_advice" st,
         [ "Clara: \"We can't stay exposed out here. That CAVE might be our only shot,",
           "but it's giving me a bad feeling. We must GO now, before it gets dark.\""
         ]
       )
   | atLocation Cave st,
-    not (hasTask "wreck_discovery" st) =
+    not (st `hasTask`  "wreck_discovery") =
       ( addTask "wreck_discovery" st,
         [ "Clara: \"Hey, what's that? Do you see it?\"",
           "",
@@ -305,9 +299,9 @@ dialogClaraA2 st
         ]
       )
   | atLocation Cave st,
-    hasTask "wreck_examined" st,
-    not (hasTask "entered_wreck" st),
-    not (hasTask "wreck_discovery2" st) =
+    st `hasTask`  "wreck_examined",
+    not (st `hasTask`  "entered_wreck"),
+    not (st `hasTask`  "wreck_discovery2") =
       ( addTask "wreck_discovery2" st,
         [ "You: \"This is incredible. A Nazi flying saucer?\"",
           "Clara: \"Looks like it. But how did it get here? And why?\"",
@@ -426,13 +420,6 @@ processRadioBackgroundChoice choice st
 atLocation :: Location -> GameState -> Bool
 atLocation loc gs = currentLocation gs == loc
 
-inventoryHas :: String -> GameState -> Bool
-inventoryHas n gs =
-  any ((== map toLower n) . map toLower . entityName) (inventory gs)
-
-hasTask :: String -> GameState -> Bool
-hasTask t gs = t `elem` tasks gs
-
 examineSpecialA2 :: String -> GameState -> Maybe (GameState, Lines)
 examineSpecialA2 key st = case map toLower key of
   "diary"
@@ -456,7 +443,7 @@ examineSpecialA2 key st = case map toLower key of
           )
   "clara"
     | atLocation Cockpit st,
-      not (hasTask "crashed" st) ->
+      not (st `hasTask`  "crashed") ->
         Just
           ( st,
             [ "Clara pilots beside you, focused on the controls.",
@@ -464,7 +451,7 @@ examineSpecialA2 key st = case map toLower key of
             ]
           )
     | atLocation CrashSite st,
-      hasTask "crashed" st ->
+      st `hasTask`  "crashed" ->
         Just
           ( st,
             [ "She's unconscious, her forehead gashed, her breathing shallow.",
@@ -486,8 +473,8 @@ examineSpecialA2 key st = case map toLower key of
               )
   "compartment"
     | atLocation CrashSite st
-        && hasTask "injured_clara" st
-        && not (inventoryHas "medkit" st) ->
+        && st `hasTask`  "injured_clara"
+        && not (st `hasItem`  "medkit") ->
         let stExamined =
               addTask "compartment_checked" $
                 markExamined "compartment" $
@@ -563,7 +550,7 @@ examineSpecialA2 key st = case map toLower key of
           )
   "cave"
     | atLocation Cave st,
-      hasTask "cave_advice" st ->
+      st `hasTask`  "cave_advice" ->
         Just
           ( st,
             [ "This isn't natural — someone or something shaped it.",
@@ -575,14 +562,14 @@ examineSpecialA2 key st = case map toLower key of
 goDeeper :: GameState -> IO (GameState, Lines)
 goDeeper st
   | atLocation Cave st,
-    not (hasTask "wreck_discovery" st) =
+    not (st `hasTask`  "wreck_discovery") =
       pure
         ( addTask "wreck_discovery" st,
           ["Clara: \"Hey, what's that? Do you see it?\"", ""]
         )
   | atLocation Cave st || atLocation Wreck st,
-    not (hasTask "wreck_examined" st),
-    not (hasTask "entered_wreck" st) =
+    not (st `hasTask`  "wreck_examined"),
+    not (st `hasTask`  "entered_wreck") =
       pure
         ( st,
           [ "Clara: \"Hold up, doc. We can't ignore this—it's too weird.\"",
@@ -619,7 +606,7 @@ goDeeper st
 
 stepA2 :: GameState -> Command -> IO (GameState, Lines)
 stepA2 st _
-  | hasTask "act2_finished" st =
+  | st `hasTask`  "act2_finished" =
       pure (st, ["You've already finished this act. Type \"quit\" to exit.", ""])
 stepA2 st CmdQuit = exitSuccess
 stepA2 st CmdLook =
@@ -654,7 +641,7 @@ stepA2 st (CmdGo p)
         Unknown -> pure (st, ["Unknown place: " ++ p, ""])
         loc
           | atLocation CrashSite st,
-            hasTask "injured_clara" st ->
+            st `hasTask`  "injured_clara" ->
               pure (st, ["I need to help Clara first.", ""])
           | atLocation CrashSite st,
             not (null (entitiesAt Compartment st)) ->
@@ -691,13 +678,13 @@ stepA2 st (CmdTalk who)
   | otherwise = pure (st, ["There's no one here by that name.", ""])
 stepA2 st (CmdTake raw)
   | atLocation CrashSite st,
-    hasTask "injured_clara" st =
+    st `hasTask`  "injured_clara" =
       pure (st, ["I need to help Clara first.", ""])
   | atLocation CrashSite st,
-    not (hasTask "plane_examined" st) =
+    not (st `hasTask`  "plane_examined") =
       pure (st, ["I don't know where the supplies are.", ""])
   | atLocation CrashSite st,
-    not (hasTask "compartment_checked" st) =
+    not (st `hasTask`  "compartment_checked") =
       pure (st, ["I should check the luggage COMPARTMENT.", ""])
   | otherwise =
       let name = map toLower raw
@@ -758,7 +745,7 @@ stepA2 st (CmdDrop raw) =
 stepA2 st (CmdUse raw)
   | name == "radio",
     atLocation Cockpit st,
-    not (hasTask "radio_used" st) =
+    not (st `hasTask`  "radio_used") =
       let st' =
             addTask "radio_used"
               . addTask "awaiting_radio_choice"
@@ -779,9 +766,9 @@ stepA2 st (CmdUse raw)
               ]
             )
   | name == "radio",
-    inventoryHas "radio" st,
-    not (hasTask "entered_cave" st),
-    not (hasTask "injured_clara" st) =
+    st `hasItem`  "radio",
+    not (st `hasTask`  "entered_cave"),
+    not (st `hasTask`  "injured_clara") =
       pure
         ( st,
           [ "No signal to base, but switching channels catches German again:",
@@ -792,7 +779,7 @@ stepA2 st (CmdUse raw)
         )
   | name == "medkit",
     atLocation CrashSite st,
-    hasTask "injured_clara" st =
+    st `hasTask`  "injured_clara" =
       let st1 = removeTask "injured_clara" st
           st2 = case findEntity "medkit" st1 of
             Just medkit -> removeFromInventory medkit st1
@@ -816,7 +803,7 @@ stepA2 st (CmdUse raw)
     name = map toLower raw
 stepA2 st CmdUnknown = pure (st, ["Unknown command.", ""])
 stepA2 st CmdNext
-  | hasTask "act2_finished" st = pure (st, ["Preparing Act 3…"])
+  | st `hasTask`  "act2_finished" = pure (st, ["Preparing Act 3…"])
   | otherwise = pure (st, ["You need to finish this act first."])
 
 gameLoopA2 :: GameState -> IO PlayerState
@@ -827,13 +814,13 @@ gameLoopA2 st = do
       cmd = parseCommand args
 
   (st', out) <-
-    if hasTask "awaiting_cockpit_choice" st
+    if st `hasTask`  "awaiting_cockpit_choice"
       then return (processCockpitChoice cmdLine st)
       else
-        if hasTask "awaiting_radio_choice" st
+        if st `hasTask`  "awaiting_radio_choice"
           then return (processRadioChoice cmdLine st)
           else
-            if hasTask "awaiting_radio_background" st
+            if st `hasTask`  "awaiting_radio_background"
               then return (processRadioBackgroundChoice cmdLine st)
               else case cmd of
                 CmdTalk "clara" -> return (dialogClaraA2 st)
@@ -844,7 +831,7 @@ gameLoopA2 st = do
   case cmd of
     CmdQuit -> pure (extractPlayerState st')
     CmdNext
-      | hasTask "act2_finished" st' -> pure (extractPlayerState st')
+      | st' `hasTask` "act2_finished" -> pure (extractPlayerState st')
     _ -> gameLoopA2 st'
 
 startAct2 :: PlayerState -> IO PlayerState

@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
 {-# HLINT ignore "Use newtype instead of data" #-}
 module Utils
   ( printLines,
@@ -28,6 +29,8 @@ module Utils
     markTalked,
     addTask,
     removeTask,
+    hasTask,
+    hasItem
   )
 where
 
@@ -70,6 +73,11 @@ data Location
   | Wreck
   | Tunnel
   | Compartment
+  | Ledge
+  | Tree
+  | Ruins
+  | City
+  | Rock
   | Unknown
   deriving (Eq, Show)
 
@@ -204,3 +212,9 @@ markTalked p t st = st {talked = (p ++ "_" ++ t) : talked st}
 addTask, removeTask :: String -> GameState -> GameState
 addTask t st = if t `elem` tasks st then st else st {tasks = t : tasks st}
 removeTask t st = st {tasks = filter (/= t) (tasks st)}
+
+hasTask :: GameState -> String -> Bool
+hasTask st t = t `elem` tasks st
+
+hasItem :: GameState -> String -> Bool
+hasItem st n  = any ((== map toLower n) . map toLower . entityName) (inventory st)
