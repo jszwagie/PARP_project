@@ -9,6 +9,7 @@ import Control.Applicative ((<|>))
 import Data.Char (toLower)
 import Data.List (delete, find)
 import Data.Maybe (fromMaybe, isJust, isNothing)
+import System.Exit (exitSuccess)
 import System.IO (hFlush, stdout)
 import Utils
   ( Command (..),
@@ -542,7 +543,7 @@ step :: GameState -> Command -> IO (GameState, Lines)
 step st _
   | "act_finished" `elem` tasks st =
       return (st, ["You've already finished this act. Type \"quit\" to exit.", ""])
-step st CmdQuit = return (st, ["Goodbye."])
+step st CmdQuit = exitSuccess
 step st CmdLook
   | currentLocation st == Runway =
       return (st, [describeRunway st, ""])

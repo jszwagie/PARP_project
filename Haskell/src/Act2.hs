@@ -5,6 +5,7 @@ import Data.Bool (Bool (False, True))
 import Data.Char (toLower)
 import Data.Function ((&))
 import Data.List (delete, find, partition)
+import System.Exit (exitSuccess)
 import Utils
   ( Command (..),
     Entity (..),
@@ -620,7 +621,7 @@ stepA2 :: GameState -> Command -> IO (GameState, Lines)
 stepA2 st _
   | hasTask "act2_finished" st =
       pure (st, ["You've already finished this act. Type \"quit\" to exit.", ""])
-stepA2 st CmdQuit = pure (st, ["Good-bye."])
+stepA2 st CmdQuit = exitSuccess
 stepA2 st CmdLook =
   case currentLocation st of
     CrashSite
