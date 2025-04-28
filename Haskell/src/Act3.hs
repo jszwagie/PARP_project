@@ -178,3 +178,67 @@ getHint st
   | otherwise =
       "I should try to LOOK around to get my bearings."
 
+examine :: String -> GameState -> Maybe (GameState, Lines)
+examine key st = case key of
+  "creature"
+    | currentLocation st == Ruins && any ((== "creature") . entityName) (entitiesAt Ruins st) ->
+        Just
+          ( markExamined "creature" st,
+            [ "The creature stands tall and slender, its luminous eyes studying you with an intelligence that feels ancient.",
+              "Its skin seems to shimmer faintly, and as you look closer, you realize it's communicating directly into your mind—a melodic hum that bypasses your ears.",
+              "It exudes an aura of wisdom and otherworldliness, as if it holds secrets older than time itself.",
+              ""
+            ]
+          )
+  "tree"
+    | currentLocation st `elem` [Tree, Ledge] ->
+        Just
+          ( markExamined "tree" st,
+            [ "The tree stands ancient and imposing, its roots plunging into the earth like the veins of the valley itself.",
+              ""
+            ]
+          )
+  "ruins"
+    | currentLocation st `elem` [Ruins, Tree] ->
+        Just
+          ( markExamined "ruins" st,
+            [ "The ruins are a marvel of ancient architecture, reminiscent of Egypt's pyramids or the jungle temples of South America, yet distinctly alien.",
+              ""
+            ]
+          )
+  "city"
+    | currentLocation st `elem` [City, Tree] ->
+        Just
+          ( markExamined "city" st,
+            [ "The city cuts a stark silhouette against the valley's greenery, its dark gray buildings rising like monolithic sentinels.",
+              ""
+            ]
+          )
+  "tunnel"
+    | currentLocation st `elem` [Tunnel, Tree] ->
+        Just
+          ( markExamined "tunnel" st,
+            [ "The tunnel exit gapes like a dark maw, leading back to the frozen surface-a lifeline or a trap, depending on your next move.",
+              ""
+            ]
+          )
+  "radio"
+    | "radio" `elem` tasks st && isInInventory "radio" st ->
+        Just
+          ( markExamined "radio" st,
+            [ "The RADIO is a rugged military device, scratched and dented but still working.",
+              "Each dial can be set to a number between 1 and 9.",
+              "The dials click stiffly as you turn them. A small plaque beneath them reads: \"Standard Marine Corps Protocol: A=Even, B=Prime, C=Square.\"",
+              ""
+            ]
+          )
+  "note"
+    | "radio" `elem` tasks st && isInInventory "radio" st ->
+        Just
+          ( markExamined "note" st,
+            [ "The note is weathered, its ink blurred but readable: \"Marine Corps Frequency: Alpha-Bravo-Charlie. Remember the code: Four's the square, Seven's luck, Two's pair.\"",
+              ""
+            ]
+          )
+  _ -> Nothing
+
