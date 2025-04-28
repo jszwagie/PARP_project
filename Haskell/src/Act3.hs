@@ -560,3 +560,72 @@ processCreatureChoice choice st
   | otherwise =
       (st, ["Invalid choice - enter 1 or 2.", ""])
 
+use :: String -> GameState -> Maybe (GameState, Lines)
+use item st = case map toLower item of
+  "pistol"
+    | isInInventory "pistol" st && "fight" `elem` tasks st && currentLocation st == Rock ->
+        let st1 = removeFromInventory (fromJust $ findEntity "pistol" st) st
+            st2 = removeTask "fight" st1
+            st3 = addTask "after_fight" st2
+         in Just
+              ( st3,
+                [ "You hand the PISTOL to Clara.",
+                  "She aims the old Mauser and fires—a sharp crack echoes through the valley, the shot strikes one of the soldiers, who collapses with a cry.",
+                  "The Nazis roar in fury, their rifles spitting fire in response.",
+                  "Bullets chip the rock, showering you with dust and shards.",
+                  "The leader bellows, his voice thick with venom:",
+                  "",
+                  "Nazi Leader: \"Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!\"",
+                  ""
+                ]
+              )
+  "pistol"
+    | isInInventory "pistol" st && "fight" `elem` tasks st ->
+        Just (st, ["Clara: \"Hide behind the ROCK, now!\"", ""])
+  "radio"
+    | isInInventory "radio" st && "tunnel" `elem` tasks st ->
+        Just
+          ( removeTask "tunnel" $ addTask "radio" st,
+            [ "The RADIO crackles in your hands, its three dials labeled A, B, and C glinting faintly in the dim light of the crash site.",
+              "",
+              "Each dial can be set to a number between 1 and 9.",
+              "A faded, crumpled NOTE taped to the side reads: \"Marine Corps Frequency: Alpha-Bravo-Charlie.\"",
+              "The wind howls outside, urging you to hurry.",
+              ""
+            ]
+          )
+  "radio"
+    | isInInventory "radio" st && "radio" `elem` tasks st ->
+        Just
+          ( st,
+            [ "You grip the RADIO and start adjusting the dials to tune the frequency.",
+              "What do you set dial A to? (Enter a number)",
+              ""
+            ]
+          )
+  "radio"
+    | isInInventory "radio" st ->
+        Just
+          ( st,
+            [ "The radio has no use here, this place blocks the signal.",
+              ""
+            ]
+          )
+  "pistol"
+    | isInInventory "pistol" st ->
+        Just
+          ( st,
+            [ "Who do you want me to shoot, you psycho?",
+              ""
+            ]
+          )
+  "geiger"
+    | isInInventory "geiger" st ->
+        Just
+          ( st,
+            [ "Radiation levels - normal.",
+              ""
+            ]
+          )
+  _ -> Nothing
+
