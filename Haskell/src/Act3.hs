@@ -55,7 +55,7 @@ act3Prolog =
   [ "ACT 3: INTO THE HEART OF THE UNKNOWN",
     "",
     "You and Clara carefully climb down from the ledge, your boots sinking into the soft, mossy ground.",
-    "The valley pulses with life—chirping insects fill the air, leaves rustle in a gentle breeze, and the distant roar of an unseen beast sends a shiver down your spine.",
+    "The valley pulses with life-chirping insects fill the air, leaves rustle in a gentle breeze, and the distant roar of an unseen beast sends a shiver down your spine.",
     "The memory of your crash-landed supplies lingers, a heavy burden as you take your first cautious steps into this strange, uncharted world.",
     ""
   ]
@@ -102,15 +102,15 @@ describeLocation Rock = rockDesc
 
 ledgeDesc, treeDesc, ruinsDesc, tunnelDesc, cityDesc, rockDesc :: String
 ledgeDesc =
-  "You both stand on a rocky ledge overlooking a hidden realm—an expansive, verdant valley cradled beneath Antarctica's icy crust.\n\
+  "You both stand on a rocky ledge overlooking a hidden realm-an expansive, verdant valley cradled beneath Antarctica's icy crust.\n\
   \Bioluminescent plants emit a soft, ethereal glow, casting light across towering ferns and crystalline rivers that shimmer like liquid glass.\n\
   \The air hangs warm and humid, thick with the scent of exotic blooms, a jarring contrast to the frozen desolation above.\n\
   \Flying saucers, eerily similar to the wreck you stumbled upon, glide silently through the skies, their presence a quiet warning of something watchful and alive down here."
 treeDesc =
   "From the tree's upper branches, the valley sprawls before you in breathtaking detail.\n\
-  \To the east, ancient-looking RUINS emerge from the foliage—crumbling pyramids and temples etched with cryptic symbols, remnants of a lost civilization.\n\
+  \To the east, ancient-looking RUINS emerge from the foliage-crumbling pyramids and temples etched with cryptic symbols, remnants of a lost civilization.\n\
   \To the west, the stark silhouette of a CITY cuts through the greenery, its dark gray buildings festooned with swastika flags fluttering ominously in the breeze, their bold red and black stark against the muted stone.\n\
-  \Behind you, the TUNNEL exit gapes like a dark maw, leading back to the frozen surface—a lifeline or a trap, depending on your next move."
+  \Behind you, the TUNNEL exit gapes like a dark maw, leading back to the frozen surface-a lifeline or a trap, depending on your next move."
 ruinsDesc =
   "The ruins before you are a marvel of ancient architecture, reminiscent of Egypt's pyramids or the jungle temples of South America, yet distinctly alien.\n\
   \Crumbling stone facades are adorned with intricate carvings of starships and celestial beings, hinting at a civilization far beyond human comprehension.\n\
@@ -186,7 +186,7 @@ examine key st = case key of
         Just
           ( markExamined "creature" st,
             [ "The creature stands tall and slender, its luminous eyes studying you with an intelligence that feels ancient.",
-              "Its skin seems to shimmer faintly, and as you look closer, you realize it's communicating directly into your mind—a melodic hum that bypasses your ears.",
+              "Its skin seems to shimmer faintly, and as you look closer, you realize it's communicating directly into your mind-a melodic hum that bypasses your ears.",
               "It exudes an aura of wisdom and otherworldliness, as if it holds secrets older than time itself.",
               ""
             ]
@@ -311,7 +311,7 @@ tuneRadio st a b c
 processLedgeChoice :: String -> GameState -> (GameState, Lines)
 processLedgeChoice choice st
   | choice == "1" =
-      ( removeTask "awaiting_ledge_choice" $ addTask "tree" st,
+      ( removeTask "ledge_talk" $ removeTask "awaiting_ledge_choice" $ addTask "tree" st,
         [ "You: \"Maybe they found it during their Antarctic expeditions in the '30s.\"",
           "Clara: \"That could explain those flying saucers. They've had decades to dig in, hidden from the rest of the world.\"",
           "",
@@ -346,7 +346,7 @@ talkClara st
        in ( st1,
             [ "You turn to Clara, her face illuminated by the dim cabin lights.",
               "",
-              "You: \"So, what—this is how it ends?\"",
+              "You: \"So, what-this is how it ends?\"",
               "Clara: \"Wake up!\"",
               "You: \"What?!\"",
               "Clara: \"WAKE UP!\"",
@@ -360,13 +360,13 @@ talkClara st
               "The Antarctic adventure dissolves like mist. You blink, disoriented, as the soft ",
               "glow of your bedside lamp replaces the plane's harsh lights. The hum of Warsaw's ",
               "morning traffic seeps through the window, a mundane rhythm far removed from the  ",
-              "valley's eerie pulse. It was all a dream—a vivid fantasy spun from late-night ",
+              "valley's eerie pulse. It was all a dream-a vivid fantasy spun from late-night ",
               "television and a restless mind. You're not an adventurer escaping a hidden",
               "world; you're an ordinary professor at the Warsaw University of Technology, with",
               "lectures to deliver and papers to grade. Reality sinks in, familiar and unrelenting.",
               "",
-              "You sit up, rubbing your eyes as the dream's vivid details—Clara's determined ",
-              "gaze, the snow-swept valley, the roar of the plane—slip away like sand through ",
+              "You sit up, rubbing your eyes as the dream's vivid details-Clara's determined ",
+              "gaze, the snow-swept valley, the roar of the plane-slip away like sand through ",
               "your fingers. Your wife moves about the room, muttering about your late-night ",
               "habits, oblivious to the epic journey you've just imagined.",
               "",
@@ -571,7 +571,7 @@ use item st = case map toLower item of
          in Just
               ( st3,
                 [ "You hand the PISTOL to Clara.",
-                  "She aims the old Mauser and fires—a sharp crack echoes through the valley, the shot strikes one of the soldiers, who collapses with a cry.",
+                  "She aims the old Mauser and fires-a sharp crack echoes through the valley, the shot strikes one of the soldiers, who collapses with a cry.",
                   "The Nazis roar in fury, their rifles spitting fire in response.",
                   "Bullets chip the rock, showering you with dust and shards.",
                   "The leader bellows, his voice thick with venom:",
