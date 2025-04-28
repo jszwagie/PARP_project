@@ -4,7 +4,7 @@ import Act1 (startAct1)
 import Act2 (startAct2)
 import Act3 (startAct3)
 import GHC.Unicode (toLower)
-import Utils (Command (CmdAct2, CmdAct3, CmdNext), Entity (..), EntityType (..), Lines, PlayerState (..), emptyPlayer, parseCommand, printLines, printPrompt)
+import Utils (Command (CmdAct2, CmdAct3, CmdNext, CmdQuit), Entity (..), EntityType (..), Lines, PlayerState (..), emptyPlayer, parseCommand, printLines, printPrompt)
 
 introductionText :: Lines
 introductionText =
@@ -113,6 +113,8 @@ getInitialCommand = do
       ps1 <- startAct1 emptyPlayer
       ps2 <- startAct2 ps1
       ps3 <- startAct3 ps2
+      return ()
+    CmdQuit -> do
       return ()
     _ -> do
       printLines ["Unknown command. Please type 'next' to start the game or 'act2'/'act3' to skip to a specific act.", ""]
