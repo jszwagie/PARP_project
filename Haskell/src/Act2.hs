@@ -133,7 +133,10 @@ describeLocation Unknown = "You see nothing special."
 
 act2Epilog :: Lines
 act2Epilog =
-  [ "----------------------------ACT 2 OVER----------------------------"
+  [ "----------------------------ACT 2 OVER----------------------------",
+    "",
+    "Type \"next\" to continue, or \"quit\" to leave.",
+    ""
   ]
 
 cockpitDesc, wreckDesc :: String
@@ -253,7 +256,8 @@ dialogClaraA2 st
               "*Suddenly, turbulence slams the plane. Lights flicker, instruments fail, the engines choke.*",
               "Clara (shouting): \"Brace yourself! Everything's shutting down!\"",
               "You (screaming): \"Ahh, what's happening!?\"",
-              "*The plane spirals down, crashing into the ice. Darkness falls.*"
+              "*The plane spirals down, crashing into the ice. Darkness falls.*",
+              ""
             ]
           )
   | atLocation Cockpit st,
@@ -266,7 +270,8 @@ dialogClaraA2 st
               "Your choices:",
               "1. \"Byrd's diary points to 70S, 10E. The coordinates are too specific to be nothing.\"",
               "2. \"I don't know, but the weather's turning ugly. We need to stay sharp.\"",
-              "3. \"Whether it's real or not, the mission's worth it for the discovery alone.\""
+              "3. \"Whether it's real or not, the mission's worth it for the discovery alone.\"",
+              ""
             ]
           )
   | atLocation Cockpit st,
@@ -285,7 +290,8 @@ dialogClaraA2 st
     not (st `hasTask`  "cave_advice") =
       ( addTask "cave_advice" st,
         [ "Clara: \"We can't stay exposed out here. That CAVE might be our only shot,",
-          "but it's giving me a bad feeling. We must GO now, before it gets dark.\""
+          "but it's giving me a bad feeling. We must GO now, before it gets dark.\"",
+          ""
         ]
       )
   | atLocation Cave st,
@@ -315,7 +321,8 @@ dialogClaraA2 st
       ( st,
         [ "Clara: \"This place gives me the creeps. Look at these controls — they're way ahead of their time.\"",
           "You: \"Yeah, it's like something out of science-fiction. But it's real.\"",
-          "Clara: \"I think we've seen enough. Let's keep moving; there might be more ahead. We should GO DEEPER.\""
+          "Clara: \"I think we've seen enough. Let's keep moving; there might be more ahead. We should GO DEEPER.\"",
+          ""
         ]
       )
   | otherwise = (st, ["There's no one here to talk to."])
@@ -342,7 +349,8 @@ processCockpitChoice choice st
   | choice == "2" =
       ( stDone,
         [ "You: \"I don't know, but the weather's turning ugly. We need to stay sharp.\"",
-          "Clara: \"Yeah, I feel it too. This storm's got teeth. Keep your eyes peeled.\""
+          "Clara: \"Yeah, I feel it too. This storm's got teeth. Keep your eyes peeled.\"",
+          ""
         ]
       )
   | choice == "3" =
@@ -373,7 +381,8 @@ processRadioChoice choice st
           "Clara: \"Yes, my father was a German immigrant. He went to the USA when WWI started.\"",
           "Your choices:",
           "1. \"Byrd's diary doesn't mention Germans, but hey, we're in what Nazi Germany claimed as their territory in Antarctica.\"",
-          "2. \"Ah, Uncle Sam, a shelter for all the world's people in need.\""
+          "2. \"Ah, Uncle Sam, a shelter for all the world's people in need.\"",
+          ""
         ]
       )
   | otherwise =

@@ -232,7 +232,8 @@ pureDialogWithClara st
               "Your choices:",
               "1. \"Because it could be the discovery of the century.\"",
               "2. \"Orders are orders. The government wants answers.\"",
-              "3. \"I've got a feeling there's something big waiting for us.\""
+              "3. \"I've got a feeling there's something big waiting for us.\"",
+              ""
             ]
           )
 pureDialogWithClara st
@@ -269,7 +270,8 @@ pureClaraChoice choice st
        in ( st2,
             [ "You: \"Why don't you take care of it?\"",
               "Clara (frowning): \"Oh, you're lazy, aren't you? Fine, I'll handle it after I check the oil,",
-              "but you're not off the hook, doc. Go gather mandatory supplies and drop them near the plane.\""
+              "but you're not off the hook, doc. Go gather mandatory supplies and drop them near the plane.\"",
+              ""
             ]
           )
   | otherwise = (st, ["Invalid choice - enter 1, 2, or 3."])
@@ -366,7 +368,8 @@ actEpilog pre st =
                "",
                "----------------------------ACT 1 OVER----------------------------",
                "",
-               "Type \"next\" to continue, or \"quit\" to leave."
+               "Type \"next\" to continue, or \"quit\" to leave.",
+               ""
              ]
       )
 
