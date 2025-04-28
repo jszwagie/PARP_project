@@ -449,6 +449,62 @@ talkClara st
   | otherwise =
       (st, ["There's no one here to talk to.", ""])
 
+processAmbushChoice :: String -> GameState -> (GameState, Lines)
+processAmbushChoice choice st
+  | choice == "1" && isInInventory "pistol" st =
+      ( removeTask "awaiting_ambush_choice" $ addTask "hide" st,
+        [ "You: \"Let's fight! I'll hand you the PISTOL!\"",
+          "Clara: \"Here, give me the pistol and get behind that ROCK-now!\"",
+          ""
+        ]
+      )
+  | choice == "2" =
+      ( removeTask "awaiting_ambush_choice" $ addTask "tunnel" st,
+        [ "You: \"To the TUNNEL - move. " ++ if isInInventory "radio" st then "We can try the RADIO one more time!" else "",
+          if isInInventory "radio" st
+            then "Clara: \"It's a long shot, but let's go!\""
+            else "Clara: \"Without the RADIO, we'll just freeze out there. Terrible plan, but I'm with you.\"",
+          ""
+        ]
+      )
+  | choice == "3" =
+      let st1 = addTask "act_finished" $ removeTask "awaiting_ambush_choice" st
+       in ( st1,
+            [ "You: \"We surrender. Maybe we can talk our way out.\"",
+              "You raise your hands slowly. Clara mirrors your movement and calls out to the soldiers:",
+              "Clara: \"Wir kapitulieren! Kein Problem.\"",
+              "",
+              "The Nazis lower their rifles slightly, though their glares remain sharp as knives. The leader smirks, holstering his Luger with a flourish.",
+              "",
+              "Nazi Leader: \"Kluger Schachzug, Amerikaner. Unser Kommandant mochte Sie unbedingt sehen.\"",
+              "They bind your hands with coarse rope, the knots biting into your wrists, and march you toward the CITY, their motorcycles roaring triumphantly.",
+              "",
+              "The CITY looms ahead, its dark spires piercing the bioluminescent sky like ",
+              "jagged teeth. Clara stumbles beside you, her face pale but defiant, though her eyes betray a flicker of fear.",
+              "",
+              "You steal a glance at the leader, his scar twisting as he smirks, satisfied with ",
+              "his prize. What awaits in the CITY? Interrogation? Imprisonment? Or something ",
+              "far worse, tied to the secrets buried in this impossible valley? The questions ",
+              "gnaw at you, but answers remain elusive, shrouded in the same mystery that",
+              "cloaks this hidden world.",
+              "",
+              "As the CITY gates creak open, swallowing you into its shadowed maw, one thought",
+              "lingers: this is not the end, but a dark new beginning. Your fate hangs in the ",
+              "balance, and the next chapter of your journey waits just beyond the horizon.",
+              "",
+              "TO BE CONTINUED...",
+              ""
+            ]
+          )
+  | choice == "4" =
+      ( removeTask "awaiting_ambush_choice" $ addTask "woods" st,
+        [ "You: \"Come on, to the WOODS-GO!\"",
+          ""
+        ]
+      )
+  | otherwise =
+      (st, ["Invalid choice - enter 1, 2, 3, or 4.", ""])
+
 talkCreature :: GameState -> (GameState, Lines)
 talkCreature st
   | currentLocation st == Ruins && any ((== "creature") . entityName) (entitiesAt Ruins st) =
