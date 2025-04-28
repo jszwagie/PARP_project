@@ -629,3 +629,117 @@ use item st = case map toLower item of
           )
   _ -> Nothing
 
+goSpecial :: String -> GameState -> Maybe (GameState, Lines)
+goSpecial place st = case map toLower place of
+  "woods"
+    | (currentLocation st == Ruins || currentLocation st == City) && "woods" `elem` tasks st ->
+        let st1 = addTask "act_finished" $ removeTask "woods" st
+         in Just
+              ( st1,
+                [ "You sprint into the dense forest, branches snapping underfoot as you weave through the shadows.",
+                  "The Nazis' shouts fade briefly-you dare to hope-until the sky hums with menace.",
+                  "A flying saucer descends, its beam of light slashing through the canopy like a blade, pinning you in its merciless glare.",
+                  "",
+                  "Nazi Pilot (over loudspeaker): \"Kein Entkommen, ihr Narren! Das Reich sieht alles!\"",
+                  "Riflemen emerge from the trees, their grips iron as they drag you back to the group. They bind your hands with coarse rope and march you toward the CITY, their motorcycles roaring triumphantly.",
+                  "",
+                  "The CITY looms ahead, its dark spires piercing the bioluminescent sky like ",
+                  "jagged teeth. Clara stumbles beside you, her face pale but defiant, though her eyes betray a flicker of fear.",
+                  "",
+                  "You steal a glance at the leader, his scar twisting as he smirks, satisfied with ",
+                  "his prize. What awaits in the CITY? Interrogation? Imprisonment? Or something ",
+                  "far worse, tied to the secrets buried in this impossible valley? The questions ",
+                  "gnaw at you, but answers remain elusive, shrouded in the same mystery that",
+                  "cloaks this hidden world.",
+                  "",
+                  "As the CITY gates creak open, swallowing you into its shadowed maw, one thought",
+                  "lingers: this is not the end, but a dark new beginning. Your fate hangs in the ",
+                  "balance, and the next chapter of your journey waits just beyond the horizon.",
+                  "",
+                  "TO BE CONTINUED...",
+                  ""
+                ]
+              )
+  "rock"
+    | (currentLocation st == Ruins || currentLocation st == City) && isInInventory "pistol" st && "hide" `elem` tasks st ->
+        let st1 = removeTask "hide" $ addTask "fight" st
+            st2 = st1 {currentLocation = Rock}
+         in Just
+              ( st2,
+                [ "You dive behind a jagged boulder, its surface slick with glowing moss, your breath ragged as you press against the cold stone.",
+                  ""
+                ]
+              )
+  "tree"
+    | currentLocation st == Ledge && "tree" `elem` tasks st ->
+        let st1 = st {currentLocation = Tree}
+            st2 = removeTask "tree" st1
+         in Just
+              ( st2,
+                [ "You approach the towering TREE, its presence both majestic and unsettling.",
+                  "Thick vines and sturdy branches form a natural ladder, inviting you to climb into its heights.",
+                  ""
+                ]
+              )
+  "ruins"
+    | currentLocation st == Tree ->
+        let st1 = st {currentLocation = Ruins}
+         in Just
+              ( st1,
+                [ "You weave through the dense undergrowth toward the RUINS, their stone facades echoing the grandeur of Egypt's pyramids or the jungle temples of South America, yet twisted with an alien flair.",
+                  "Intricate carvings of starships and celestial beings adorn the walls, hinting at a history far beyond human understanding.",
+                  "As you step deeper, a tall, slender figure emerges, its luminous eyes studying you with quiet intrigue. The CREATURE gestures gracefully, inviting conversation.",
+                  ""
+                ]
+              )
+  "city"
+    | currentLocation st == Tree ->
+        let st1 = st {currentLocation = City}
+            st2 = addTask "ambush_beginning" st1
+         in Just
+              ( st2,
+                [ "You set off toward the CITY, its ominous skyline growing sharper with each step. Before you reach its perimeter, the growl of engines cuts through the stillness.",
+                  "A division of Nazis on motorcycles bursts into view, their dust trails rising like storm clouds. Clara mutters under her breath, \"Looks like we've got company-and they don't seem friendly.\"",
+                  "",
+                  "The Nazis lock eyes on you, their motorcycles skidding to a halt in a crescent of dust and menace.",
+                  "Their leader, a wiry man with a scar slashing across his cheek, leaps off his bike, his black uniform pristine despite the grime of the valley.",
+                  "He levels a Luger at you, his voice a guttural snarl that cuts through the humid air.",
+                  "",
+                  "Nazi Leader: \"Halt! Amerikanische Spione! Werft die Waffen nieder!\"",
+                  "Clara (whispering): \"They think we are spies. They've got us wrong, but I doubt they'll listen to reason.\"",
+                  "",
+                  "The air thickens with tension as the Nazis fan out, their boots crunching on the gravel, rifles glinting in the bioluminescent glow.",
+                  "Above, a flying saucer hums into view, its searchlight slicing through the foliage like a predator's gaze.",
+                  "Time slows-your heart pounds, and the valley's beauty fades behind the cold reality of danger.",
+                  ""
+                ]
+              )
+  "tunnel"
+    | (currentLocation st == Ruins || currentLocation st == City) && "tunnel" `elem` tasks st ->
+        let st1 =
+              if isInInventory "radio" st
+                then addTask "tunnel" $ st {currentLocation = Tunnel}
+                else addTask "act_finished" $ st {currentLocation = Tunnel}
+            gameOverMsg =
+              if not (isInInventory "radio" st)
+                then
+                  [ "You bolt through the undergrowth, the Nazis' shouts and revving engines hot on your heels.",
+                    "Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.",
+                    "The icy wind bites at your face, a cruel reminder of the surface's hostility.",
+                    "",
+                    "You and Clara huddle in the wreckage, the valley's secrets slipping away as the cold closes in.",
+                    "Survival hangs by a thread, your fate uncertain.",
+                    "GAME OVER.",
+                    ""
+                  ]
+                else
+                  [ "You bolt through the undergrowth, the Nazis' shouts and revving engines hot on your heels.",
+                    "Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.",
+                    "The icy wind bites at your face, a cruel reminder of the surface's hostility.",
+                    ""
+                  ]
+         in Just (st1, gameOverMsg)
+  "ledge"
+    | currentLocation st == Tree -> Just (st {currentLocation = Ledge}, ["You climb back down to the ledge.", ""])
+  _ -> Nothing
+
