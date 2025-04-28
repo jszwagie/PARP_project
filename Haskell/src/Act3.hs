@@ -242,3 +242,68 @@ examine key st = case key of
           )
   _ -> Nothing
 
+tuneRadio :: GameState -> Int -> Int -> Int -> (GameState, Lines)
+tuneRadio st a b c
+  | wrongCount a b c == 0 =
+      let st1 = removeTask "radio" st
+          st2 = removeFromInventory (fromJust $ findEntity "radio" st) st1
+          st3 = addTask "after_radio" st2
+          st4 = st3 {currentLocation = Cockpit}
+       in ( st4,
+            [ "The RADIO hums as it locks onto a strong signal. A clear voice cuts through:",
+              "",
+              "\"Mission 334, this is the 32nd Marine Corps. Coordinates received. Extraction team inbound. Over.\"",
+              "Clara: \"Copy that. We'll hold tight. Over.\"",
+              "Marine: \"Copy that. We're tracking your signal. Hold tight, over.\"",
+              "",
+              "The steady signal brings a flicker of relief amidst the chaos.",
+              "",
+              "After a tense wait, the roar of engines fills the air. A Marine transport plane descends through the snow, its lights cutting through the gloom.",
+              "You and CLARA board, the warmth of the cabin a stark contrast to the biting cold.",
+              "As the plane lifts off, a Marine hands you a stack of nondisclosure agreements.",
+              "",
+              "Marine: \"Sign these. What you saw down there stays buried. Understood?\"",
+              "",
+              "You nod, a heavy, unspoken weight settling over you.",
+              "The valley's mysteries fade into the distance, shrouded in silence, as the plane carries you away.",
+              ""
+            ]
+          )
+  | wrongCount a b c == 1 =
+      ( st,
+        [ "The RADIO picks up a faint Marine transmission, but it's garbled:",
+          "",
+          "\"Mission... [static]... coordinates... [static]... hold...\"",
+          "Clara: \"Almost there, but it's too weak. They won't get our position like this.\"",
+          "",
+          "HINT: \"The plaque mentions 'A=Even, B=Prime, C=Square.' And the note says 'Four's the square, Seven's luck, Two's pair'-could A be 2?\"",
+          ""
+        ]
+      )
+  | wrongCount a b c == 2 =
+      ( st,
+        [ "A sharp burst of static erupts from the RADIO, followed by a chilling German voice:",
+          "",
+          "\"Achtung! Feindliche Ubertragung entdeckt!\"",
+          "Clara: \"That's the Germans-they've intercepted us. We've got to fix this now!\"",
+          "",
+          "HINT: \"The plaque mentions 'A=Even, B=Prime, C=Square.' And the note says 'Four's the square, Seven's luck, Two's pair'-could A be 2?\"",
+          ""
+        ]
+      )
+  | otherwise =
+      ( st,
+        [ "The RADIO hisses with static, a grating buzz drowning out any signal.",
+          "You: \"Just noise. This isn't the right frequency.\"",
+          "",
+          "HINT: \"Think it through: 2 is even, 7 is prime, and 4 ties to the square of 2. That matches all the clues.\"",
+          ""
+        ]
+      )
+  where
+    wrongCount :: Int -> Int -> Int -> Int
+    wrongCount a' b' c' =
+      (if a' == 2 then 0 else 1)
+        + (if b' == 7 then 0 else 1)
+        + (if c' == 4 then 0 else 1)
+
