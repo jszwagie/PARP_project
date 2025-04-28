@@ -338,6 +338,36 @@ processLedgeChoice choice st
   | otherwise =
       (st, ["Invalid choice - enter 1 or 2.", ""])
 
+processTunnelChoice :: String -> GameState -> (GameState, Lines)
+processTunnelChoice choice st
+  | choice == "1" =
+      ( removeTask "awaiting_tunnel_choice" st,
+        [ "You: \"You're right. We need to explore and figure this out.\"",
+          "*You stay in the valley, your resolve hardening.*",
+          ""
+        ]
+      )
+  | choice == "2" =
+      let baseResponse =
+            [ "You: \"No, it's too risky. Let's head back while we can.\"",
+              "Clara: \"And what? Freeze out there with no plan? We're in too deep to turn tail now.\""
+            ]
+          radioResponse =
+            if isInInventory "radio" st
+              then
+                [ "You: \"But we could try contacting the base again with the radio.\"",
+                  "Clara: \"Don't be naive, doc. That radio's a piece of junk-half-static on a good day-and even if we got through, what then?",
+                  "Help's days away at best, assuming they don't think we're delusional. We'd be stuck out there, freezing to death, praying for a miracle.",
+                  "No, we push forward, find answers, and make our own way out of this mess.\""
+                ]
+              else
+                [ "Clara: \"And what? Freeze out there with no plan? We're in too deep to turn tail now.",
+                  "Without a radio or supplies, we wouldn't last a day on the surface. Our only chance is to keep moving, find shelter or someone who knows what's going on-anything's better than retreating empty-handed.\""
+                ]
+       in (removeTask "awaiting_tunnel_choice" st, baseResponse ++ radioResponse ++ [""])
+  | otherwise =
+      (st, ["Invalid choice - enter 1 or 2.", ""])
+
 talkClara :: GameState -> (GameState, Lines)
 talkClara st
   | "after_radio" `elem` tasks st =
@@ -732,6 +762,20 @@ goSpecial place st = case map toLower place of
                 ]
               )
   "tunnel"
+    | currentLocation st == Tree ->
+        if "clara_tunnel" `elem` talked st
+          then Just (st, ["We can't GO to TUNNEL. We went too far.", ""])
+          else
+            Just
+              ( addTask "awaiting_tunnel_choice" $ markTalked "clara" "tunnel" st,
+                [ "Clara grabs your sleeve, her grip tight.",
+                  "Clara: \"Hold on! We can't just run back now-there's too much we don't understand.\"",
+                  "Your choices: ",
+                  "1. \"You're right. We need to explore and figure this out.\"",
+                  "2. \"No, it's too risky. Let's head back while we can.\"",
+                  ""
+                ]
+              )
     | (currentLocation st == Ruins || currentLocation st == City) && "tunnel" `elem` tasks st ->
         let st1 =
               if isInInventory "radio" st
@@ -896,7 +940,10 @@ gameLoop st = do
           else
             if "awaiting_ambush_choice" `elem` tasks st
               then return (processAmbushChoice cmdLine st)
-              else stepA3 st cmd
+              else
+                if "awaiting_tunnel_choice" `elem` tasks st
+                  then return (processTunnelChoice cmdLine st)
+                  else stepA3 st cmd
 
   printLines out
 
