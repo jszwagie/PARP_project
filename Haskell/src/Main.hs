@@ -88,7 +88,10 @@ getSuppliesSelection supplyList mapFunc = do
 main :: IO ()
 main = do
   printLines introductionText
+  getInitialCommand
 
+getInitialCommand :: IO ()
+getInitialCommand = do
   printPrompt
   firstCmd <- getLine
   let args = words (map toLower firstCmd)
@@ -111,3 +114,6 @@ main = do
       ps2 <- startAct2 ps1
       ps3 <- startAct3 ps2
       return ()
+    _ -> do
+      printLines ["Unknown command. Please type 'next' to start the game or 'act2'/'act3' to skip to a specific act.", ""]
+      getInitialCommand
