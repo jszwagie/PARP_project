@@ -30,7 +30,8 @@ module Utils
     addTask,
     removeTask,
     hasTask,
-    hasItem
+    hasExamined,
+    hasItem,
   )
 where
 
@@ -217,4 +218,7 @@ hasTask :: GameState -> String -> Bool
 hasTask st t = t `elem` tasks st
 
 hasItem :: GameState -> String -> Bool
-hasItem st n  = any ((== map toLower n) . map toLower . entityName) (inventory st)
+hasItem st n = any ((== map toLower n) . map toLower . entityName) (inventory st)
+
+hasExamined :: GameState -> String -> Bool
+hasExamined st e = e `elem` examined st
