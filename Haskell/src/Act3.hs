@@ -91,6 +91,7 @@ parseLocation s = case map toLower s of
   "city" -> City
   "rock" -> Rock
   _ -> Unknown
+
 describeLocation :: Location -> String
 describeLocation Ledge = ledgeDesc
 describeLocation Tree = treeDesc
@@ -758,3 +759,138 @@ processRadioInput st = do
 
   return (tuneRadio st a b c)
 
+stepA3 :: GameState -> Command -> IO (GameState, Lines)
+stepA3 st _
+  | st `hasTask` "act_finished" =
+      pure (st, ["You've already finished this act. Type \"quit\" to exit.", ""])
+stepA3 st CmdQuit = exitSuccess
+stepA3 st CmdLook =
+  let out = case currentLocation st of
+        Ledge ->
+          if st `hasTask` "tree" && not (st `hasExamined` "ledge")
+            then "Ahead looms a massive TREE, its gnarled trunk wider than a barn, its branches clawing toward the cavern's glowing ceiling.\nBioluminescent moss clings to its bark, pulsing faintly, while its leaves shimmer with an unearthly light, swaying as if whispering secrets to the wind."
+            else ledgeDesc
+        Tree -> treeDesc
+        Ruins -> ruinsDesc
+        City -> cityDesc
+        Rock -> rockDesc
+        Tunnel -> tunnelDesc
+        _ -> "You see nothing special."
+   in do
+        let st' =
+              if currentLocation st == Ledge && st `hasTask` "tree"
+                then markExamined "ledge" st
+                else st
+        pure (st', [out, ""])
+stepA3 st CmdInventory =
+  let inv = inventory st
+   in if null inv
+        then pure (st, ["You are not carrying anything.", ""])
+        else pure (st, "You are carrying:" : map entityName inv ++ [""])
+stepA3 st CmdHint = pure (st, [getHint st, ""])
+stepA3 st CmdInstructions = pure (st, instructionsText)
+stepA3 st (CmdGo place) =
+  case goSpecial (map toLower place) st of
+    Just result -> pure result
+    Nothing ->
+      case parseLocation place of
+        Unknown -> pure (st, ["Unknown place: " ++ place, ""])
+        loc ->
+          if canMove (currentLocation st) loc
+            then
+              let st' = st {currentLocation = loc}
+                  out = describeLocation loc
+               in pure (st', [out, ""])
+            else pure (st, ["You can't go to " ++ place ++ " from here.", ""])
+stepA3 st (CmdExamine obj) =
+  case examine (map toLower obj) st of
+    Just result -> pure result
+    Nothing ->
+      case findEntity obj st of
+        Just e ->
+          pure
+            ( markExamined (entityName e) st,
+              [entityDescription e, ""]
+            )
+        Nothing ->
+          pure
+            ( st,
+              ["I can't see " ++ obj ++ " here or there's nothing special about it.", ""]
+            )
+stepA3 st (CmdTalk person)
+  | map toLower person == "clara" = pure (talkClara st)
+  | map toLower person == "creature" = pure (talkCreature st)
+  | otherwise = pure (st, ["There's no one here to talk to by that name.", ""])
+stepA3 st (CmdTake obj) =
+  let name = map toLower obj
+      inv = isInInventory name st
+      here = findHere name st
+      notHere = pure (st, ["I don't see " ++ obj ++ " here.", ""])
+   in if inv
+        then pure (st, ["You're already holding it!", ""])
+        else case here of
+          Nothing -> notHere
+          Just e -> pure (addToInventory e st, ["You take the " ++ entityName e ++ ".", ""])
+stepA3 st (CmdDrop obj) =
+  let name = map toLower obj
+   in if not (isInInventory name st)
+        then pure (st, ["You aren't carrying that!", ""])
+        else
+          let Just e = findEntity name st
+              st' = removeFromInventory e st
+           in if st `hasTask` "fight" && name == "pistol" && currentLocation st == Rock
+                then case use "pistol" st' of
+                  Just (newState, _) -> pure (newState, ["You hand the PISTOL to Clara.", ""])
+                  Nothing -> pure (st', ["Something went wrong.", ""])
+                else pure (st', ["OK.", ""])
+stepA3 st (CmdUse obj) =
+  case use (map toLower obj) st of
+    Just result ->
+      if map toLower obj == "radio" && st `hasTask` "radio"
+        then processRadioInput st
+        else pure result
+    Nothing ->
+      if isInInventory (map toLower obj) st
+        then pure (st, ["I can't use that right now.", ""])
+        else pure (st, ["I don't have it or I can't use it.", ""])
+stepA3 st CmdUnknown = pure (st, ["Unknown command.", ""])
+stepA3 st CmdNext
+  | st `hasTask` "act_finished" =
+      pure (st, ["Act 3 complete! The end of the game.", ""])
+  | otherwise =
+      pure (st, ["You need to finish this act first."])
+
+gameLoop :: GameState -> IO PlayerState
+gameLoop st = do
+  line <- readCommand
+  let cmdLine = map toLower line
+      args = words cmdLine
+      cmd = parseCommand args
+
+  (st', out) <-
+    if "awaiting_ledge_choice" `elem` tasks st
+      then return (processLedgeChoice cmdLine st)
+      else
+        if "awaiting_creature_choice" `elem` tasks st
+          then return (processCreatureChoice cmdLine st)
+          else
+            if "awaiting_ambush_choice" `elem` tasks st
+              then return (processAmbushChoice cmdLine st)
+              else stepA3 st cmd
+
+  printLines out
+
+  case cmd of
+    CmdQuit -> pure (extractPlayerState st')
+    CmdNext | "act_finished" `elem` tasks st' -> pure (extractPlayerState st')
+    _ -> gameLoop st'
+
+startAct3 :: PlayerState -> IO PlayerState
+startAct3 ps = do
+  let invItems = inventory_ ps
+      st = initialState {inventory = invItems}
+
+  printLines act3Prolog
+  printLines [ledgeDesc, ""]
+
+  gameLoop st
