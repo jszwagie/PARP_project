@@ -307,3 +307,145 @@ tuneRadio st a b c
         + (if b' == 7 then 0 else 1)
         + (if c' == 4 then 0 else 1)
 
+processLedgeChoice :: String -> GameState -> (GameState, Lines)
+processLedgeChoice choice st
+  | choice == "1" =
+      ( removeTask "awaiting_ledge_choice" $ addTask "tree" st,
+        [ "You: \"Maybe they found it during their Antarctic expeditions in the '30s.\"",
+          "Clara: \"That could explain those flying saucers. They've had decades to dig in, hidden from the rest of the world.\"",
+          "",
+          "You stand together, awestruck by the valley's haunting beauty.",
+          "The bioluminescent flora bathes the landscape in a shimmering, otherworldly hue, while the faint hum of the valley's life-chirps, rustles, and distant cries-wraps around you like a living tapestry.",
+          "It's a paradise untouched by time, yet the shadow of danger looms just out of sight.",
+          "",
+          "Clara: *gasps* \"Okay, enough gawking. If we want to survive this, we need a better lay of the land. Let's find a high spot for reconnaissance.\"",
+          ""
+        ]
+      )
+  | choice == "2" =
+      ( removeTask "awaiting_ledge_choice" $ addTask "tree" st,
+        [ "You: \"Or they stumbled across it after the war, looking for a place to hide.\"",
+          "Clara: \"Hide? More like regroup. This could be their secret fortress, waiting for the right moment to strike back.\"",
+          "",
+          "You stand together, awestruck by the valley's haunting beauty.",
+          "The bioluminescent flora bathes the landscape in a shimmering, otherworldly hue, while the faint hum of the valley's life-chirps, rustles, and distant cries-wraps around you like a living tapestry.",
+          "It's a paradise untouched by time, yet the shadow of danger looms just out of sight.",
+          "",
+          "Clara: *gasps* \"Okay, enough gawking. If we want to survive this, we need a better lay of the land. Let's find a high spot for reconnaissance.\"",
+          ""
+        ]
+      )
+  | otherwise =
+      (st, ["Invalid choice - enter 1 or 2.", ""])
+
+talkClara :: GameState -> (GameState, Lines)
+talkClara st
+  | "after_radio" `elem` tasks st =
+      let st1 = addTask "act_finished" st
+       in ( st1,
+            [ "You turn to Clara, her face illuminated by the dim cabin lights.",
+              "",
+              "You: \"So, what—this is how it ends?\"",
+              "Clara: \"Wake up!\"",
+              "You: \"What?!\"",
+              "Clara: \"WAKE UP!\"",
+              "",
+              "Suddenly, a sharper voice breaks through the haze.",
+              "Your wife: \"Damn it, wake up! You'll be late for your lectures!\"",
+              "You: \"What? What lectures?\"",
+              "Your wife: \"You were up late watching TV again. You've got to stop with those",
+              "ridiculous pseudo-historical documentaries on FOCUS TV or TV4-they're frying your brain.\"",
+              "",
+              "The Antarctic adventure dissolves like mist. You blink, disoriented, as the soft ",
+              "glow of your bedside lamp replaces the plane's harsh lights. The hum of Warsaw's ",
+              "morning traffic seeps through the window, a mundane rhythm far removed from the  ",
+              "valley's eerie pulse. It was all a dream—a vivid fantasy spun from late-night ",
+              "television and a restless mind. You're not an adventurer escaping a hidden",
+              "world; you're an ordinary professor at the Warsaw University of Technology, with",
+              "lectures to deliver and papers to grade. Reality sinks in, familiar and unrelenting.",
+              "",
+              "You sit up, rubbing your eyes as the dream's vivid details—Clara's determined ",
+              "gaze, the snow-swept valley, the roar of the plane—slip away like sand through ",
+              "your fingers. Your wife moves about the room, muttering about your late-night ",
+              "habits, oblivious to the epic journey you've just imagined.",
+              "",
+              "Your wife: \"Honestly, those conspiracy channels will be the death of you. Go to bed on time for once.\"",
+              "",
+              "You muster a faint smile, the last echoes of the dream fading into nothingness.",
+              "The adventure is over, and the real world beckons.",
+              "",
+              "THE END",
+              ""
+            ]
+          )
+  | "hide" `elem` tasks st && (currentLocation st == Ruins || currentLocation st == City) =
+      (st, ["Clara: \"Here, give me the pistol and get behind that ROCK-now!\"", ""])
+  | "tunnel" `elem` tasks st && (currentLocation st == Ruins || currentLocation st == City) =
+      (st, ["Clara: \"It's a long shot, but let's GO to the TUNNEL now!\"", ""])
+  | "tunnel" `elem` tasks st && currentLocation st == Tunnel && not (isInInventory "radio" st) =
+      (st, ["Clara: \"You should USE the RADIO\"", ""])
+  | "radio" `elem` tasks st && currentLocation st == Tunnel && not (isInInventory "radio" st) =
+      (st, ["Clara: \"You should USE the RADIO\"", ""])
+  | "woods" `elem` tasks st && (currentLocation st == Ruins || currentLocation st == City) =
+      (st, ["Clara: \"It's a long shot, but let's GO to the WOODS now!\"", ""])
+  | "after_fight" `elem` tasks st =
+      let st1 = addTask "act_finished" $ removeTask "after_fight" st
+       in ( st1,
+            [ "You: \"What did he say?\"",
+              "Clara: *breathing heavily* \"Nothing good. I don't know if we can get out of this alive.\"",
+              "Clara: *shouting in fright* \"Wir kapitulieren! Halt!\"",
+              "",
+              "The soldiers cease fire, their eyes still burning with rage.",
+              "They swarm closer, boots pounding the earth like war drums, and you're wrestled to the ground, wrists bound tight with rough cord.",
+              "Their treatment is brutal - fists and threats of execution, though they spare you for now, muttering darkly about your potential value.",
+              "They march you toward the CITY, their motorcycles roaring triumphantly.",
+              "",
+              "The CITY looms ahead, its dark spires piercing the bioluminescent sky like ",
+              "jagged teeth. Clara stumbles beside you, her face pale but defiant, though her eyes betray a flicker of fear.",
+              "",
+              "You steal a glance at the leader, his scar twisting as he smirks, satisfied with ",
+              "his prize. What awaits in the CITY? Interrogation? Imprisonment? Or something ",
+              "far worse, tied to the secrets buried in this impossible valley? The questions ",
+              "gnaw at you, but answers remain elusive, shrouded in the same mystery that",
+              "cloaks this hidden world.",
+              "",
+              "As the CITY gates creak open, swallowing you into its shadowed maw, one thought",
+              "lingers: this is not the end, but a dark new beginning. Your fate hangs in the ",
+              "balance, and the next chapter of your journey waits just beyond the horizon.",
+              "",
+              "TO BE CONTINUED...",
+              ""
+            ]
+          )
+  | "ambush_beginning" `elem` tasks st =
+      let st1 = addTask "awaiting_ambush_choice" $ removeTask "ambush_beginning" st
+       in ( st1,
+            [ "You: \"What's our move? They're closing in fast.\"",
+              "Clara: \"We're outgunned and outmanned. Fight, run, or surrender-you decide, but make it quick!\"",
+              "Your choices:",
+              if isInInventory "pistol" st then "1. \"Let's fight! I'll hand you the PISTOL!\"" else "",
+              "2. \"Run for the TUNNEL." ++ if isInInventory "radio" st then " We can try the RADIO one more time!\"" else "\"",
+              "3. \"We surrender. Maybe we can talk our way out.\"",
+              "4. \"Into the WOODS-lose them in the trees!\"",
+              ""
+            ]
+          )
+  | currentLocation st == Ledge && "clara_ledge" `notElem` talked st =
+      let st1 = addTask "awaiting_ledge_choice" $ markTalked "clara" "ledge" st
+       in ( st1,
+            [ "Clara: \"This place... it's like stepping into a dream. Or maybe a nightmare-I can't decide.\"",
+              "You: \"It's incredible-Byrd wasn't exaggerating in that diary.\"",
+              "Clara: \"Sure, but that diary was written before the war. No mention of Nazis anywhere in it. Do you think they beat us to this discovery?\"",
+              "Your choices:",
+              "1. \"Maybe they found it during their Antarctic expeditions in the '30s.\"",
+              "2. \"Or they stumbled across it after the war, looking for a place to hide.\"",
+              ""
+            ]
+          )
+  | currentLocation st == Ruins && any ((== "creature") . entityName) (entitiesAt Ruins st) =
+      (st, ["Clara: \"Do you think we should TALK to it?\"", ""])
+  | currentLocation st == Tree =
+      (st, ["Clara: Do you see anything interesting?", ""])
+  | otherwise =
+      (st, ["There's no one here to talk to.", ""])
+
