@@ -6,6 +6,7 @@ import Data.List (delete, find, partition)
 import Data.Maybe (fromJust, fromMaybe, isJust, isNothing)
 import System.Exit (exitSuccess)
 import System.IO (hFlush, stdout)
+import System.Random (randomRIO)
 import Utils
   ( Command (..),
     Entity (..),
@@ -561,25 +562,42 @@ processCreatureChoice choice st
   | otherwise =
       (st, ["Invalid choice - enter 1 or 2.", ""])
 
+getRandomPistolOutcome :: GameState -> IO (GameState, Lines)
+getRandomPistolOutcome st = do
+  randomSuccess <- randomRIO (0.0, 1.0) :: IO Double
+  let st1 = removeFromInventory (fromJust $ findEntity "pistol" st) st
+      st2 = removeTask "fight" st1
+      st3 = addTask "after_fight" st2
+
+  if randomSuccess > 0.5
+    then
+      pure
+        ( st3,
+          [ "You hand the PISTOL to Clara.",
+            "She aims the old Mauser and fires-a sharp crack echoes through the valley, the shot strikes one of the soldiers, who collapses with a cry.",
+            "The Nazis roar in fury, their rifles spitting fire in response.",
+            "Bullets chip the rock, showering you with dust and shards.",
+            "The leader bellows, his voice thick with venom:",
+            "",
+            "Nazi Leader: \"Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!\"",
+            ""
+          ]
+        )
+    else
+      pure
+        ( st3,
+          [ "You hand the PISTOL to Clara.",
+            "She aims the old Mauser and pulls the trigger, but it jams with a dull click, refusing to fire.",
+            "The Nazis burst into mocking laughter, their sneers cutting through the air.",
+            "The leader steps forward, his voice dripping with scorn:",
+            "",
+            "Nazi Leader: \"Ihr erbarmlichen Narren! Dafur werdet ihr sterben!\"",
+            ""
+          ]
+        )
+
 use :: String -> GameState -> Maybe (GameState, Lines)
 use item st = case map toLower item of
-  "pistol"
-    | isInInventory "pistol" st && "fight" `elem` tasks st && currentLocation st == Rock ->
-        let st1 = removeFromInventory (fromJust $ findEntity "pistol" st) st
-            st2 = removeTask "fight" st1
-            st3 = addTask "after_fight" st2
-         in Just
-              ( st3,
-                [ "You hand the PISTOL to Clara.",
-                  "She aims the old Mauser and fires-a sharp crack echoes through the valley, the shot strikes one of the soldiers, who collapses with a cry.",
-                  "The Nazis roar in fury, their rifles spitting fire in response.",
-                  "Bullets chip the rock, showering you with dust and shards.",
-                  "The leader bellows, his voice thick with venom:",
-                  "",
-                  "Nazi Leader: \"Ihr wagt es, uns herauszufordern? Euer Blut wird dieses Tal beflecken!\"",
-                  ""
-                ]
-              )
   "pistol"
     | isInInventory "pistol" st && "fight" `elem` tasks st ->
         Just (st, ["Clara: \"Hide behind the ROCK, now!\"", ""])
@@ -831,6 +849,10 @@ stepA3 st (CmdTake obj) =
         else case here of
           Nothing -> notHere
           Just e -> pure (addToInventory e st, ["You take the " ++ entityName e ++ ".", ""])
+-- Separate step for droping pistol because of random number generation
+stepA3 st (CmdDrop "pistol")
+  | st `hasItem` "pistol" && st `hasTask` "fight" && currentLocation st == Rock =
+      getRandomPistolOutcome st
 stepA3 st (CmdDrop obj) =
   let name = map toLower obj
    in if not (isInInventory name st)
@@ -838,11 +860,11 @@ stepA3 st (CmdDrop obj) =
         else
           let Just e = findEntity name st
               st' = removeFromInventory e st
-           in if st `hasTask` "fight" && name == "pistol" && currentLocation st == Rock
-                then case use "pistol" st' of
-                  Just (newState, _) -> pure (newState, ["You hand the PISTOL to Clara.", ""])
-                  Nothing -> pure (st', ["Something went wrong.", ""])
-                else pure (st', ["OK.", ""])
+           in pure (st', ["OK.", ""])
+-- Separate step for using pistol because of random number generation
+stepA3 st (CmdUse "pistol")
+  | isInInventory "pistol" st && "fight" `elem` tasks st && currentLocation st == Rock =
+      getRandomPistolOutcome st
 stepA3 st (CmdUse obj) =
   case use (map toLower obj) st of
     Just result ->

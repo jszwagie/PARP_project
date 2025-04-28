@@ -7,6 +7,6 @@ cabal-version:       >=1.10
 executable adventure
   main-is:             Main.hs
   other-modules:       Act1 Act2 Act3 Utils
-  build-depends:       base >= 4.7 && < 5
+  build-depends:       base >= 4.7 && < 5, random >= 1.3.1
   hs-source-dirs:      src
   default-language:    Haskell2010
