@@ -155,8 +155,6 @@ getHint st
       "I should GO behind that ROCK."
   | currentLocation st == Ledge && st `hasTask` "ledge_talk" =
       "I should talk to Clara."
-  | currentLocation st == Ledge && not (st `hasExamined` "ledge") =
-      "I should LOOK around"
   | currentLocation st == Ledge && st `hasTask` "tree" && st `hasExamined` "ledge" =
       "I think I could GO up on that TREE."
   | currentLocation st == Ledge && st `hasTask` "tree" =
@@ -325,7 +323,7 @@ processLedgeChoice choice st
         ]
       )
   | choice == "2" =
-      ( removeTask "awaiting_ledge_choice" $ addTask "tree" st,
+      ( removeTask "ledge_talk" $ removeTask "awaiting_ledge_choice" $ addTask "tree" st,
         [ "You: \"Or they stumbled across it after the war, looking for a place to hide.\"",
           "Clara: \"Hide? More like regroup. This could be their secret fortress, waiting for the right moment to strike back.\"",
           "",
