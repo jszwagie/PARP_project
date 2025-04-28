@@ -449,3 +449,58 @@ talkClara st
   | otherwise =
       (st, ["There's no one here to talk to.", ""])
 
+talkCreature :: GameState -> (GameState, Lines)
+talkCreature st
+  | currentLocation st == Ruins && any ((== "creature") . entityName) (entitiesAt Ruins st) =
+      let st1 = addTask "awaiting_creature_choice" st
+       in ( st1,
+            [ "*The creature's voice resonates in your mind, a melodic hum that bypasses your ears entirely.*",
+              "",
+              "Creature: \"Wanderers, greetings. Sentinel of this realm, I am, keeper of wisdom older than your civilization, hmm.",
+              "Answers you seek, yes? Give them to you, I shall.",
+              "Tied to what you call 'Atlantis,' our kin are, though lost to your tongue, our true name is.",
+              "Arrived, the ones you call 'Germans' did, speaking of a great calamity they fled. Stewards of peace we are, granted them refuge, we did. Yet, tidings of their shadow you bear, hmm?\"",
+              "",
+              "Your choices: ",
+              "1. \"Those Germans-the Nazis-are monsters. They've waged war and killed millions.\"",
+              "2. \"They're exploiting you. They'll strip this valley bare and leave nothing behind.\"",
+              ""
+            ]
+          )
+  | otherwise =
+      (st, ["There's no one here to talk to.", ""])
+
+processCreatureChoice :: String -> GameState -> (GameState, Lines)
+processCreatureChoice choice st
+  | choice == "1" || choice == "2" =
+      let newEntities = filter ((/= "creature") . entityName) (entitiesAt Ruins st)
+          updatedLocEntities = map (\(loc, ents) -> if loc == Ruins then (loc, newEntities) else (loc, ents)) (locationEntities st)
+          st1 = st {locationEntities = updatedLocEntities}
+          st2 = removeTask "awaiting_creature_choice" st1
+          st3 = addTask "ambush_beginning" st2
+          responseLine =
+            if choice == "1"
+              then "You: \"Those Germans-the Nazis-are monsters. They've waged war and killed millions.\"\nCreature: \"Malice such, perceived it not, we did. Blinded us, our hospitality has, to their stain.\""
+              else "You: \"They're exploiting you. They'll strip this valley bare and leave nothing behind.\"\nCreature: \"Cloaked in deception, they are, then. Harmony we cherish, yet stirred by this threat, we are. Counsel, what offer you?\""
+       in ( st3,
+            [ responseLine,
+              "*Before you can respond, the air splits with the roar of engines and sharp, guttural shouts. The ground trembles faintly-a prelude to chaos.*",
+              "Creature: \"True, if what you say is, run immediately, you must. Farewell, my friends.\"",
+              "*The creature dissolves into the air, leaving you confused and on edge.*",
+              "",
+              "The Nazis lock eyes on you, their motorcycles skidding to a halt in a crescent of dust and menace.",
+              "Their leader, a wiry man with a scar slashing across his cheek, leaps off his bike, his black uniform pristine despite the grime of the valley.",
+              "He levels a Luger at you, his voice a guttural snarl that cuts through the humid air.",
+              "",
+              "Nazi Leader: \"Halt! Amerikanische Spione! Werft die Waffen nieder!\"",
+              "Clara (whispering): \"They think we are spies. They've got us wrong, but I doubt they'll listen to reason.\"",
+              "",
+              "The air thickens with tension as the Nazis fan out, their boots crunching on the gravel, rifles glinting in the bioluminescent glow.",
+              "Above, a flying saucer hums into view, its searchlight slicing through the foliage like a predator's gaze.",
+              "Time slows-your heart pounds, and the valley's beauty fades behind the cold reality of danger.",
+              ""
+            ]
+          )
+  | otherwise =
+      (st, ["Invalid choice - enter 1 or 2.", ""])
+
