@@ -543,9 +543,15 @@ examineSpecial key st = case key of
   _ -> Nothing
 
 step :: GameState -> Command -> IO (GameState, Lines)
+-- next
+step st CmdNext
+  | "act_finished" `elem` tasks st =
+      return (st, [""])
+step st CmdNext =
+  return (st, ["You need to finish this act first."])
 step st _
   | "act_finished" `elem` tasks st =
-      return (st, ["You've already finished this act. Type \"quit\" to exit.", ""])
+      return (st, ["You've already finished this act. Type \"quit\" to exit or \"next\" to advance further.", ""])
 step st CmdQuit = exitSuccess
 step st CmdLook
   | currentLocation st == Runway =
@@ -660,12 +666,6 @@ step st (CmdUse x)
   | otherwise =
       return (st, ["I don't have it or I can't use it.", ""])
 step st CmdUnknown = return (st, ["Unknown command.", ""])
--- next
-step st CmdNext
-  | "act_finished" `elem` tasks st =
-      return (st, ["Preparing Act 2..."])
-step st CmdNext =
-  return (st, ["You need to finish this act first."])
 
 gameLoop :: GameState -> IO PlayerState
 gameLoop st = do
