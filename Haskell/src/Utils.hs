@@ -56,6 +56,8 @@ instructionsText =
     "inventory          -- list currently held items",
     "instructions       -- see these instructions",
     "hint               -- get a hint if you're stuck",
+    "act2               -- skip directly to Act 2",
+    "act3               -- skip directly to Act 3",
     "quit               -- end the game and quit",
     ""
   ]
@@ -142,6 +144,8 @@ data Command
   | CmdDrop String
   | CmdUse String
   | CmdNext
+  | CmdAct2
+  | CmdAct3
   | CmdUnknown
   deriving (Eq, Show)
 
@@ -160,6 +164,9 @@ parseCommand ["use", o] = CmdUse o
 parseCommand ("go" : p : _) = CmdGo p
 parseCommand ("examine" : x : _) = CmdExamine x
 parseCommand ["next"] = CmdNext
+parseCommand ["start"] = CmdNext
+parseCommand ["act2"] = CmdAct2
+parseCommand ["act3"] = CmdAct3
 parseCommand _ = CmdUnknown
 
 entitiesAt :: Location -> GameState -> [Entity]
