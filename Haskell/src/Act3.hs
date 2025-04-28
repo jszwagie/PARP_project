@@ -743,3 +743,18 @@ goSpecial place st = case map toLower place of
     | currentLocation st == Tree -> Just (st {currentLocation = Ledge}, ["You climb back down to the ledge.", ""])
   _ -> Nothing
 
+processRadioInput :: GameState -> IO (GameState, Lines)
+processRadioInput st = do
+  putStrLn "Set dial A to: "
+  aStr <- getLine
+  putStrLn "Set dial B to: "
+  bStr <- getLine
+  putStrLn "Set dial C to: "
+  cStr <- getLine
+
+  let a = read aStr :: Int
+      b = read bStr :: Int
+      c = read cStr :: Int
+
+  return (tuneRadio st a b c)
+
