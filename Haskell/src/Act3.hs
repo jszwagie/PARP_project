@@ -127,3 +127,54 @@ rockDesc =
   \You press against the cold stone, your breath ragged as the Nazi patrol draws closer.\n\
   \From this vantage point, you can see several Nazis, their faces twisted in determination as they search the area."
 
+getHint :: GameState -> String
+getHint st
+  | st `hasTask` "act_finished" =
+      "You've already finished this act. Type \"quit\" to exit the game."
+  | st `hasTask` "woods" =
+      "We should GO to the WOODS."
+  | currentLocation st == Tunnel && st `hasItem` "radio" && st `hasTask` "tunnel" =
+      "I should USE the RADIO, as I said."
+  | currentLocation st == Rock && st `hasTask` "tunnel" =
+      "We should go to TUNNEL."
+  | currentLocation st == Rock && st `hasTask` "after_fight" =
+      "I should talk to Clara."
+  | currentLocation st == Rock && st `hasItem` "pistol" && st `hasTask` "fight" =
+      "I should hand the PISTOL to Clara."
+  | st `hasTask` "ambush_beginning" =
+      "Maybe Clara knows what to do in this situation."
+  | st `hasTask` "after_radio" =
+      "I should talk to Clara."
+  | st `hasTask` "radio" && st `hasItem` "radio" && st `hasExamined` "note" =
+      "The note says 'Four's the square, Seven's luck, Two's pair.' That could point to the settings for A, B, and C. The plaque might help confirm it."
+  | st `hasTask` "radio" && st `hasItem` "radio" =
+      "I need to tune the dials to the right numbers to reach the Marines. The NOTE or the RADIO might hold the key."
+  | st `hasTask` "hide" && st `hasItem` "pistol" =
+      "I should GO behind that ROCK."
+  | currentLocation st == Ledge && st `hasTask` "ledge_talk" =
+      "I should talk to Clara."
+  | currentLocation st == Ledge && not (st `hasExamined` "ledge") =
+      "I should LOOK around"
+  | currentLocation st == Ledge && st `hasTask` "tree" && st `hasExamined` "ledge" =
+      "I think I could GO up on that TREE."
+  | currentLocation st == Ledge && st `hasTask` "tree" =
+      "I should find a high place for recon."
+  | currentLocation st == Tree =
+      "I should LOOK around and decide where to GO."
+  | currentLocation st == Ruins && any ((== "creature") . entityName) (entitiesAt Ruins st) =
+      "Is the TALK the answer?"
+  | currentLocation st == Ruins && st `hasTask` "hide" =
+      "I should hide behind that ROCK"
+  | currentLocation st == City && st `hasTask` "hide" =
+      "I should hide behind that ROCK"
+  | currentLocation st == Ruins && st `hasTask` "tunnel" =
+      "I should GO to the TUNNEL"
+  | currentLocation st == City && st `hasTask` "tunnel" =
+      "I should GO to the TUNNEL"
+  | currentLocation st == Ruins && st `hasTask` "woods" =
+      "I should GO to the WOODS"
+  | currentLocation st == City && st `hasTask` "woods" =
+      "I should GO to the WOODS"
+  | otherwise =
+      "I should try to LOOK around to get my bearings."
+
