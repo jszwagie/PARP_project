@@ -180,7 +180,7 @@ describeRunway :: GameState -> String
 describeRunway st
   | countSupplies (inventory st) > 0 =
       "Clara has finished fueling and has something waiting for you.\n\
-      \You pack the supplies into the plane. The reason for your journey –\n\
+      \You pack the supplies into the plane. The reason for your journey -\n\
       \Admiral Byrd's diary - lies open on a box in front of you, its cryptic\n\
       \coordinates circled in red ink: 70S, 10E.\n\
       \Clara hands you a cup of lukewarm coffee."
