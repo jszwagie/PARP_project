@@ -900,9 +900,15 @@ stepA3 st (CmdDrop obj) =
    in if not (isInInventory name st)
         then pure (st, ["You aren't carrying that!", ""])
         else
-          let Just e = findEntity name st
-              st' = removeFromInventory e st
-           in pure (st', ["OK.", ""])
+          let
+            Just e = findEntity name st
+            st' = removeFromInventory e st
+           in if name == "pistol"
+                then case use "pistol" st of
+                  Just (newState, lines) -> pure (newState, lines)
+                  Nothing -> pure (st, ["Something went wrong.", ""])
+                else
+                  pure (st', ["OK.", ""])
 -- Separate step for using pistol because of random number generation
 stepA3 st (CmdUse "pistol")
   | isInInventory "pistol" st && "fight" `elem` tasks st && currentLocation st == Rock =
