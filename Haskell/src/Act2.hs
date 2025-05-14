@@ -692,7 +692,8 @@ stepA2 st (CmdTalk who)
   | otherwise = pure (st, ["There's no one here by that name.", ""])
 stepA2 st (CmdTake raw)
   | atLocation CrashSite st,
-    st `hasTask` "injured_clara" =
+    st `hasTask` "injured_clara",
+    map toLower raw /= "medkit" =
       pure (st, ["I need to help Clara first.", ""])
   | atLocation CrashSite st,
     not (st `hasTask` "plane_examined") =
