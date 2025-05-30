@@ -1,50 +1,4 @@
-Object subclass: Entity [
-    | type name description takeable |
-
-    Entity class >> itemNamed: aName description: aDesc takeable: aBool [
-        ^ self new
-            initializeType: #'item' name: aName description: aDesc takeable: aBool;
-            yourself
-    ]
-
-    Entity class >> personNamed: aName description: aDesc [
-        ^ self new
-            initializeType: #'person' name: aName description: aDesc takeable: false;
-            yourself
-    ]
-
-    initializeType: aType name: aString description: aDesc takeable: aBool [
-        type := aType.
-        name := aString asLowercase.
-        description := aDesc.
-        takeable := aBool
-    ]
-
-    name         [ ^ name ]
-    description  [ ^ description ]
-    takeable     [ ^ takeable ]
-    type        [ ^ type ]
-
-    isSupply [
-        ^ #( 'food' 'water' 'geiger' 'medkit' 'radio'
-              'gear' 'tools' ) includes: name
-    ]
-] !
-
-Object subclass: HRGame [
-    | currentLocation locations inventory examined talked tasks |
-
-    HRGame class >> newGame [ ^ self new initialize ]
-
-    initialize [
-        self setupLocations.
-        currentLocation := #'yard'.
-        inventory := OrderedCollection new.
-        examined := Set new.
-        talked := Set new.
-        tasks := Set new.
-        ^ self
-    ]
+BaseGame subclass: Act1Game [
 
     setupLocations [
         | oc |
@@ -71,99 +25,46 @@ Object subclass: HRGame [
         oc add: (Entity itemNamed: 'food' description: 'Canned goods and dried meals.' takeable: true);
            add: (Entity itemNamed: 'water' description: 'Fresh water in sealed containers.' takeable: true);
            add: (Entity itemNamed: 'geiger' description: 'A standard radiation detector.' takeable: true);
-           add: (Entity itemNamed: 'medkit' description: 'Bandages, antiseptic, morphineâ€¦' takeable: true);
+           add: (Entity itemNamed: 'medkit' description: 'Bandages, antiseptic, morphine…' takeable: true);
            add: (Entity itemNamed: 'radio' description: 'A shortwave field radio.' takeable: true);
            add: (Entity itemNamed: 'gear' description: 'Ropes, pitons, carabiners.' takeable: true);
            add: (Entity itemNamed: 'tools' description: 'A compass, maps, and a sextant.' takeable: true);
            add: (Entity itemNamed: 'list' description: 'A supply list showing available items.' takeable: false).
-        locations at: #'tent' put: oc
+        locations at: #'tent' put: oc.
+
+        currentLocation := #'yard'
     ]
 
-    prompt [ Transcript show: '> ' ]
-    printLine: aString [ Transcript show: aString; cr ]
-    printLines: aCollection [ aCollection do: [:ln | self printLine: ln ] ]
-
-    addTask: aString [ tasks add: aString ]
-    removeTask: aString [ tasks remove: aString ifAbsent: [] ]
-    hasTask: aString [ ^ tasks includes: aString ]
-
-    addToInventory: anEntity [ inventory add: anEntity ]
-    
-    removeFromInventory: anEntity [ 
-        | entity |
-        entity := inventory detect: [:e | e name = anEntity name] ifNone: [nil].
-        entity ifNotNil: [inventory remove: entity]
+    canMoveFrom: fromLoc to: toLoc [
+        (fromLoc = #'yard' and: [toLoc = #'barrack']) ifTrue: [ ^ true ].
+        (fromLoc = #'yard' and: [toLoc = #'runway']) ifTrue: [ ^ true ].
+        (fromLoc = #'yard' and: [toLoc = #'depot']) ifTrue: [ ^ true ].
+        (fromLoc = #'yard' and: [toLoc = #'tent']) ifTrue: [ ^ true ].
+        (fromLoc = #'barrack' and: [toLoc = #'yard']) ifTrue: [ ^ true ].
+        (fromLoc = #'runway' and: [toLoc = #'yard']) ifTrue: [ ^ true ].
+        (fromLoc = #'depot' and: [toLoc = #'yard']) ifTrue: [ ^ true ].
+        (fromLoc = #'tent' and: [toLoc = #'yard']) ifTrue: [ ^ true ].
+        ^ false
     ]
 
-    hasItem: aString [ 
-        ^ inventory anySatisfy: [:e | e name = aString asLowercase] 
-    ]
-    
-    isInInventory: aString [ ^ self hasItem: aString ]
-
-    entitiesAt: aSymbol [ 
-        ^ (locations at: aSymbol ifAbsent: [ OrderedCollection new ]) 
-    ]
-
-    findHere: aString [
-        ^ (self entitiesAt: currentLocation)
-            detect: [:e | e name = aString asLowercase]
-            ifNone: [ nil ]
+    parseLocation: aString [
+        | s |
+        s := aString asLowercase.
+        s = 'yard'    ifTrue: [ ^ #'yard' ].
+        s = 'barrack' ifTrue: [ ^ #'barrack' ].
+        s = 'runway'  ifTrue: [ ^ #'runway' ].
+        s = 'depot'   ifTrue: [ ^ #'depot' ].
+        s = 'tent'    ifTrue: [ ^ #'tent' ].
+        ^ #'unknown'
     ]
 
-    removeFromLocation: anEntity [
-        | entities |
-        entities := self entitiesAt: currentLocation.
-        entities remove: anEntity ifAbsent: []
-    ]
-
-    parseCommand: aString [
-        | parts first |
-        parts := (aString asLowercase) subStrings: ' '.
-        parts isEmpty ifTrue: [ ^ (Array with: #unknown) ].
-        first := parts first.
-        first = 'look'         ifTrue: [ ^ #( #look ) ].
-        first = 'inventory'    ifTrue: [ ^ #( #inventory ) ].
-        first = 'quit'         ifTrue: [ ^ #( #quit ) ].
-        first = 'hint'         ifTrue: [ ^ #( #hint ) ].
-        first = 'instructions' ifTrue: [ ^ #( #instructions ) ].
-        first = 'next'         ifTrue: [ ^ #( #next ) ].
-        first = 'go'        ifTrue: [ parts size > 1 ifTrue: [ ^ (Array with: #go with: (parts at: 2)) ] ].
-        first = 'take'      ifTrue: [ parts size > 1 ifTrue: [ ^ (Array with: #take with: (parts at: 2)) ] ].
-        first = 'drop'      ifTrue: [ parts size > 1 ifTrue: [ ^ (Array with: #drop with: (parts at: 2)) ] ].
-        first = 'examine'   ifTrue: [ parts size > 1 ifTrue: [ ^ (Array with: #examine with: (parts at: 2)) ] ].
-        first = 'talk'      ifTrue: [ parts size > 1 ifTrue: [ ^ (Array with: #talk with: (parts at: 2)) ] ].
-        first = 'use'       ifTrue: [ parts size > 1 ifTrue: [ ^ (Array with: #use with: (parts at: 2)) ] ].
-        ^ #( #unknown )
-    ]
-
-    handleCommand: aCmdArray [
-        | cmd arg |
-        cmd := aCmdArray first.
-        arg := aCmdArray size > 1 ifTrue: [ aCmdArray second ] ifFalse: [ nil ].
-
-        (self hasTask: 'act_finished') ifTrue: [
-            cmd = #next ifTrue: [ ^ #next ].
-            cmd = #quit ifTrue: [ ^ #quit ].
-            self printLine: 'You''ve already finished this act. Type "quit" to exit or "next" to advance further.'
-                    printLine: ''.
-            ^ nil
-        ].
-
-        cmd = #look         ifTrue: [ ^ self doLook ].
-        cmd = #inventory    ifTrue: [ ^ self doInventory ].
-        cmd = #go           ifTrue: [ ^ self handleGo: arg ].
-        cmd = #take         ifTrue: [ ^ self handleTake: arg ].
-        cmd = #drop         ifTrue: [ ^ self handleDrop: arg ].
-        cmd = #examine      ifTrue: [ ^ self handleExamine: arg ].
-        cmd = #talk         ifTrue: [ ^ self handleTalk: arg ].
-        cmd = #use          ifTrue: [ ^ self handleUse: arg ].
-        cmd = #hint         ifTrue: [ ^ self doHint ].
-        cmd = #instructions ifTrue: [ ^ self doInstructions ].
-        cmd = #next         ifTrue: [ ^ self handleNext ].
-        cmd = #quit         ifTrue: [ ^ #quit ].
-
-        self printLine: 'Unknown command.'; printLine: ''.
+    descriptionOf: location [
+        location = #'yard' ifTrue: [ ^ self yardDescription ].
+        location = #'barrack' ifTrue: [ ^ self barrackDescription ].
+        location = #'runway' ifTrue: [ ^ self describeRunway ].
+        location = #'depot' ifTrue: [ ^ self depotDescription ].
+        location = #'tent' ifTrue: [ ^ self tentDescription ].
+        ^ 'You see nothing special.'
     ]
 
     doLook [
@@ -172,39 +73,58 @@ Object subclass: HRGame [
             self printLine: ''.
             ^ self
         ].
-        self printLine: (self descriptionOfCurrentLocation); printLine: ''
+        super doLook
     ]
 
-    doInventory [
-        inventory isEmpty
-            ifTrue: [ self printLine: 'You are not carrying anything.' ]
-            ifFalse: [
-                self printLine: 'You are carrying:'.
-                inventory do: [:e | self printLine: e name ].
-            ].
-        self printLine: ''
+    yardDescription [
+        ^ 'You''re on the BARRACK yard. Nearby, a sturdy twin-engine plane rests' , Character lf asString,
+          'on a makeshift RUNWAY, its metal hull glinting faintly in the weak sunlight.' , Character lf asString,
+          'To the side, there''s a fuel DEPOT and a supply TENT. The air is frigid,' , Character lf asString,
+          'the wind howls intermittently, and the isolation weighs heavily. By the plane,' , Character lf asString,
+          'you spot your partner, Lt. CLARA Voss, a pragmatic military pilot assigned' , Character lf asString,
+          'to join you on this mission.'
     ]
 
-    doHint [
-        self printLine: (self getHint); printLine: ''
+    barrackDescription [
+        ^ 'This is your resting place during the mission - small but convenient.' , Character lf asString,
+          'Your bed is neatly made, and a PHOTO of your late wife sits on the dresser beside it.' , Character lf asString,
+          'Across the room, your working desk holds mission documents, a small lamp, and a LIGHTER.' , Character lf asString,
+          'A CALENDAR hangs above the desk.' , Character lf asString,
+          'Outside - the YARD, covered in snow.'
     ]
 
-    doInstructions [
-        self printLines: #(
-            'Available commands are:'
-            'look               -- look around you and describe surroundings'
-            'go <place>         -- go to a place'
-            'examine <obj>      -- examine an object or person closely'
-            'talk <person>      -- talk to someone'
-            'take <obj>         -- pick up an object'
-            'drop <obj>         -- put down an object'
-            'use <obj>          -- use an object you''re carrying'
-            'inventory          -- list currently held items'
-            'instructions       -- see these instructions'
-            'hint               -- get a hint if you''re stuck'
-            'quit               -- end the game and quit'
-            ''
-        )
+    depotDescription [
+        ^ 'You step into the depot, a rough but functional structure shielding fuel CANISTERs from the Antarctic cold.' , Character lf asString,
+          'Outside - the YARD, covered in snow.'
+    ]
+
+    tentDescription [
+        ^ 'You enter the supply tent, a cramped space cluttered with gear.' , Character lf asString,
+          'Boxes and crates are labeled with essentials: FOOD, WATER, scientific tools, and survival equipment.' , Character lf asString,
+          'A LIST of stock hangs on the wall.' , Character lf asString,
+          'Outside - the YARD, covered in snow.'
+    ]
+
+    describeRunway [
+        (self countSupplies) > 0 ifTrue: [
+            ^ 'Clara has finished fueling and has something waiting for you.' , Character lf asString,
+              'You pack the supplies into the plane. The reason for your journey -' , Character lf asString,
+              'Admiral Byrd''s diary - lies open on a box in front of you, its cryptic' , Character lf asString,
+              'coordinates circled in red ink: 70S, 10E.' , Character lf asString,
+              'Clara hands you a cup of lukewarm coffee.'
+        ].
+        
+        (self isInInventory: 'canister') not ifTrue: [
+            ^ 'The sunlight, reflected off the steel plates, blinds you as you approach' , Character lf asString,
+              'the aircraft - a Douglas A-20 Havoc. It''s not the newest PLANE, but it''s' , Character lf asString,
+              'reliable. CLARA is tinkering with one of the engines.' , Character lf asString,
+              'Behind you - the YARD, covered in snow.'
+        ].
+        
+        ^ 'The sunlight, reflected off the steel plates, blinds you as you approach' , Character lf asString,
+          'the Douglas A-20 Havoc - a reliable, if not modern, PLANE.' , Character lf asString,
+          'Clara is still tinkering with one of the engines.' , Character lf asString,
+          'Behind you - the YARD, covered in snow.'
     ]
 
     getHint [
@@ -243,139 +163,7 @@ Object subclass: HRGame [
         ^ 'I think I should talk with Clara.'
     ]
 
-    countSupplies [
-        ^ inventory count: [:e | e isSupply]
-    ]
-
-    handleNext [
-        (self hasTask: 'act_finished') 
-            ifTrue: [ ^ #next ]
-            ifFalse: [ self printLine: 'You need to finish this act first.' ]
-    ]
-
-    handleGo: placeString [
-        | loc |
-        loc := self parseLocation: placeString.
-        loc == #'unknown' ifTrue: [ ^ self printLines: { 'Unknown place: ' , placeString . '' } ].
-
-        (self canMoveFrom: currentLocation to: loc)
-            ifTrue: [
-                currentLocation := loc.
-                loc = #'runway' ifTrue: [
-                    self printLine: (self describeRunway).
-                ] ifFalse: [
-                    self printLine: (self descriptionOf: loc).
-                ].
-                self printLine: ''
-            ]
-            ifFalse: [ self printLines: { 'You can''t go to ' , placeString , ' from here.' . '' } ].
-    ]
-
-    handleTake: objName [
-        | obj supplies |
-        
-        obj := self findHere: objName asLowercase.
-        obj isNil ifTrue: [ ^ self printLines: { 'I don''t see ' , objName , ' here.' . '' } ].
-        
-        (self isInInventory: objName) ifTrue: [ 
-            ^ self printLines: { 'You''re already holding it!' . '' } 
-        ].
-        
-        " Special handling for specific items "
-        objName asLowercase = 'photo' ifTrue: [
-            ^ self printLines: { 'Sorry, my love, but I can''t take you with me.' . '' }
-        ].
-        
-        objName asLowercase = 'calendar' ifTrue: [
-            ^ self printLines: { 'I doubt this will be useful.' . '' }
-        ].
-        
-        objName asLowercase = 'lighter' ifTrue: [
-            ^ self printLines: { 'I''m not going to smoke now.' . '' }
-        ].
-        
-        objName asLowercase = 'canister' ifTrue: [
-            (self hasTask: 'can_take_canister') ifFalse: [
-                ^ self printLines: { 'I should check the fuel TANKS first.' . '' }
-            ].
-            self addToInventory: obj.
-            self removeFromLocation: obj.
-            ^ self printLines: { 'This should be enough.' . '' }
-        ].
-        
-        " Supply handling "
-        obj isSupply ifTrue: [
-            (self hasTask: 'collect_supplies') ifFalse: [
-                ^ self printLines: { 'I don''t need this right now. I should TALK to Clara first.' . '' }
-            ].
-            
-            supplies := self countSupplies.
-            supplies >= 5 ifTrue: [
-                ^ self printLines: { 'You cannot take this - you''ve reached the limit (5 items).' . '' }
-            ].
-            
-            self addToInventory: obj.
-            self removeFromLocation: obj.
-            ^ self printLines: { 'You take the ' , obj name , '.' . '' }
-        ].
-        
-        " Default takeable items "
-        obj takeable ifTrue: [
-            self addToInventory: obj.
-            self removeFromLocation: obj.
-            ^ self printLines: { 'You take the ' , obj name , '.' . '' }
-        ].
-        
-        self printLines: { 'You can''t take that.' . '' }
-    ]
-
-    handleDrop: objName [
-        | obj |
-        obj := inventory detect: [:e | e name = objName asLowercase] ifNone: [ nil ].
-        obj isNil ifTrue: [ ^ self printLines: { 'You aren''t holding it!' . '' } ].
-        
-        objName asLowercase = 'lighter' ifTrue: [
-            self removeFromInventory: obj.
-            (self entitiesAt: currentLocation) add: obj.
-            ^ self printLines: { 'I might need something else instead.' . '' }
-        ].
-        
-        objName asLowercase = 'canister' ifTrue: [
-            ^ self printLines: { 'I should get it to Clara. I''ll TALK to her.' . '' }
-        ].
-        
-        obj isSupply ifTrue: [
-            self removeFromInventory: obj.
-            (self entitiesAt: currentLocation) add: obj.
-            ^ self printLines: { 'You drop the ' , obj name , '.' . '' }
-        ].
-        
-        self removeFromInventory: obj.
-        (self entitiesAt: currentLocation) add: obj.
-        self printLines: { 'OK.' . '' }
-    ]
-
-    handleExamine: objName [
-        | result obj|
-        result := self examineSpecial: objName asLowercase.
-        result ifNotNil: [ ^ result ].
-        
-        obj := self findHere: objName asLowercase.
-        obj isNil ifTrue: [ 
-            obj := inventory detect: [:e | e name = objName asLowercase] ifNone: [ nil ]
-        ].
-        
-        obj ifNotNil: [
-            self markExamined: obj name.
-            self printLines: { obj description . '' }
-        ] ifNil: [
-            self printLines: { 'I can''t see ' , objName , ' here or there''s nothing special about it.' . '' }
-        ]
-    ]
-
     examineSpecial: key [
-        | ent |
-        
         (key = 'tanks' and: [currentLocation = #'runway']) ifTrue: [
             self markExamined: 'tanks'.
             self addTask: 'can_take_canister'.
@@ -416,13 +204,17 @@ Object subclass: HRGame [
             ^ true
         ].
         
-        " Additional examine special cases for tent items "
-        (self isTentItem: key) ifTrue: [
-            currentLocation = #'tent' ifTrue: [
-                self markExamined: key.
-                self printTentItemDescription: key.
-                ^ true
-            ]
+        (key = 'calendar' and: [currentLocation = #'barrack']) ifTrue: [
+            self markExamined: 'calendar'.
+            self printLines: { 'August 26, 1946' . '' }.
+            ^ true
+        ].
+        
+        " Tent items "
+        ((#('food' 'water' 'geiger' 'medkit' 'radio' 'gear' 'tools') includes: key) and: [currentLocation = #'tent']) ifTrue: [
+            self markExamined: key.
+            self printTentItemDescription: key.
+            ^ true
         ].
         
         (key = 'canister' and: [currentLocation = #'depot']) ifTrue: [
@@ -435,12 +227,27 @@ Object subclass: HRGame [
             ^ true
         ].
         
-        " clara and other location-based examines "
-        ^ self examineLocationSpecific: key
-    ]
-
-    isTentItem: key [
-        ^ #('food' 'water' 'geiger' 'medkit' 'radio' 'gear' 'tools') includes: key
+        (key = 'clara' and: [currentLocation = #'runway']) ifTrue: [
+            self printLines: {
+                'Clara stands near the plane, wearing a military pilot''s uniform with rolled-up sleeves.'.
+                'Her dark hair is tied back, with a few strands escaping to frame her sharp eyes.'.
+                ''
+            }.
+            ^ true
+        ].
+        
+        (key = 'clara') ifTrue: [
+            self printLines: { 'I can''t see her clearly from here.' . '' }.
+            ^ true
+        ].
+        
+        (key = 'plane' and: [currentLocation = #'runway']) ifTrue: [
+            self markExamined: 'plane'.
+            self printLines: { 'Your type served well in the war.' . '' }.
+            ^ true
+        ].
+        
+        ^ nil
     ]
 
     printTentItemDescription: key [
@@ -495,36 +302,6 @@ Object subclass: HRGame [
         ]
     ]
 
-    examineLocationSpecific: key [
-        (key = 'clara' and: [currentLocation = #'runway']) ifTrue: [
-            self printLines: {
-                'Clara stands near the plane, wearing a military pilot''s uniform with rolled-up sleeves.'.
-                'Her dark hair is tied back, with a few strands escaping to frame her sharp eyes.'.
-                ''
-            }.
-            ^ true
-        ].
-        
-        (key = 'clara') ifTrue: [
-            self printLines: { 'I can''t see her clearly from here.' . '' }.
-            ^ true
-        ].
-        
-        (key = 'plane' and: [currentLocation = #'runway']) ifTrue: [
-            self markExamined: 'plane'.
-            self printLines: { 'Your type served well in the war.' . '' }.
-            ^ true
-        ].
-        
-        (key = 'calendar' and: [currentLocation = #'barrack']) ifTrue: [
-            self markExamined: 'calendar'.
-            self printLines: { 'August 26, 1946' . '' }.
-            ^ true
-        ].
-        
-        ^ nil
-    ]
-
     handleTalk: whoName [
         whoName asLowercase = 'clara' ifTrue: [
             currentLocation = #'runway' ifFalse: [
@@ -553,8 +330,8 @@ Object subclass: HRGame [
             ].
         ].
         
-        (talked includes: 'clara_fuel_request') ifFalse: [
-            talked add: 'clara_fuel_request'.
+        (self hasTalked: 'clara' topic: 'fuel_request') ifFalse: [
+            self markTalked: 'clara' topic: 'fuel_request'.
             self addTask: 'awaiting_clara_choice'.
             ^ self showInitialClaraDialog
         ].
@@ -570,7 +347,7 @@ Object subclass: HRGame [
             '2. "I think it''s good enough, but I could double-check."'.
             '3. "Why don''t you take care of it?"'
         }.
-        ^ self waitForChoice: #clara
+        ^ nil
     ]
 
     showExplainDialog [
@@ -585,23 +362,15 @@ Object subclass: HRGame [
             '3. "I''ve got a feeling there''s something big waiting for us."'.
             ''
         }.
-        ^ self waitForChoice: #explain
+        ^ nil
     ]
 
-    waitForChoice: context [
-        | input choice |
-        [
-            Transcript show: 'Choose (1-3): '.
-            input := stdin nextLine.
-            choice := input asInteger.
-            (choice between: 1 and: 3) ifTrue: [
-                context = #clara ifTrue: [ ^ self processClaraChoice: choice ].
-                context = #explain ifTrue: [ ^ self processExplainChoice: choice ].
-                context = #further ifTrue: [ ^ self processFurtherChoice: choice ].
-                context = #supply ifTrue: [ ^ self processSupplyChoice: choice ].
-            ].
-            self printLine: 'Invalid choice - enter 1, 2, or 3.'
-        ] repeat
+    processChoice: choice context: context [
+        context = #clara ifTrue: [ ^ self processClaraChoice: choice ].
+        context = #explain ifTrue: [ ^ self processExplainChoice: choice ].
+        context = #further ifTrue: [ ^ self processFurtherChoice: choice ].
+        context = #supply ifTrue: [ ^ self processSupplyChoice: choice ].
+        ^ self printLine: 'Invalid choice context.'
     ]
 
     processClaraChoice: choice [
@@ -642,7 +411,7 @@ Object subclass: HRGame [
                 'Clara: "Discovery of the century? I hope it''s not just a pile of ice and a frostbite bill."'.
                 'Your choice:'.
                 '1. "Byrd wasn''t a dreamer. Those coordinates mean something."'.
-                '2. "Even if it''s nothing, the science alone is worth it."'.
+                '2. "Even if it''s nothing, the science alone is worth it."'
             }.
             ^ self waitForChoice: #further
         ].
@@ -750,109 +519,133 @@ Object subclass: HRGame [
         }
     ]
 
+    handleSpecialCommand: aCmdArray [
+        | cmd |
+        cmd := aCmdArray first.
+        
+        " Handle choice inputs "
+        (self hasTask: 'awaiting_clara_choice') ifTrue: [
+            ^ self handleChoiceInput: aCmdArray context: #clara
+        ].
+        
+        (self hasTask: 'awaiting_explain_choice') ifTrue: [
+            ^ self handleChoiceInput: aCmdArray context: #explain
+        ].
+        
+        (self hasTask: 'awaiting_further_choice') ifTrue: [
+            ^ self handleChoiceInput: aCmdArray context: #further
+        ].
+        
+        (self hasTask: 'awaiting_supply_choice') ifTrue: [
+            ^ self handleChoiceInput: aCmdArray context: #supply
+        ].
+        
+        ^ nil
+    ]
+
+    handleChoiceInput: aCmdArray context: context [
+        | input choice |
+        input := aCmdArray first asString.
+        choice := input asInteger.
+        (choice between: 1 and: 3) ifTrue: [
+            ^ self processChoice: choice context: context
+        ].
+        self printLine: 'Invalid choice - enter 1, 2, or 3.'.
+        ^ nil
+    ]
+
+    handleTake: objName [
+        | obj supplies |
+        
+        obj := self findHere: objName asLowercase.
+        obj isNil ifTrue: [ ^ self printLines: { 'I don''t see ' , objName , ' here.' . '' } ].
+        
+        (self isInInventory: objName) ifTrue: [ 
+            ^ self printLines: { 'You''re already holding it!' . '' } 
+        ].
+        
+        " Special handling for specific items "
+        objName asLowercase = 'photo' ifTrue: [
+            ^ self printLines: { 'Sorry, my love, but I can''t take you with me.' . '' }
+        ].
+        
+        objName asLowercase = 'calendar' ifTrue: [
+            ^ self printLines: { 'I doubt this will be useful.' . '' }
+        ].
+        
+        objName asLowercase = 'lighter' ifTrue: [
+            ^ self printLines: { 'I''m not going to smoke now.' . '' }
+        ].
+        
+        objName asLowercase = 'canister' ifTrue: [
+            (self hasTask: 'can_take_canister') ifFalse: [
+                ^ self printLines: { 'I should check the fuel TANKS first.' . '' }
+            ].
+            self addToInventory: obj.
+            self removeFromLocation: obj.
+            ^ self printLines: { 'This should be enough.' . '' }
+        ].
+        
+        " Supply handling "
+        (self isSupply: obj name) ifTrue: [
+            (self hasTask: 'collect_supplies') ifFalse: [
+                ^ self printLines: { 'I don''t need this right now. I should TALK to Clara first.' . '' }
+            ].
+            
+            supplies := self countSupplies.
+            supplies >= 5 ifTrue: [
+                ^ self printLines: { 'You cannot take this - you''ve reached the limit (5 items).' . '' }
+            ].
+            
+            self addToInventory: obj.
+            self removeFromLocation: obj.
+            ^ self printLines: { 'You take the ' , obj name , '.' . '' }
+        ].
+        
+        " Default takeable items "
+        obj takeableByDefault ifTrue: [
+            self addToInventory: obj.
+            self removeFromLocation: obj.
+            ^ self printLines: { 'You take the ' , obj name , '.' . '' }
+        ].
+        
+        self printLines: { 'You can''t take that.' . '' }
+    ]
+
+    handleDrop: objName [
+        | obj |
+        obj := inventory detect: [:e | e name = objName asLowercase] ifNone: [ nil ].
+        obj isNil ifTrue: [ ^ self printLines: { 'You aren''t holding it!' . '' } ].
+        
+        objName asLowercase = 'lighter' ifTrue: [
+            self removeFromInventory: obj.
+            (self entitiesAt: currentLocation) add: obj.
+            ^ self printLines: { 'I might need something else instead.' . '' }
+        ].
+        
+        objName asLowercase = 'canister' ifTrue: [
+            ^ self printLines: { 'I should get it to Clara. I''ll TALK to her.' . '' }
+        ].
+        
+        (self isSupply: obj name) ifTrue: [
+            self removeFromInventory: obj.
+            (self entitiesAt: currentLocation) add: obj.
+            ^ self printLines: { 'You drop the ' , obj name , '.' . '' }
+        ].
+        
+        self removeFromInventory: obj.
+        (self entitiesAt: currentLocation) add: obj.
+        self printLines: { 'OK.' . '' }
+    ]
+
     handleUse: objName [
         (objName asLowercase = 'canister' and: [self isInInventory: 'canister'] and: [currentLocation = #'runway']) ifTrue: [
             ^ self printLines: { 'I should give it to Clara. I''ll TALK to her.' . '' }
         ].
         
-        (self isInInventory: objName) 
+        (self isInInventory: objName asLowercase) 
             ifTrue: [ self printLines: { 'I can''t use that right now.' . '' } ]
             ifFalse: [ self printLines: { 'I don''t have it or I can''t use it.' . '' } ]
-    ]
-
-    parseLocation: aString [
-        | s |
-        s := aString asLowercase.
-        s = 'yard'    ifTrue: [ ^ #'yard' ].
-        s = 'barrack' ifTrue: [ ^ #'barrack' ].
-        s = 'runway'  ifTrue: [ ^ #'runway' ].
-        s = 'depot'   ifTrue: [ ^ #'depot' ].
-        s = 'tent'    ifTrue: [ ^ #'tent' ].
-        ^ #'unknown'
-    ]
-
-    canMoveFrom: fromLoc to: toLoc [
-        (fromLoc = #'yard' and: [toLoc = #'barrack']) ifTrue: [ ^ true ].
-        (fromLoc = #'yard' and: [toLoc = #'runway']) ifTrue: [ ^ true ].
-        (fromLoc = #'yard' and: [toLoc = #'depot']) ifTrue: [ ^ true ].
-        (fromLoc = #'yard' and: [toLoc = #'tent']) ifTrue: [ ^ true ].
-        (fromLoc = #'barrack' and: [toLoc = #'yard']) ifTrue: [ ^ true ].
-        (fromLoc = #'runway' and: [toLoc = #'yard']) ifTrue: [ ^ true ].
-        (fromLoc = #'depot' and: [toLoc = #'yard']) ifTrue: [ ^ true ].
-        (fromLoc = #'tent' and: [toLoc = #'yard']) ifTrue: [ ^ true ].
-        ^ false
-    ]
-
-    descriptionOf: location [
-        location = #'yard' ifTrue: [ ^ self yardDescription ].
-        location = #'barrack' ifTrue: [ ^ self barrackDescription ].
-        location = #'runway' ifTrue: [ ^ self runwayDescription ].
-        location = #'depot' ifTrue: [ ^ self depotDescription ].
-        location = #'tent' ifTrue: [ ^ self tentDescription ].
-        ^ 'You see nothing special.'
-    ]
-
-    descriptionOfCurrentLocation [
-        ^ self descriptionOf: currentLocation
-    ]
-
-    yardDescription [
-        ^ 'You''re on the BARRACK yard. Nearby, a sturdy twin-engine plane rests' , Character lf asString,
-          'on a makeshift RUNWAY, its metal hull glinting faintly in the weak sunlight.' , Character lf asString,
-          'To the side, there''s a fuel DEPOT and a supply TENT. The air is frigid,' , Character lf asString,
-          'the wind howls intermittently, and the isolation weighs heavily. By the plane,' , Character lf asString,
-          'you spot your partner, Lt. CLARA Voss, a pragmatic military pilot assigned' , Character lf asString,
-          'to join you on this mission.'
-    ]
-
-    barrackDescription [
-        ^ 'This is your resting place during the mission - small but convenient.' , Character lf asString,
-          'Your bed is neatly made, and a PHOTO of your late wife sits on the dresser beside it.' , Character lf asString,
-          'Across the room, your working desk holds mission documents, a small lamp, and a LIGHTER.' , Character lf asString,
-          'A CALENDAR hangs above the desk.' , Character lf asString,
-          'Outside - the YARD, covered in snow.'
-    ]
-
-    runwayDescription [
-        self describeRunway
-    ]
-
-    depotDescription [
-        ^ 'You step into the depot, a rough but functional structure shielding fuel CANISTERs from the Antarctic cold.' , Character lf asString,
-          'Outside - the YARD, covered in snow.'
-    ]
-
-    tentDescription [
-        ^ 'You enter the supply tent, a cramped space cluttered with gear.' , Character lf asString,
-          'Boxes and crates are labeled with essentials: FOOD, WATER, scientific tools, and survival equipment.' , Character lf asString,
-          'A LIST of stock hangs on the wall.' , Character lf asString,
-          'Outside - the YARD, covered in snow.'
-    ]
-
-    describeRunway [
-        (self countSupplies) > 0 ifTrue: [
-            ^ 'Clara has finished fueling and has something waiting for you.' , Character lf asString,
-              'You pack the supplies into the plane. The reason for your journey -' , Character lf asString,
-              'Admiral Byrd''s diary - lies open on a box in front of you, its cryptic' , Character lf asString,
-              'coordinates circled in red ink: 70S, 10E.' , Character lf asString,
-              'Clara hands you a cup of lukewarm coffee.'
-        ].
-        
-        (self isInInventory: 'canister') not ifTrue: [
-            ^ 'The sunlight, reflected off the steel plates, blinds you as you approach' , Character lf asString,
-              'the aircraft - a Douglas A-20 Havoc. It''s not the newest PLANE, but it''s' , Character lf asString,
-              'reliable. CLARA is tinkering with one of the engines.' , Character lf asString,
-              'Behind you - the YARD, covered in snow.'
-        ].
-        
-        ^ 'The sunlight, reflected off the steel plates, blinds you as you approach' , Character lf asString,
-          'the Douglas A-20 Havoc - a reliable, if not modern, PLANE.' , Character lf asString,
-          'Clara is still tinkering with one of the engines.' , Character lf asString,
-          'Behind you - the YARD, covered in snow.'
-    ]
-
-    markExamined: aString [
-        examined add: aString
     ]
 
     printActProlog [
@@ -873,17 +666,14 @@ Object subclass: HRGame [
         self doLook.
         
         [ true ] whileTrue: [
-            res = #next ifTrue: [ ^ #next ].
-            res = #quit ifTrue: [ ^ self ].
+            res = #next ifTrue: [ ^ self extractPlayerState ].
+            res = #quit ifTrue: [ ^ nil ].
             
             self prompt.
             input := stdin nextLine.
             cmdArray := self parseCommand: input.
-            cmdArray first = #quit ifTrue: [ ^ self ].
+            cmdArray first = #quit ifTrue: [ ^ nil ].
             res := self handleCommand: cmdArray.
         ]
     ]
 ] !
-
-HRGame newGame mainLoop.
-ObjectMemory quit !
