@@ -1,722 +1,881 @@
-BaseGame subclass: Act2Game [
+"Act 2: Descent into the Unknown"
 
-    setupLocations [
-        | oc |
-        locations := Dictionary new.
+Object subclass: #Act2
+    instanceVariableNames: ''
+    classVariableNames: ''
+    poolDictionaries: ''
+    category: 'Game-Acts'!
 
-        " Cockpit "
-        oc := OrderedCollection new.
-        oc add: (Entity itemNamed: 'diary' description: '*It is open on the coordinates* There must be some truth in it.' takeable: false);
-           add: (Entity itemNamed: 'radio' description: '*The radio has a frequency adjuster* Maybe I could run into something interesting by switching frequencies.' takeable: false);
-           add: (Entity personNamed: 'clara' description: 'Clara pilots beside you, focused on the controls.').
-        locations at: #'cockpit' put: oc.
+!Act2 class methodsFor: 'game content'!
+prologText
+    ^#(
+        'ACT 2: DESCENT INTO THE UNKNOWN'
+        'You are sitting in the co-pilot chair of a Douglas A-20 Havoc, soaring over'
+        'Antarctica''s icy expanse. Clara pilots beside you, and you hold Admiral Byrd''s diary.'
+    )!
 
-        " Crash Site "
-        oc := OrderedCollection new.
-        oc add: (Entity itemNamed: 'plane' description: 'The plane''s a lost cause, but the luggage COMPARTMENT is intact. The supplies you took are probably still there.' takeable: false);
-           add: (Entity itemNamed: 'compartment' description: 'The plane compartment for supplies.' takeable: false).
-        locations at: #'crashsite' put: oc.
+epilogText
+    ^#(
+        '----------------------------ACT 2 OVER----------------------------'
+        ''
+        'Type "next" to continue, or "quit" to leave.'
+        ''
+    )!
 
-        " Compartment (will be populated with supplies from Act 1) "
-        locations at: #'compartment' put: OrderedCollection new.
+!Act2 class methodsFor: 'initialization'!
+createInitialState
+    | state entities |
+    state := GameState new.
+    state currentLocation: Location cockpit.
 
-        " Cave "
-        locations at: #'cave' put: OrderedCollection new.
+    entities := Dictionary new.
 
-        " Wreck "
-        oc := OrderedCollection new.
-        oc add: (Entity itemNamed: 'controls' description: 'Ancient but advanced control panels.' takeable: false);
-           add: (Entity itemNamed: 'pistol' description: 'An old German Mauser C96 pistol. Still looks functional.' takeable: true).
-        locations at: #'wreck' put: oc.
+    entities at: Location cockpit put: (OrderedCollection with:
+        (Entity type: EntityType item name: 'diary' description: '*It is open on the coordinates*There must be some truth in it.' takeable: false) with:
+        (Entity type: EntityType item name: 'radio' description: '*The radio has a frequency adjuster*Maybe I could run into something interesting by switching frequencies.' takeable: false) with:
+        (Entity type: EntityType person name: 'clara' description: 'Clara pilots beside you, focused on the controls.' takeable: false)).
 
-        " Tunnel "
-        locations at: #'tunnel' put: OrderedCollection new.
+    entities at: Location crashSite put: (OrderedCollection with:
+        (Entity type: EntityType item name: 'plane' description: 'The plane''s a lost cause, but the luggage COMPARTMENT is intact.The supplies you took are probably still there.' takeable: false) with:
+        (Entity type: EntityType item name: 'compartment' description: 'The plane compartment for supplies.' takeable: false)).
 
-        currentLocation := #'cockpit'
-    ]
+    entities at: Location compartment put: OrderedCollection new.
 
-    canMoveFrom: fromLoc to: toLoc [
-        (fromLoc = #'crashsite' and: [toLoc = #'cave']) ifTrue: [ ^ true ].
-        (fromLoc = #'cave' and: [toLoc = #'crashsite']) ifTrue: [ ^ true ].
-        (fromLoc = #'cave' and: [toLoc = #'wreck']) ifTrue: [ ^ true ].
-        (fromLoc = #'wreck' and: [toLoc = #'cave']) ifTrue: [ ^ true ].
-        (fromLoc = #'cave' and: [toLoc = #'tunnel']) ifTrue: [ ^ true ].
-        (fromLoc = #'tunnel' and: [toLoc = #'cave']) ifTrue: [ ^ true ].
-        ^ false
-    ]
+    entities at: Location wreck put: (OrderedCollection with:
+        (Entity type: EntityType item name: 'wreck' description: 'A wrecked plane' takeable: false) with:
+        (Entity type: EntityType item name: 'pistol' description: 'A pistol, probably from the wreck.' takeable: true)).
 
-    parseLocation: aString [
-        | s |
-        s := aString asLowercase.
-        s = 'cockpit'    ifTrue: [ ^ #'cockpit' ].
-        s = 'crashsite'  ifTrue: [ ^ #'crashsite' ].
-        s = 'cave'       ifTrue: [ ^ #'cave' ].
-        s = 'wreck'      ifTrue: [ ^ #'wreck' ].
-        s = 'tunnel'     ifTrue: [ ^ #'tunnel' ].
-        s = 'compartment' ifTrue: [ ^ #'compartment' ].
-        ^ #'unknown'
-    ]
+    state locationEntities: entities.
+    ^state!
 
-    descriptionOf: location [
-        location = #'cockpit' ifTrue: [ ^ self cockpitDescription ].
-        location = #'crashsite' ifTrue: [ ^ self crashSiteDescription ].
-        location = #'cave' ifTrue: [ ^ self caveDescription ].
-        location = #'wreck' ifTrue: [ ^ self wreckDescription ].
-        location = #'tunnel' ifTrue: [ ^ self tunnelDescription ].
-        location = #'compartment' ifTrue: [ ^ 'Inside the plane''s supply compartment.' ].
-        ^ 'You see nothing special.'
-    ]
+injectSupplies: playerState into: gameState
+    | supplies compartmentEntities |
+    supplies := playerState inventory select: [:item | gameState isSupply: item entityName].
+    compartmentEntities := gameState entitiesAt: Location compartment.
+    compartmentEntities addAll: supplies.
+    gameState locationEntities at: Location compartment put: compartmentEntities.
 
-    cockpitDescription [
-        ^ 'The cockpit is tight and utilitarian, filled with glowing dials and humming switches.' , Character lf asString,
-          'Through the windshield, Antarctica''s endless snow glitters under a gray sky.' , Character lf asString,
-          'Turbulence occasionally rocks the plane, rattling the controls.' , Character lf asString,
-          'Before the control panel, next to you, on the pilot''s seat is CLARA, bravely piloting the plane.' , Character lf asString,
-          'On the panel sits the RADIO, and Byrd''s DIARY rests on your lap.'
-    ]
+    "Remove supplies from player inventory and add non-supplies back to game state"
+    gameState inventory: (playerState inventory reject: [:item | gameState isSupply: item entityName]).!
 
-    crashSiteDescription [
-        (self hasTask: 'crash_site_described') ifFalse: [
-            self addTask: 'crash_site_described'.
-            ^ 'You wake amid the wreckage, cold seeping into your bones.' , Character lf asString,
-              'The PLANE is a ruin, and CLARA lies injured nearby.' , Character lf asString,
-              'Twisted metal juts from the snow, half-burying the fuselage; engine debris still smoulders.' , Character lf asString,
-              'Wind howls, stinging your face with ice.' , Character lf asString,
-              'CLARA slumps a few feet away, blood staining the snow beneath her head.'
-        ].
-        
-        (self hasTask: 'injured_clara') ifTrue: [
-            ^ 'The PLANE is a ruin, and CLARA lies injured nearby.' , Character lf asString,
-              'Twisted metal juts from the snow, half-burying the fuselage; engine debris still smoulders.' , Character lf asString,
-              'Wind howls, stinging your face with ice.' , Character lf asString,
-              'CLARA slumps a few feet away, blood staining the snow beneath her head.'
-        ].
-        
-        ^ 'The wreckage of your plane lies scattered across the frozen landscape.' , Character lf asString,
-          'Clara stands nearby, looking shaken but determined.' , Character lf asString,
-          'This place offers no shelter from the biting Antarctic cold.' , Character lf asString,
-          'The crash site aligns with Byrd''s coordinates.'
-    ]
+!Act2 class methodsFor: 'movement'!
+canMove: fromLocation to: toLocation
+    fromLocation = Location crashSite ifTrue: [^toLocation = Location cave].
+    fromLocation = Location cave ifTrue: [^toLocation = Location crashSite or: [toLocation = Location wreck]].
+    fromLocation = Location wreck ifTrue: [^toLocation = Location cave].
+    fromLocation = Location cave ifTrue: [^toLocation = Location tunnel].
+    fromLocation = Location tunnel ifTrue: [^toLocation = Location cave].
+    ^false!
 
-    caveDescription [
-        (self hasTask: 'entered_wreck') ifTrue: [
-            ^ 'Slowly and carefully, you emerge from the wreckage.' , Character lf asString,
-              'The dark cave corridor stretches before you.'
-        ].
-        
-        (self hasTask: 'wreck_discovery') ifFalse: [
-            ^ 'The cave twists downward, its walls polished and warm. A low hum vibrates the air.' , Character lf asString,
-              'Smooth, spiralling walls funnel you DEEPER; faint lights pulse below.'
-        ].
-        
-        ^ 'The entrance to the ice cave stretches before you.' , Character lf asString,
-          'The unnatural smoothness of the walls suggests intelligent design.' , Character lf asString,
-          'To the right, the Nazi flying-saucer WRECK remains embedded in the ice.' , Character lf asString,
-          'A path leads DEEPER into the tunnel, where faint blue light pulses.' , Character lf asString,
-          'A massive disk-shaped craft protrudes from the wall, its metallic surface scarred and dented-' , Character lf asString,
-          'futuristic yet ancient.'
-    ]
+!Act2 class methodsFor: 'descriptions'!
+describeLocation: location
+    location = Location cockpit ifTrue: [
+        ^'The cockpit is tight and utilitarian, filled with glowing dials and humming switches.
+Through the windshield, Antarctica''s endless snow glitters under a gray sky.
+Turbulence occasionally rocks the plane, rattling the controls.
+Before the control panel, next to you, on the pilot''s seat is CLARA, bravely piloting the plane.
+On the panel sits the RADIO, and Byrd''s DIARY rests on your lap.'].
 
-    wreckDescription [
-        ^ 'The interior is cramped and dark, with control panels covered in dust and frost.' , Character lf asString,
-          'Wires hang loosely, and a faint smell of oil lingers.' , Character lf asString,
-          'On a seat, you spot an old German PISTOL-a Mauser C96-still holstered.'
-    ]
+    location = Location wreck ifTrue: [
+        ^'The interior is cramped and dark, with control panels covered in dust and frost.
+Wires hang loosely, and a faint smell of oil lingers.
+On a seat, you spot an old German PISTOL—a Mauser C96—still holstered.'].
 
-    tunnelDescription [
-        ^ 'The crash site lies in ruins, the plane''s twisted metal half-buried in snow.' , Character lf asString,
-          'The wind howls mercilessly, and the sky above is a bleak, unforgiving gray.' , Character lf asString,
-          'Your breath fogs in the frigid air, a stark contrast to the warmth of the hidden valley below.'
-    ]
+    ^'You see nothing special.'!
 
-    getHint [
-        (currentLocation = #'crashsite' and: [(self hasTask: 'crash_site_described') not]) ifTrue: [
-            ^ 'I should first LOOK around to get my bearings.'
-        ].
-        
-        (currentLocation = #'cockpit' and: [(self hasTask: 'radio_examined') not]) ifTrue: [
-            ^ 'I need to find something to pass the time.'
-        ].
-        
-        (currentLocation = #'cockpit' and: [self hasTask: 'radio_examined'] and: [(self hasTask: 'radio_used') not]) ifTrue: [
-            ^ 'I could USE the radio to pass some time.'
-        ].
-        
-        (currentLocation = #'cockpit' and: [self hasTask: 'radio_used'] and: [(self hasTask: 'crashed') not]) ifTrue: [
-            ^ 'I should talk to Clara.'
-        ].
-        
-        (currentLocation = #'crashsite' and: [self hasTask: 'injured_clara'] and: [(self hasTask: 'plane_examined') not]) ifTrue: [
-            ^ 'Clara needs help fast, and the wreckage of the PLANE might have something useful.'
-        ].
-        
-        (currentLocation = #'crashsite' and: [self hasTask: 'injured_clara'] and: [self hasTask: 'plane_examined']) ifTrue: [
-            ^ 'Clara needs help fast, and a MEDKIT should be in the luggage COMPARTMENT.'
-        ].
-        
-        (currentLocation = #'crashsite' and: [(self hasTask: 'injured_clara') not] and: [(self hasTask: 'compartment_checked') not]) ifTrue: [
-            ^ 'I should check the luggage COMPARTMENT for the rest of the supplies.'
-        ].
-        
-        (currentLocation = #'crashsite' and: [(self hasTask: 'injured_clara') not]) ifTrue: [
-            ^ 'I should talk to Clara about our next move.'
-        ].
-        
-        (currentLocation = #'cave' and: [self hasTask: 'wreck_discovery'] and: [(self hasTask: 'wreck_examined') not]) ifTrue: [
-            ^ 'I should EXAMINE the WRECK.'
-        ].
-        
-        (currentLocation = #'cave' and: [self hasTask: 'wreck_examined'] and: [(self hasTask: 'entered_wreck') not] and: [(self hasTask: 'wreck_discovery2') not]) ifTrue: [
-            ^ 'I should talk to Clara.'
-        ].
-        
-        (currentLocation = #'cave' and: [self hasTask: 'wreck_discovery2'] and: [(self hasTask: 'entered_wreck') not]) ifTrue: [
-            ^ 'I must decide, should I GO to WRECK or GO DEEPER?'
-        ].
-        
-        (currentLocation = #'cave') ifTrue: [ ^ 'I should talk to Clara.' ].
-        
-        (currentLocation = #'wreck' and: [(self hasItem: 'pistol') not]) ifTrue: [
-            ^ 'I should look around for anything useful.'
-        ].
-        
-        (currentLocation = #'wreck') ifTrue: [ ^ 'I should talk to Clara.' ].
-        
-        ^ 'I should try to LOOK around to get my bearings.'
-    ]
+describeCrashSite: gameState
+    (gameState hasTask: 'crash_site_described') ifFalse: [
+        ^'You wake amid the wreckage, cold seeping into your bones.
+The PLANE is a ruin, and CLARA lies injured nearby.
+Twisted metal juts from the snow, half-burying the fuselage; engine debris still smoulders.
+Wind howls, stinging your face with ice.
+CLARA slumps a few feet away, blood staining the snow beneath her head.'].
 
-    examineSpecial: key [
-        (key = 'diary' and: [currentLocation = #'cockpit']) ifTrue: [
-            self markExamined: 'diary'.
-            self printLines: {
-                '*It is open on the coordinates*'.
-                'There must be some truth in it.'.
-                ''
-            }.
-            ^ true
-        ].
-        
-        (key = 'radio' and: [currentLocation = #'cockpit']) ifTrue: [
-            self markExamined: 'radio'.
-            self addTask: 'radio_examined'.
-            self printLines: {
-                '*The radio has a frequency adjuster*'.
-                'Maybe I could run into something interesting by switching frequencies.'.
-                ''
-            }.
-            ^ true
-        ].
-        
-        (key = 'clara' and: [currentLocation = #'cockpit'] and: [(self hasTask: 'crashed') not]) ifTrue: [
-            self printLines: {
-                'Clara pilots beside you, focused on the controls.'.
-                ''
-            }.
-            ^ true
-        ].
-        
-        (key = 'clara' and: [currentLocation = #'crashsite'] and: [self hasTask: 'crashed']) ifTrue: [
-            self printLines: {
-                'She''s unconscious, her forehead gashed, her breathing shallow.'.
-                'Blood soaks the snow around her leg.'.
-                ''
-            }.
-            ^ true
-        ].
-        
-        (key = 'plane' and: [currentLocation = #'crashsite']) ifTrue: [
-            self markExamined: 'plane'.
-            self addTask: 'plane_examined'.
-            self printLines: {
-                'The plane''s a lost cause, but the luggage COMPARTMENT is intact.'.
-                'The supplies you took are probably still there.'.
-                ''
-            }.
-            ^ true
-        ].
-        
-        (key = 'compartment' and: [currentLocation = #'crashsite']) ifTrue: [
-            ^ self handleCompartmentExamine
-        ].
-        
-        (key = 'wreck' and: [currentLocation = #'cave']) ifTrue: [
-            self markExamined: 'wreck'.
-            self addTask: 'wreck_examined'.
-            self printLines: {
-                'A disk-shaped craft protrudes from the ice, marked with a Nazi Balkenkreuz,'.
-                '"Hergestellt in Deutschland. 1944. Danzig". Machine-gun nests bristle from'.
-                'its surface.'.
-                ''.
-                'Clara: "Made in Germany. 1944. Danzig. I think that''s Nazi tech-what''s it doing here?"'.
-                ''.
-                'There appears to be an entrance. You could GO inside to investigate further.'.
-                ''
-            }.
-            ^ true
-        ].
-        
-        (key = 'pistol' and: [currentLocation = #'wreck']) ifTrue: [
-            self markExamined: 'pistol'.
-            self printLines: {
-                'An old German Mauser C96 pistol. Still looks functional.'.
-                ''
-            }.
-            ^ true
-        ].
-        
-        ^ nil
-    ]
+    (gameState hasTask: 'injured_clara') ifTrue: [
+        ^'The PLANE is a ruin, and CLARA lies injured nearby.
+Twisted metal juts from the snow, half-burying the fuselage; engine debris still smoulders.
+Wind howls, stinging your face with ice.
+CLARA slumps a few feet away, blood staining the snow beneath her head.'].
 
-    handleCompartmentExamine [
-        | supplies hasMedkit |
-        self markExamined: 'compartment'.
-        self addTask: 'compartment_checked'.
-        
-        supplies := self entitiesAt: #'compartment'.
-        hasMedkit := supplies anySatisfy: [:e | e name = 'medkit'].
-        
-        (self hasTask: 'injured_clara' and: [hasMedkit not]) ifTrue: [
-            self addTask: 'game_over'.
-            self addTask: 'act_finished'.
-            self printLines: {
-                'You check the plane compartment for supplies.'.
-                'You realize you forgot to take the MEDKIT before departure.'.
-                'You: "How could I forget it? What can I do now?"'.
-                'You start to panic, gasping heavily.'.
-                ''.
-                'You: "Clara, Clara, wake up!"'.
-                'You try to rouse Clara, but it''s futile.'.
-                'You: (crying) "Clara, please, I can''t do this alone."'.
-                ''.
-                'With her wound untreated, Clara continues to bleed.'.
-                'Suddenly, her heart stops beating.'.
-                'As the cold overwhelms you, the Antarctic claims you both.'.
-                'GAME OVER'.
-                ''
-            }.
-            ^ true
-        ].
-        
-        self printLines: ({ 'You check the plane compartment for supplies.' . 'Inside you find:' } , 
-                          (supplies collect: [:e | '- ' , e name]) ,
-                          { '' }).
-        ^ true
-    ]
+    ^'The wreckage of your plane lies scattered across the frozen landscape.
+Clara stands nearby, looking shaken but determined.
+This place offers no shelter from the biting Antarctic cold.
+The crash site aligns with Byrd''s coordinates.'!
 
-    handleTalk: whoName [
-        whoName asLowercase = 'clara' ifTrue: [
-            ^ self dialogWithClara
-        ].
-        
-        self printLines: { 'There''s no one here to talk to by that name.' . '' }
-    ]
+describeCave: gameState
+    (gameState hasTask: 'entered_wreck') ifTrue: [
+        ^'Slowly and carefully, you emerge from the wreckage.
+The dark cave corridor stretches before you.'].
 
-    dialogWithClara [
-        (currentLocation = #'cockpit' and: [self hasTask: 'radio_used'] and: [(self hasTask: 'crashed') not]) ifTrue: [
-            self addTask: 'crashed'.
-            self addTask: 'injured_clara'.
-            currentLocation := #'crashsite'.
-            self printLines: {
-                'You: "Is everything okay?"'.
-                'Clara: "I don''t know; the compass and the altimeter suddenly started going crazy,'.
-                'but we''re close to our destination, so it shouldn''t be a probl-"'.
-                ''.
-                '*Suddenly, turbulence slams the plane. Lights flicker, instruments fail, the engines choke.*'.
-                'Clara (shouting): "Brace yourself! Everything''s shutting down!"'.
-                'You (screaming): "Ahh, what''s happening!?"'.
-                '*The plane spirals down, crashing into the ice. Darkness falls.*'.
-                ''
-            }.
-            ^ nil
-        ].
-        
-        (currentLocation = #'cockpit' and: [(self hasTask: 'crashed') not] and: [(self hasTask: 'cockpit_intro_done') not]) ifTrue: [
-            self addTask: 'awaiting_cockpit_choice'.
-            self printLines: {
-                'Clara glances over: "So, doc, what''s your take? Are we on a wild goose chase,'.
-                'or is there really something out here in this frozen wasteland?"'.
-                'Your choices:'.
-                '1. "Byrd''s diary points to 70S, 10E. The coordinates are too specific to be nothing."'.
-                '2. "I don''t know, but the weather''s turning ugly. We need to stay sharp."'.
-                '3. "Whether it''s real or not, the mission''s worth it for the discovery alone."'.
-                ''
-            }.
-            ^ self waitForChoice: #cockpit
-        ].
-        
-        (currentLocation = #'cockpit' and: [(self hasTask: 'crashed') not]) ifTrue: [
-            self printLines: {
-                'You: "We''re bound to find something there - I can feel it in my bones."'.
-                'Clara: "Hopefully, or all our efforts will be for nothing."'
-            }.
-            ^ nil
-        ].
-        
-        (currentLocation = #'crashsite' and: [self hasTask: 'injured_clara'] and: [(self hasItem: 'medkit') not]) ifTrue: [
-            self printLines: { 'She''s unconscious and needs medical attention urgently.' . '' }.
-            ^ nil
-        ].
-        
-        (currentLocation = #'crashsite' and: [(self hasTask: 'injured_clara') not] and: [(self hasTask: 'cave_advice') not]) ifTrue: [
-            self addTask: 'cave_advice'.
-            self printLines: {
-                'Clara: "We can''t stay exposed out here. That CAVE might be our only shot,'.
-                'but it''s giving me a bad feeling. We must GO now, before it gets dark."'.
-                ''
-            }.
-            ^ nil
-        ].
-        
-        (currentLocation = #'cave' and: [(self hasTask: 'wreck_discovery') not]) ifTrue: [
-            self addTask: 'wreck_discovery'.
-            self printLines: {
-                'Clara: "Hey, what''s that? Do you see it?"'.
-                ''.
-                'On the right side of the tunnel you see a disk-shaped WRECK –'.
-                'a massive saucer-like craft embedded in the ice, its metallic surface scarred and dented.'.
-                'It looks futuristic yet ancient.'
-            }.
-            ^ nil
-        ].
-        
-        (currentLocation = #'cave' and: [self hasTask: 'wreck_examined'] and: [(self hasTask: 'entered_wreck') not] and: [(self hasTask: 'wreck_discovery2') not]) ifTrue: [
-            self addTask: 'wreck_discovery2'.
-            self printLines: {
-                'You: "This is incredible. A Nazi flying saucer?"'.
-                'Clara: "Looks like it. But how did it get here? And why?"'.
-                'You: "Maybe they were experimenting with advanced technology in Antarctica."'.
-                'Clara: "Or maybe they found something here. Either way, it''s creepy."'.
-                ''.
-                'Clara: "Do you think we should try to get INSIDE it or don''t risk and GO DEEPER?"'
-            }.
-            ^ nil
-        ].
-        
-        (currentLocation = #'wreck') ifTrue: [
-            self printLines: {
-                'Clara: "This place gives me the creeps. Look at these controls - they''re way ahead of their time."'.
-                'You: "Yeah, it''s like something out of science-fiction. But it''s real."'.
-                'Clara: "I think we''ve seen enough. Let''s keep moving; there might be more ahead. We should GO DEEPER."'.
-                ''
-            }.
-            ^ nil
-        ].
-        
-        self printLines: { 'There''s no one here to talk to.' . '' }
-    ]
+    (gameState hasTask: 'wreck_discovery') ifFalse: [
+        ^'The cave twists downward, its walls polished and warm. A low hum vibrates the air.
+Smooth, spiralling walls funnel you DEEPER; faint lights pulse below.'].
 
-    handleSpecialCommand: aCmdArray [
-        | cmd |
-        cmd := aCmdArray first.
-        
-        " Handle choice inputs "
-        (self hasTask: 'awaiting_cockpit_choice') ifTrue: [
-            ^ self handleChoiceInput: aCmdArray context: #cockpit
-        ].
-        
-        (self hasTask: 'awaiting_radio_choice') ifTrue: [
-            ^ self handleChoiceInput: aCmdArray context: #radio
-        ].
-        
-        (self hasTask: 'awaiting_radio_background') ifTrue: [
-            ^ self handleChoiceInput: aCmdArray context: #radio_background
-        ].
-        
-        " Handle GO DEEPER command "
-        (cmd = #go and: [aCmdArray size > 1] and: [aCmdArray second = 'deeper']) ifTrue: [
-            ^ self handleGoDeeper
-        ].
-        
-        ^ nil
-    ]
+    ^'The entrance to the ice cave stretches before you.
+The unnatural smoothness of the walls suggests intelligent design.
+To the right, the Nazi flying-saucer WRECK remains embedded in the ice.
+A path leads DEEPER into the tunnel, where faint blue light pulses.
+A massive disk-shaped craft protrudes from the wall, its metallic surface scarred and dented—
+futuristic yet ancient.'!
 
-    handleChoiceInput: aCmdArray context: context [
-        | input choice maxChoice |
-        input := aCmdArray first asString.
-        choice := input asInteger.
-        maxChoice := context = #radio ifTrue: [2] ifFalse: [3].
-        
-        (choice between: 1 and: maxChoice) ifTrue: [
-            ^ self processChoice: choice context: context
-        ].
-        self printLine: 'Invalid choice - enter 1-' , maxChoice asString , '.'.
-        ^ nil
-    ]
+!Act2 class methodsFor: 'hints'!
+getHint: gameState
+    (gameState currentLocation = Location crashSite and: [(gameState hasTask: 'crash_site_described') not]) ifTrue: [
+        ^'I should first LOOK around to get my bearings.'].
 
-    processChoice: choice context: context [
-        context = #cockpit ifTrue: [ ^ self processCockpitChoice: choice ].
-        context = #radio ifTrue: [ ^ self processRadioChoice: choice ].
-        context = #radio_background ifTrue: [ ^ self processRadioBackgroundChoice: choice ].
-        ^ self printLine: 'Invalid choice context.'
-    ]
+    (gameState currentLocation = Location cockpit and: [(gameState hasTask: 'radio_examined') not]) ifTrue: [
+        ^'I need to find something to pass the time.'].
 
-    processCockpitChoice: choice [
-        self removeTask: 'awaiting_cockpit_choice'.
-        self addTask: 'cockpit_intro_done'.
-        
-        choice = 1 ifTrue: [
-            self printLines: {
-                'You: "Byrd''s diary points to 70S, 10E. The coordinates are too specific to be nothing."'.
-                'Clara: "Specific or not, Antarctica''s a maze. Let''s hope those coordinates don''t lead us straight into trouble."'
-            }
-        ].
-        
-        choice = 2 ifTrue: [
-            self printLines: {
-                'You: "I don''t know, but the weather''s turning ugly. We need to stay sharp."'.
-                'Clara: "Yeah, I feel it too. This storm''s got teeth. Keep your eyes peeled."'.
-                ''
-            }
-        ].
-        
-        choice = 3 ifTrue: [
-            self printLines: {
-                'You: "Whether it''s real or not, the mission''s worth it for the discovery alone."'.
-                'Clara: "Discovery''s great until the ice swallows us whole. Still, I like your optimism."'
-            }
-        ]
-    ]
+    (gameState currentLocation = Location cockpit and: [(gameState hasTask: 'radio_examined') and: [(gameState hasTask: 'radio_used') not]] ) ifTrue: [
+        ^'I could USE the radio to pass some time.'].
 
-    processRadioChoice: choice [
-        choice = 1 ifTrue: [
-            self removeTask: 'awaiting_radio_choice'.
-            self addTask: 'radio_used'.
-            self printLines: {
-                'You: "Nah, you''re freaking out; that''s just some usual anomalies. Focus on piloting."'.
-                'Clara: "Yeah, you''re right; there''s no time for that."'
-            }
-        ].
-        
-        choice = 2 ifTrue: [
-            self removeTask: 'awaiting_radio_choice'.
-            self addTask: 'awaiting_radio_background'.
-            self printLines: {
-                'You: "Oh, you know German? I should have guessed from your surname."'.
-                'Clara: "Yes, my father was a German immigrant. He went to the USA when WWI started."'.
-                'Your choices:'.
-                '1. "Byrd''s diary doesn''t mention Germans, but hey, we''re in what Nazi Germany claimed as their territory in Antarctica."'.
-                '2. "Ah, Uncle Sam, a shelter for all the world''s people in need."'.
-                ''
-            }.
-            ^ self waitForChoice: #radio_background
-        ]
-    ]
+    (gameState currentLocation = Location cockpit and: [(gameState hasTask: 'radio_used') and: [(gameState hasTask: 'crashed') not]] ) ifTrue: [
+        ^'I should talk to Clara.'].
 
-    processRadioBackgroundChoice: choice [
-        self removeTask: 'awaiting_radio_background'.
-        self addTask: 'radio_used'.
-        
-        choice = 1 ifTrue: [
-            self printLines: {
-                'You: "Byrd''s diary doesn''t mention Germans, but hey, we''re in what Nazi Germany claimed as their territory in Antarctica."'.
-                'Clara: "I''m sure the last thing we want is for my German to come in handy. This whole mission feels unreal and ridiculous."'
-            }
-        ].
-        
-        choice = 2 ifTrue: [
-            self printLines: {
-                'You: "Ah, Uncle Sam, a shelter for all the world''s people in need."'.
-                'Clara: "Until he sends you on a mission like this, haha."'.
-                ''
-            }
-        ]
-    ]
+    (gameState currentLocation = Location crashSite and: [(gameState hasTask: 'injured_clara') and: [(gameState hasTask: 'plane_examined') not]] ) ifTrue: [
+        ^'Clara needs help fast, and the wreckage of the PLANE might have something useful.'].
 
-    handleGoDeeper [
-        (currentLocation = #'cave' and: [(self hasTask: 'wreck_discovery') not]) ifTrue: [
-            self addTask: 'wreck_discovery'.
-            self printLines: { 'Clara: "Hey, what''s that? Do you see it?"' . '' }.
-            ^ nil
-        ].
-        
-        ((currentLocation = #'cave' or: [currentLocation = #'wreck']) and: [(self hasTask: 'wreck_examined') not] and: [(self hasTask: 'entered_wreck') not]) ifTrue: [
-            self printLines: {
-                'Clara: "Hold up, doc. We can''t ignore this-it''s too weird."'.
-                'You should EXAMINE the WRECK.'.
-                ''
-            }.
-            ^ nil
-        ].
-        
-        (currentLocation = #'cave' or: [currentLocation = #'wreck']) ifTrue: [
-            (currentLocation = #'wreck') ifTrue: [ currentLocation := #'cave' ].
-            currentLocation := #'tunnel'.
-            self addTask: 'entered_cave'.
-            self addTask: 'act_finished'.
-            self printLines: {
-                'Slowly and carefully, you emerge from the wreckage.'.
-                'The dark cave corridor stretches before you.'.
-                'As you descend deeper into the tunnel, a roar shakes the walls as a'.
-                'bat-winged aircraft rockets past, vanishing toward the outside world.'.
-                ''.
-                'Clara: "That''s Nazi design-straight out of the war!"'.
-                'You: "I''m freaking out; let''s get out of here. I think I see light ahead."'.
-                ''.
-                'A steady glow blooms from the tunnel''s depths, pulling you forward.'.
-                ''.
-                '----------------------------ACT 2 OVER----------------------------'.
-                ''.
-                'Type "next" to continue, or "quit" to leave.'.
-                ''
-            }.
-            ^ nil
-        ].
-        
-        self printLines: { 'You can''t go deeper from here.' . '' }.
-        ^ nil
-    ]
+    (gameState currentLocation = Location crashSite and: [(gameState hasTask: 'injured_clara')  and: [gameState hasTask: 'plane_examined']]) ifTrue: [
+        ^'Clara needs help fast, and a MEDKIT should be in the luggage COMPARTMENT.'].
 
-    handleTake: objName [
-        | name obj supplies |
-        name := objName asLowercase.
-        
-        (currentLocation = #'crashsite' and: [self hasTask: 'injured_clara'] and: [name ~= 'medkit']) ifTrue: [
-            ^ self printLines: { 'I need to help Clara first.' . '' }
-        ].
-        
-        (currentLocation = #'crashsite' and: [(self hasTask: 'plane_examined') not]) ifTrue: [
-            ^ self printLines: { 'I don''t know where the supplies are.' . '' }
-        ].
-        
-        (currentLocation = #'crashsite' and: [(self hasTask: 'compartment_checked') not]) ifTrue: [
-            ^ self printLines: { 'I should check the luggage COMPARTMENT.' . '' }
-        ].
-        
-        obj := self findHere: name.
-        obj ifNil: [
-            " Check compartment "
-            supplies := self entitiesAt: #'compartment'.
-            obj := supplies detect: [:e | e name = name] ifNone: [ nil ].
-        ].
-        
-        obj ifNil: [ ^ self printLines: { 'I don''t see ' , objName , ' here.' . '' } ].
-        
-        (self isInInventory: name) ifTrue: [ 
-            ^ self printLines: { 'You''re already holding it!' . '' } 
-        ].
-        
-        name = 'pistol' ifTrue: [
-            self addToInventory: obj.
-            self removeFromLocation: obj.
-            ^ self printLines: { 'You take the PISTOL - hopefully it won''t be needed.' . '' }
-        ].
-        
-        name = 'medkit' ifTrue: [
-            self addToInventory: obj.
-            " Remove from compartment if that's where it was "
-            supplies := self entitiesAt: #'compartment'.
-            supplies remove: obj ifAbsent: [].
-            ^ self printLines: { 'Thank God I took it.' . '' }
-        ].
-        
-        (self isSupply: name) ifTrue: [
-            (self countSupplies >= 5) ifTrue: [
-                ^ self printLines: { 'You cannot take this - you''ve reached the limit (5 items).' . '' }
-            ].
-            self addToInventory: obj.
-            supplies := self entitiesAt: #'compartment'.
-            supplies remove: obj ifAbsent: [].
-            ^ self printLines: { 'You take the ' , obj name , '.' . '' }
-        ].
-        
-        self printLines: { 'You can''t take that.' . '' }
-    ]
+    (gameState currentLocation = Location crashSite and: [(gameState hasTask: 'injured_clara') not] ) ifTrue: [
+        ^'I should check the luggage COMPARTMENT for the rest of the supplies.'].
 
-    handleDrop: objName [
-        | name obj |
-        name := objName asLowercase.
-        obj := inventory detect: [:e | e name = name] ifNone: [ nil ].
-        obj ifNil: [ ^ self printLines: { 'You aren''t holding that!' . '' } ].
-        
-        self removeFromInventory: obj.
-        (self isSupply: name) 
-            ifTrue: [ self printLines: { 'You drop the ' , obj name , '.' . '' } ]
-            ifFalse: [ self printLines: { 'OK.' . '' } ]
-    ]
+    (gameState currentLocation = Location crashSite and: [(gameState hasTask: 'injured_clara') not and: [(gameState hasTask: 'compartment_checked') not]]) ifTrue: [
+        ^'I should talk to Clara about our next move.'].
 
-    handleUse: objName [
-        | name |
-        name := objName asLowercase.
-        
-        (name = 'radio' and: [currentLocation = #'cockpit'] and: [(self hasTask: 'radio_used') not]) ifTrue: [
-            self addTask: 'awaiting_radio_choice'.
-            self printLines: {
-                'You playfully switch frequencies.'.
-                'Clara: "What is it, doc? Are you bored?"'.
-                'You: "Kind of."'.
-                ''.
-                'After a while, you run into something. The radio spits static until a garbled voice breaks through.'.
-                ''.
-                'Clara: "Wait, what? I think I hear German, but the audio is too distorted; I can''t make out the words."'.
-                'Your choices:'.
-                '1. "Nah, you''re freaking out; that''s just some usual anomalies. Focus on piloting."'.
-                '2. "Oh, you know German? I should have guessed from your surname."'.
-                ''
-            }.
-            ^ self waitForChoice: #radio
-        ].
-        
-        (name = 'radio' and: [self hasItem: 'radio'] and: [(self hasTask: 'entered_cave') not] and: [(self hasTask: 'injured_clara') not]) ifTrue: [
-            ^ self printLines: {
-                'No signal to base, but switching channels catches German again:'.
-                '"Herr [distortion], wann ist die Glocke fertig? Ich denke, wir [distortion] die Arbeit nachste Woche been..."'.
-                'can be heard between the static noise.'.
-                ''
-            }
-        ].
-        
-        (name = 'medkit' and: [currentLocation = #'crashsite'] and: [self hasTask: 'injured_clara']) ifTrue: [
-            self removeTask: 'injured_clara'.
-            self removeFromInventory: (self findEntity: 'medkit').
-            ^ self printLines: {
-                'You bandage Clara''s wounds; she stirs awake.'.
-                'Clara (mumbling): "...what happened? Where are we?"'.
-                'You: "Thank God, you''re alive. We crashed, and you''re injured, but I think you''ll be okay."'.
-                'Clara: "Thanks, doc... I thought I was a goner."'.
-                ''
-            }
-        ].
-        
-        (self isInInventory: name) 
-            ifTrue: [ self printLines: { 'I can''t use that right now.' . '' } ]
-            ifFalse: [ self printLines: { 'I don''t have it or I can''t use it.' . '' } ]
-    ]
+    (gameState currentLocation = Location cave and: [(gameState hasTask: 'wreck_discovery') and: [(gameState hasTask: 'wreck_examined') not]] ) ifTrue: [
+        ^'I should EXAMINE the WRECK.'].
 
-    " Override to inject supplies from Act 1 "
-    loadPlayerState: aPlayerState [
-        | supplies |
-        super loadPlayerState: aPlayerState.
-        " Move all supplies to compartment "
-        supplies := inventory select: [:e | self isSupply: e name].
-        supplies do: [:supply | 
-            inventory remove: supply.
-            (self entitiesAt: #'compartment') add: supply
-        ]
-    ]
+    (gameState currentLocation = Location cave and: [(gameState hasTask: 'wreck_examined') and: [(gameState hasTask: 'entered_wreck') not and: [(gameState hasTask: 'wreck_discovery2') not]] ] ) ifTrue: [
+        ^'I should talk to Clara.'].
 
-    printActProlog [
-        self printLines: {
-            'ACT 2: DESCENT INTO THE UNKNOWN'.
-            'You are sitting in the co-pilot chair of a Douglas A-20 Havoc, soaring over'.
-            'Antarctica''s icy expanse. Clara pilots beside you, and you hold Admiral Byrd''s diary.'.
+    (gameState currentLocation = Location cave and: [(gameState hasTask: 'wreck_discovery2') and: [(gameState hasTask: 'entered_wreck') not]]  ) ifTrue: [
+        ^'I must decide, should I GO to WRECK or GO DEEPER?'].
+
+    (gameState currentLocation = Location cave) ifTrue: [
+        ^'I should talk to Clara.'].
+
+    (gameState currentLocation = Location wreck and: [(gameState hasItem: 'pistol') not]) ifTrue: [
+        ^'I should look around for anything useful.'].
+
+    (gameState currentLocation = Location wreck) ifTrue: [
+        ^'I should talk to Clara.'].
+
+    ^'I should try to LOOK around to get my bearings.'!
+
+!Act2 class methodsFor: 'dialog'!
+dialogClara: gameState
+    | newState response |
+    newState := gameState copy.
+    response := OrderedCollection new.
+
+    (gameState currentLocation = Location cockpit and: [(gameState hasTask: 'radio_used') and: [(gameState hasTask: 'crashed') not]] ) ifTrue: [
+        newState addTask: 'crashed'.
+        newState addTask: 'injured_clara'.
+        newState currentLocation: Location crashSite.
+        response addAll: #(
+            'You: "Is everything okay?"'
+            'Clara: "I don''t know; the compass and the altimeter suddenly started going crazy,'
+            'but we''re close to our destination, so it shouldn''t be a probl-"'
             ''
-        }
-    ]
+            '*Suddenly, turbulence slams the plane. Lights flicker, instruments fail, the engines choke.*'
+            'Clara (shouting): "Brace yourself! Everything''s shutting down!"'
+            'You (screaming): "Ahh, what''s happening!?"'
+            '*The plane spirals down, crashing into the ice. Darkness falls.*'
+            ''
+        ).
+        ^Array with: newState with: response].
 
-    mainLoop [
-        | input cmdArray res |
-        self printActProlog.
-        self doLook.
-        
-        [ true ] whileTrue: [
-            res = #next ifTrue: [ ^ self extractPlayerState ].
-            res = #quit ifTrue: [ ^ nil ].
-            
-            self prompt.
-            input := stdin nextLine.
-            cmdArray := self parseCommand: input.
-            cmdArray first = #quit ifTrue: [ ^ nil ].
-            res := self handleCommand: cmdArray.
-        ]
-    ]
-] !
+    (gameState currentLocation = Location cockpit and: [(gameState hasTask: 'crashed') not and: [(gameState hasTask: 'cockpit_intro_done') not]] ) ifTrue: [
+        newState addTask: 'awaiting_cockpit_choice'.
+        response addAll: #(
+            'Clara glances over: "So, doc, what''s your take? Are we on a wild goose chase,'
+            'or is there really something out here in this frozen wasteland?"'
+            'Your choices:'
+            '1. "Byrd''s diary points to 70S, 10E. The coordinates are too specific to be nothing."'
+            '2. "I don''t know, but the weather''s turning ugly. We need to stay sharp."'
+            '3. "Whether it''s real or not, the mission''s worth it for the discovery alone."'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (gameState currentLocation = Location cockpit and: [(gameState hasTask: 'crashed') not]) ifTrue: [
+        response addAll: #(
+            'You: "We''re bound to find something there—-I can feel it in my bones."'
+            'Clara: "Hopefully, or all our efforts will be for nothing."'
+        ).
+        ^Array with: newState with: response].
+
+    (gameState currentLocation = Location crashSite and: [(gameState hasTask: 'injured_clara') and: [(gameState hasItem: 'medkit') not]] ) ifTrue: [
+        response addAll: #('She''s unconscious and needs medical attention urgently.' '').
+        ^Array with: newState with: response].
+
+    (gameState currentLocation = Location crashSite and: [(gameState hasTask: 'injured_clara') not and: [(gameState hasTask: 'cave_advice') not]] ) ifTrue: [
+        newState addTask: 'cave_advice'.
+        response addAll: #(
+            'Clara: "We can''t stay exposed out here. That CAVE might be our only shot,'
+            'but it''s giving me a bad feeling. We must GO now, before it gets dark."'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (gameState currentLocation = Location cave and: [(gameState hasTask: 'wreck_discovery') not]) ifTrue: [
+        newState addTask: 'wreck_discovery'.
+        response addAll: #(
+            'Clara: "Hey, what''s that? Do you see it?"'
+            ''
+            'On the right side of the tunnel you see a disk-shaped WRECK –'
+            'a massive saucer-like craft embedded in the ice, its metallic surface scarred and dented.'
+            'It looks futuristic yet ancient.'
+        ).
+        ^Array with: newState with: response].
+
+    (gameState currentLocation = Location cave and: [(gameState hasTask: 'wreck_examined') and: [(gameState hasTask: 'entered_wreck') not and: [(gameState hasTask: 'wreck_discovery2') not]]]  ) ifTrue: [
+        newState addTask: 'wreck_discovery2'.
+        response addAll: #(
+            'You: "This is incredible. A Nazi flying saucer?"'
+            'Clara: "Looks like it. But how did it get here? And why?"'
+            'You: "Maybe they were experimenting with advanced technology in Antarctica."'
+            'Clara: "Or maybe they found something here. Either way, it''s creepy."'
+            ''
+            'Clara: "Do you think we should try to get INSIDE it or don''t risk and GO DEEPER?"'
+        ).
+        ^Array with: newState with: response].
+
+    (gameState currentLocation = Location wreck) ifTrue: [
+        response addAll: #(
+            'Clara: "This place gives me the creeps. Look at these controls — they''re way ahead of their time."'
+            'You: "Yeah, it''s like something out of science-fiction. But it''s real."'
+            'Clara: "I think we''ve seen enough. Let''s keep moving; there might be more ahead. We should GO DEEPER."'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    response add: 'There''s no one here to talk to.'.
+    ^Array with: newState with: response!
+
+processChoice: choice gameState: gameState choiceType: choiceType
+    | newState response |
+    newState := gameState copy.
+    response := OrderedCollection new.
+
+    choiceType = 'cockpit' ifTrue: [
+        newState addTask: 'cockpit_intro_done'.
+        newState removeTask: 'awaiting_cockpit_choice'.
+
+        choice = '1' ifTrue: [
+            response addAll: #(
+                'You: "Byrd''s diary points to 70S, 10E. The coordinates are too specific to be nothing."'
+                'Clara: "Specific or not, Antarctica''s a maze. Let''s hope those coordinates don''t lead us straight into trouble."'
+            )].
+        choice = '2' ifTrue: [
+            response addAll: #(
+                'You: "I don''t know, but the weather''s turning ugly. We need to stay sharp."'
+                'Clara: "Yeah, I feel it too. This storm''s got teeth. Keep your eyes peeled."'
+                ''
+            )].
+        choice = '3' ifTrue: [
+            response addAll: #(
+                'You: "Whether it''s real or not, the mission''s worth it for the discovery alone."'
+                'Clara: "Discovery''s great until the ice swallows us whole. Still, I like your optimism."'
+            )].
+        choice = '1' ifFalse: [choice = '2' ifFalse: [choice = '3' ifFalse: [
+            response add: 'Invalid choice - enter 1, 2, or 3.'.
+            ^Array with: gameState with: response]]].
+        ^Array with: newState with: response].
+
+    choiceType = 'radio' ifTrue: [
+        choice = '1' ifTrue: [
+            newState addTask: 'radio_used'.
+            newState removeTask: 'awaiting_radio_choice'.
+            response addAll: #(
+                'You: "Nah, you''re freaking out; that''s just some usual anomalies. Focus on piloting."'
+                'Clara: "Yeah, you''re right; there''s no time for that."'
+            ).
+            ^Array with: newState with: response].
+
+        choice = '2' ifTrue: [
+            newState addTask: 'awaiting_radio_background'.
+            newState removeTask: 'awaiting_radio_choice'.
+            response addAll: #(
+                'You: "Oh, you know German? I should have guessed from your surname."'
+                'Clara: "Yes, my father was a German immigrant. He went to the USA when WWI started."'
+                'Your choices:'
+                '1. "Byrd''s diary doesn''t mention Germans, but hey, we''re in what Nazi Germany claimed as their territory in Antarctica."'
+                '2. "Ah, Uncle Sam, a shelter for all the world''s people in need."'
+                ''
+            ).
+            ^Array with: newState with: response].
+
+        response add: 'Invalid choice - enter 1 or 2.'.
+        ^Array with: gameState with: response].
+
+    choiceType = 'radio_background' ifTrue: [
+        newState addTask: 'radio_used'.
+        newState removeTask: 'awaiting_radio_background'.
+
+        choice = '1' ifTrue: [
+            response addAll: #(
+                'You: "Byrd''s diary doesn''t mention Germans, but hey, we''re in what Nazi Germany claimed as their territory in Antarctica."'
+                'Clara: "I''m sure the last thing we want is for my German to come in handy. This whole mission feels unreal and ridiculous."'
+            )].
+        choice = '2' ifTrue: [
+            response addAll: #(
+                'You: "Ah, Uncle Sam, a shelter for all the world''s people in need."'
+                'Clara: "Until he sends you on a mission like this, haha."'
+                ''
+            )].
+        choice = '1' ifFalse: [choice = '2' ifFalse: [
+            response add: 'Invalid choice - enter 1 or 2.'.
+            ^Array with: gameState with: response]].
+        ^Array with: newState with: response].
+
+    ^Array with: gameState with: response!
+
+!Act2 class methodsFor: 'special examine'!
+examineSpecial: itemName gameState: gameState
+    | newState response |
+    newState := gameState copy.
+    response := OrderedCollection new.
+
+    (itemName = 'diary' and: [gameState currentLocation = Location cockpit]) ifTrue: [
+        newState markExamined: 'diary'.
+        response addAll: #(
+            '*It is open on the coordinates*'
+            'There must be some truth in it.'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (itemName = 'radio' and: [gameState currentLocation = Location cockpit]) ifTrue: [
+        newState addTask: 'radio_examined'.
+        newState markExamined: 'radio'.
+        response addAll: #(
+            '*The radio has a frequency adjuster*'
+            'Maybe I could run into something interesting by switching frequencies.'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (itemName = 'clara' and: [(gameState currentLocation = Location cockpit) and: [(gameState hasTask: 'crashed') not]] ) ifTrue: [
+        response addAll: #(
+            'Clara pilots beside you, focused on the controls.'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (itemName = 'clara' and: [(gameState currentLocation = Location crashSite) and: [gameState hasTask: 'crashed']] ) ifTrue: [
+        response addAll: #(
+            'She''s unconscious, her forehead gashed, her breathing shallow.'
+            'Blood soaks the snow around her leg.'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (itemName = 'plane' and: [gameState currentLocation = Location crashSite]) ifTrue: [
+        newState addTask: 'plane_examined'.
+        newState markExamined: 'plane'.
+        response addAll: #(
+            'The plane''s a lost cause, but the luggage COMPARTMENT is intact.'
+            'The supplies you took are probably still there.'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (itemName = 'compartment' and: [gameState currentLocation = Location crashSite]) ifTrue: [
+        ^self examineCompartment: gameState].
+
+    (itemName = 'wreck' and: [gameState currentLocation = Location cave]) ifTrue: [
+        newState addTask: 'wreck_examined'.
+        newState markExamined: 'wreck'.
+        response addAll: #(
+            'A disk-shaped craft protrudes from the ice, marked with a Nazi Balkenkreuz,'
+            '"Hergestellt in Deutschland. 1944. Danzig". Machine-gun nests bristle from'
+            'its surface.'
+            ''
+            'Clara: "Made in Germany. 1944. Danzig. I think that''s Nazi tech-what''s it doing here?"'
+            ''
+            'There appears to be an entrance. You could GO inside to investigate further.'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (itemName = 'pistol' and: [gameState currentLocation = Location wreck]) ifTrue: [
+        newState markExamined: 'pistol'.
+        response addAll: #(
+            'An old German Mauser C96 pistol. Still looks functional.'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    ^nil!
+
+examineCompartment: gameState
+    | newState response supplies hasMedkit |
+    newState := gameState copy.
+    response := OrderedCollection new.
+    newState addTask: 'compartment_checked'.
+    newState markExamined: 'compartment'.
+    newState markExamined: 'plane'.
+
+    supplies := gameState entitiesAt: Location compartment.
+    hasMedkit := supplies anySatisfy: [:item | item entityName asLowercase = 'medkit'].
+
+    ((gameState hasTask: 'injured_clara') and: [hasMedkit not]) ifTrue: [
+        newState addTask: 'game_over'.
+        newState addTask: 'act2_finished'.
+        response addAll: #(
+            'You check the plane compartment for supplies.'
+            'You realize you forgot to take the MEDKIT before departure.'
+            'You: "How could I forget it? What can I do now?"'
+            'You start to panic, gasping heavily.'
+            ''
+            'You: "Clara, Clara, wake up!"'
+            'You try to rouse Clara, but it''s futile.'
+            'You: (crying) "Clara, please, I can''t do this alone."'
+            ''
+            'With her wound untreated, Clara continues to bleed.'
+            'Suddenly, her heart stops beating.'
+            'As the cold overwhelms you, the Antarctic claims you both.'
+            'GAME OVER'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    response add: 'You check the plane compartment for supplies.'.
+    response add: 'Inside you find:'.
+    supplies do: [:item | response add: '- ', item entityName].
+    response add: ''.
+    ^Array with: newState with: response!
+
+!Act2 class methodsFor: 'special actions'!
+goDeeper: gameState
+    | newState response |
+    newState := gameState copy.
+    response := OrderedCollection new.
+
+    (gameState currentLocation = Location cave and: [(gameState hasTask: 'wreck_discovery') not]) ifTrue: [
+        newState addTask: 'wreck_discovery'.
+        response addAll: #('Clara: "Hey, what''s that? Do you see it?"' '').
+        ^Array with: newState with: response].
+
+    ((gameState currentLocation = Location cave or: [gameState currentLocation = Location wreck]) and: [(gameState hasTask: 'wreck_examined') not and: [(gameState hasTask: 'entered_wreck') not]] ) ifTrue: [
+        response addAll: #(
+            'Clara: "Hold up, doc. We can''t ignore this—it''s too weird."'
+            'You should EXAMINE the WRECK.'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (gameState currentLocation = Location cave or: [gameState currentLocation = Location wreck]) ifTrue: [
+        gameState currentLocation = Location wreck ifTrue: [
+            newState currentLocation: Location cave].
+        newState currentLocation: Location tunnel.
+        newState addTask: 'entered_cave'.
+        newState addTask: 'act2_finished'.
+
+        response addAll: #(
+            'Slowly and carefully, you emerge from the wreckage.'
+            'The dark cave corridor stretches before you.'
+            'As you descend deeper into the tunnel, a roar shakes the walls as a'
+            'bat-winged aircraft rockets past, vanishing toward the outside world.'
+            ''
+            'Clara: "That''s Nazi design—straight out of the war!"'
+            'You: "I''m freaking out; let''s get out of here. I think I see light ahead."'
+            ''
+            'A steady glow blooms from the tunnel''s depths, pulling you forward.'
+            ''
+        ).
+        response addAll: self epilogText.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    response addAll: #('You can''t go deeper from here.' '').
+    ^Array with: newState with: response!
+
+!Act2 class methodsFor: 'game step'!
+step: command gameState: gameState
+    | newState response result entity |
+    newState := gameState copy.
+    response := OrderedCollection new.
+
+    command isNext ifTrue: [
+        (gameState hasTask: 'act_finished') ifTrue: [
+            response add: ''.
+            ^Array with: newState with: response].
+        response add: 'You need to finish this act first.'.
+        ^Array with: newState with: response].
+
+    (gameState hasTask: 'act2_finished') ifTrue: [
+        response add: 'You''ve already finished this act. Type "quit" to exit or "next" to advance further.'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    command isQuit ifTrue: [
+        Smalltalk quitPrimitive.
+        ^Array with: newState with: response].
+
+    command isLook ifTrue: [
+        ^self handleLook: gameState].
+
+    command isInventory ifTrue: [
+        gameState inventory isEmpty
+            ifTrue: [response add: 'You are not carrying anything.']
+            ifFalse: [
+                response add: 'You are carrying:'.
+                gameState inventory do: [:item | response add: item entityName]].
+        response add: ''.
+        ^Array with: newState with: response].
+
+    command isHint ifTrue: [
+        response add: (self getHint: gameState).
+        response add: ''.
+        ^Array with: newState with: response].
+
+    command isInstructions ifTrue: [
+        response addAll: GameUtils instructionsText.
+        ^Array with: newState with: response].
+
+    command isGo ifTrue: [
+        ^self handleGo: command parameter gameState: gameState].
+
+    command isExamine ifTrue: [
+        result := self examineSpecial: command parameter asLowercase gameState: gameState.
+        result ifNotNil: [^result].
+
+        entity := gameState findEntity: command parameter.
+        entity ifNotNil: [
+            newState markExamined: entity entityName.
+            response add: entity entityDescription.
+            response add: ''.
+            ^Array with: newState with: response]
+        ifNil: [
+            response add: 'I can''t see ', command parameter, ' here or there''s nothing special about it.'.
+            response add: ''.
+            ^Array with: newState with: response]].
+
+    command isTalk ifTrue: [
+        command parameter asLowercase = 'clara' ifTrue: [
+            ^self dialogClara: gameState].
+        response add: 'There''s no one here by that name.'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    command isTake ifTrue: [
+        ^self handleTake: command parameter gameState: gameState].
+
+    command isDrop ifTrue: [
+        ^self handleDrop: command parameter gameState: gameState].
+
+    command isUse ifTrue: [
+        ^self handleUse: command parameter gameState: gameState].
+
+    response add: 'Unknown command.'.
+    response add: ''.
+    ^Array with: newState with: response!
+
+handleLook: gameState
+    | newState response out |
+    newState := gameState copy.
+    response := OrderedCollection new.
+
+    gameState currentLocation = Location crashSite ifTrue: [
+        (gameState hasTask: 'crash_site_described') ifFalse: [
+            newState addTask: 'crash_site_described'.
+            out := 'You wake amid the wreckage, cold seeping into your bones.
+', (self describeCrashSite: newState)]
+        ifTrue: [
+            out := self describeCrashSite: gameState]]
+    ifFalse: [
+        out := gameState currentLocation = Location cockpit
+            ifTrue: [self describeLocation: Location cockpit]
+            ifFalse: [gameState currentLocation = Location cave
+                ifTrue: [self describeCave: gameState]
+                ifFalse: [gameState currentLocation = Location wreck
+                    ifTrue: [self describeLocation: Location wreck]
+                    ifFalse: [gameState currentLocation = Location tunnel
+                        ifTrue: [self describeCave: gameState]
+                        ifFalse: [self describeLocation: gameState currentLocation]]]]].
+
+    response add: out.
+    response add: ''.
+    ^Array with: newState with: response!
+
+handleGo: destination gameState: gameState
+    | newState response targetLocation out |
+    newState := gameState copy.
+    response := OrderedCollection new.
+
+    destination asLowercase = 'deeper' ifTrue: [
+        ^self goDeeper: gameState].
+
+    targetLocation := GameUtils parseLocation: destination.
+    targetLocation = Location unknown ifTrue: [
+        response add: 'Unknown place: ', destination.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    (gameState currentLocation = Location crashSite and: [gameState hasTask: 'injured_clara']) ifTrue: [
+        response add: 'I need to help Clara first.'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    (gameState currentLocation = Location crashSite and: [(gameState entitiesAt: Location compartment) notEmpty]) ifTrue: [
+        response add: 'I should check the luggage COMPARTMENT for the rest of the supplies first.'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    (self canMove: gameState currentLocation to: targetLocation) ifTrue: [
+        newState currentLocation: targetLocation.
+
+        targetLocation = Location crashSite ifTrue: [
+            out := 'You step toward the entrance, driven by cold and curiosity.', (self describeCrashSite: newState)]
+        ifFalse: [targetLocation = Location cave ifTrue: [
+            out := self describeCave: newState]
+        ifFalse: [targetLocation = Location wreck ifTrue: [
+            out := 'You and Clara enter the wreck through its hatch.', (self describeLocation: targetLocation)]
+        ifFalse: [
+            out := self describeLocation: targetLocation]]].
+
+        response add: out.
+        response add: ''.
+        ^Array with: newState with: response]
+    ifFalse: [
+        response add: 'You can''t go to ', destination, ' from here.'.
+        response add: ''.
+        ^Array with: newState with: response]!
+
+handleTake: itemName gameState: gameState
+    | newState response entity lowerName compartmentEntity |
+    newState := gameState copy.
+    response := OrderedCollection new.
+    lowerName := itemName asLowercase.
+
+    (gameState currentLocation = Location crashSite and: [(gameState hasTask: 'injured_clara') and: [lowerName ~= 'medkit']] ) ifTrue: [
+        response add: 'I need to help Clara first.'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    (gameState currentLocation = Location crashSite and: [(gameState hasTask: 'plane_examined') not]) ifTrue: [
+        response add: 'I don''t know where the supplies are.'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    (gameState currentLocation = Location crashSite and: [(gameState hasTask: 'compartment_checked') not]) ifTrue: [
+        response add: 'I should check the luggage COMPARTMENT.'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    (gameState isInInventory: lowerName) ifTrue: [
+        response add: 'You''re already holding it!'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    entity := gameState findHere: lowerName.
+    entity ifNil: [
+        "Check compartment too"
+        compartmentEntity := (gameState entitiesAt: Location compartment)
+            detect: [:item | item entityName asLowercase = lowerName]
+            ifNone: [nil].
+        compartmentEntity ifNil: [
+            response add: 'I don''t see ', itemName, ' here.'.
+            response add: ''.
+            ^Array with: newState with: response].
+        entity := compartmentEntity].
+
+    lowerName = 'pistol' ifTrue: [
+        newState addToInventory: entity.
+        "Remove from compartment if it was there"
+        entity = compartmentEntity ifTrue: [
+            | compartmentEntities |
+            compartmentEntities := gameState entitiesAt: Location compartment.
+            compartmentEntities remove: entity.
+            newState locationEntities at: Location compartment put: compartmentEntities].
+        response add: 'You take the PISTOL - hopefully it won''t be needed.'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    lowerName = 'medkit' ifTrue: [
+        newState addToInventory: entity.
+        "Remove from compartment if it was there"
+        entity = compartmentEntity ifTrue: [
+            | compartmentEntities |
+            compartmentEntities := gameState entitiesAt: Location compartment.
+            compartmentEntities remove: entity.
+            newState locationEntities at: Location compartment put: compartmentEntities].
+        response add: 'Thank God I took it.'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    (gameState isSupply: lowerName) ifTrue: [
+        (gameState countSupplies >= 5) ifTrue: [
+            response add: 'You cannot take this - you''ve reached the limit (5 items).'.
+            response add: ''.
+            ^Array with: newState with: response].
+        newState addToInventory: entity.
+        "Remove from compartment if it was there"
+        entity = compartmentEntity ifTrue: [
+            | compartmentEntities |
+            compartmentEntities := gameState entitiesAt: Location compartment.
+            compartmentEntities remove: entity.
+            newState locationEntities at: Location compartment put: compartmentEntities].
+        response add: 'You take the ', entity entityName, '.'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    response add: 'You can''t take that.'.
+    response add: ''.
+    ^Array with: newState with: response!
+
+handleDrop: itemName gameState: gameState
+    | newState response entity lowerName |
+    newState := gameState copy.
+    response := OrderedCollection new.
+    lowerName := itemName asLowercase.
+
+    (gameState isInInventory: lowerName) ifFalse: [
+        response add: 'You aren''t carrying that!'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    entity := gameState findEntity: lowerName.
+    newState removeFromInventory: entity.
+
+    (gameState isSupply: lowerName) ifTrue: [
+        response add: 'You drop the ', entity entityName, '.']
+    ifFalse: [
+        response add: 'OK.'].
+    response add: ''.
+    ^Array with: newState with: response!
+
+handleUse: itemName gameState: gameState
+    | newState response lowerName |
+    newState := gameState copy.
+    response := OrderedCollection new.
+    lowerName := itemName asLowercase.
+
+    (lowerName = 'radio' and: [(gameState currentLocation = Location cockpit) and: [(gameState hasTask: 'radio_used') not]]) ifTrue: [
+        newState addTask: 'radio_used'.
+        newState addTask: 'awaiting_radio_choice'.
+        response addAll: #(
+            'You playfully switch frequencies.'
+            'Clara: "What is it, doc? Are you bored?"'
+            'You: "Kind of."'
+            ''
+            'After a while, you run into something. The radio spits static until a garbled voice breaks through.'
+            ''
+            'Clara: "Wait, what? I think I hear German, but the audio is too distorted; I can''t make out the words."'
+            'Your choices:'
+            '1. "Nah, you''re freaking out; that''s just some usual anomalies. Focus on piloting."'
+            '2. "Oh, you know German? I should have guessed from your surname."'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (lowerName = 'radio' and: [(gameState hasItem: 'radio') and: [(gameState hasTask: 'entered_cave') not and: [(gameState hasTask: 'injured_clara') not]]]  ) ifTrue: [
+        response addAll: #(
+            'No signal to base, but switching channels catches German again:'
+            '"Herr [distortion], wann ist die Glocke fertig? Ich denke, wir [distortion] die Arbeit nachste Woche been..."'
+            'can be heard between the static noise.'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (lowerName = 'medkit' and: [(gameState currentLocation = Location crashSite) and: [gameState hasTask: 'injured_clara']] ) ifTrue: [
+        | medkit compartmentEntities |
+        newState removeTask: 'injured_clara'.
+        medkit := gameState findEntity: 'medkit'.
+        medkit ifNotNil: [newState removeFromInventory: medkit].
+        "Also remove from compartment"
+        compartmentEntities := gameState entitiesAt: Location compartment.
+        compartmentEntities := compartmentEntities reject: [:item | item entityName asLowercase = 'medkit'].
+        newState locationEntities at: Location compartment put: compartmentEntities.
+        newState removeTask: 'compartment_checked'.
+
+        response addAll: #(
+            'You bandage Clara''s wounds; she stirs awake.'
+            'Clara (mumbling): "...what happened? Where are we?"'
+            'You: "Thank God, you''re alive. We crashed, and you''re injured, but I think you''ll be okay."'
+            'Clara: "Thanks, doc… I thought I was a goner."'
+            ''
+        ).
+        ^Array with: newState with: response].
+
+    (gameState isInInventory: lowerName) ifTrue: [
+        response add: 'I can''t use that right now.'.
+        response add: ''.
+        ^Array with: newState with: response].
+
+    response add: 'I don''t have it or I can''t use it.'.
+    response add: ''.
+    ^Array with: newState with: response!
+
+!Act2 class methodsFor: 'main game loop'!
+gameLoop: initialState
+    | state command result newState output line |
+    state := initialState.
+    [true] whileTrue: [
+        line := GameUtils readCommand.
+
+        "Handle choice inputs"
+        (state hasTask: 'awaiting_cockpit_choice') ifTrue: [
+            result := self processChoice: line gameState: state choiceType: 'cockpit'.
+            newState := result first.
+            output := result second.
+            GameUtils printLines: output.
+            state := newState.
+            ] ifFalse: [
+        (state hasTask: 'awaiting_radio_choice') ifTrue: [
+            result := self processChoice: line gameState: state choiceType: 'radio'.
+            newState := result first.
+            output := result second.
+            GameUtils printLines: output.
+            state := newState.
+            ] ifFalse: [
+        (state hasTask: 'awaiting_radio_background') ifTrue: [
+            result := self processChoice: line gameState: state choiceType: 'radio_background'.
+            newState := result first.
+            output := result second.
+            GameUtils printLines: output.
+            state := newState.
+            ] ifFalse: [
+
+        "Handle regular commands"
+        command := GameUtils parseCommand: line.
+
+        command isTalk ifTrue: [
+            command parameter asLowercase = 'clara' ifTrue: [
+                result := self dialogClara: state.
+                newState := result first.
+                output := result second.
+                GameUtils printLines: output.
+                state := newState.
+                ] ifFalse: [
+                result := self step: command gameState: state.
+                newState := result first.
+                output := result second.
+                GameUtils printLines: output.
+                state := newState.
+                ]
+            ] ifFalse: [
+            result := self step: command gameState: state.
+            newState := result first.
+            output := result second.
+            GameUtils printLines: output.
+            state := newState.
+            ].
+
+        command isQuit ifTrue: [^PlayerState extractFrom: newState].
+        (command isNext and: [newState hasTask: 'act2_finished']) ifTrue: [
+            ^PlayerState extractFrom: newState].
+        ]]].
+    ]!
+
+start: playerState
+    | gameState |
+    gameState := self createInitialState.
+    self injectSupplies: playerState into: gameState.
+    GameUtils printLines: self prologText.
+    GameUtils printLines: (Array with: (self describeLocation: Location cockpit) with: '').
+    ^self gameLoop: gameState! !
