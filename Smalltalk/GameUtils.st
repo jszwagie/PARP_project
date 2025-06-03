@@ -215,7 +215,6 @@ isInInventory: entityName
     ^inventory anySatisfy: [:entity | entity entityName asLowercase = lowerName]!
 
 isInInventory: itemName ifTrue: trueBlock ifFalse: falseBlock
-    "Wygodne makro z dwoma blokami, kompatybilne z istniejącą logiką."
     (self isInInventory: itemName)
         ifTrue:  [ ^trueBlock value ]
         ifFalse: [ ^falseBlock value ].
