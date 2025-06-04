@@ -606,7 +606,7 @@ useRadio: gameState
     newState := gameState copy.
     response := OrderedCollection new.
 
-    (gameState isInInventory: 'radio' and: [gameState hasTask: 'tunnel']) ifTrue: [
+((gameState isInInventory: 'radio') and: [gameState hasTask: 'tunnel']) ifTrue: [
         newState removeTask: 'tunnel'.
         newState addTask: 'radio'.
         response addAll: #(
@@ -619,7 +619,7 @@ useRadio: gameState
         ).
         ^Array with: newState with: response].
 
-    (gameState isInInventory: 'radio' and: [gameState hasTask: 'radio']) ifTrue: [
+    ((gameState isInInventory: 'radio') and: [gameState hasTask: 'radio']) ifTrue: [
         Transcript show: 'Set dial A to: '; cr.
         a := (FileStream stdin nextLine) asInteger.
         Transcript show: 'Set dial B to: '; cr.
