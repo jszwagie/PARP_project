@@ -187,6 +187,7 @@ tasks
 tasks: aSet
     tasks := aSet!
 
+
 !GameState methodsFor: 'entity management'!
 entitiesAt: aLocation
     ^locationEntities at: aLocation ifAbsent: [OrderedCollection new]!
