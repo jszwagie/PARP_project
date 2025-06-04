@@ -902,8 +902,10 @@ step: command gameState: gameState
         (command parameter asLowercase = 'pistol' and: [(gameState isInInventory: 'pistol') and: [(gameState hasTask: 'fight') and: [gameState currentLocation = Location rock]]]  ) ifTrue: [
             ^self getRandomPistolOutcome: gameState].
 
-        result := self useRadio: gameState.
-        result ifNotNil: [^result].
+        command parameter asLowercase = 'radio' ifTrue: [
+            result := self useRadio: gameState.
+            result ifNotNil: [^result]].
+
         ^self handleUse: command parameter gameState: gameState].
 
     command isNext ifTrue: [
