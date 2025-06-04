@@ -753,7 +753,14 @@ goSpecial: destination gameState: gameState
                 ifFalse: [newState addTask: 'act_finished'].
             newState currentLocation: Location tunnel.
 
-            gameState isInInventory: 'radio' ifFalse: [
+            gameState isInInventory: 'radio' ifTrue: [
+                response addAll: #(
+                    'You bolt through the undergrowth, the Nazis'' shouts and revving engines hot on your heels.'
+                    'Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.'
+                    'The icy wind bites at your face, a cruel reminder of the surface''s hostility.'
+                    ''
+                )]
+            ifFalse: [
                 response addAll: #(
                     'You bolt through the undergrowth, the Nazis'' shouts and revving engines hot on your heels.'
                     'Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.'
@@ -762,13 +769,6 @@ goSpecial: destination gameState: gameState
                     'You and Clara huddle in the wreckage, the valley''s secrets slipping away as the cold closes in.'
                     'Survival hangs by a thread, your fate uncertain.'
                     'GAME OVER.'
-                    ''
-                )]
-            ifTrue: [
-                response addAll: #(
-                    'You bolt through the undergrowth, the Nazis'' shouts and revving engines hot on your heels.'
-                    'Thorns snag your clothes, tearing at your skin as you burst through the TUNNEL exit and emerge at the crash site, winded and desperate.'
-                    'The icy wind bites at your face, a cruel reminder of the surface''s hostility.'
                     ''
                 )].
             ^Array with: newState with: response]].
