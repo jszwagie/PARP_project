@@ -52,7 +52,7 @@ canMove: fromLocation to: toLocation
     fromLocation = Location ruins ifTrue: [^toLocation = Location tree].
     fromLocation = Location tunnel ifTrue: [^toLocation = Location tree].
     fromLocation = Location city ifTrue: [^toLocation = Location tree].
-    
+
     fromLocation = Location city   ifTrue: [ ^toLocation = Location rock or: [ toLocation = Location tree ] ].
     fromLocation = Location ruins  ifTrue: [ ^toLocation = Location rock or: [ toLocation = Location tree ] ].
 
@@ -893,7 +893,7 @@ step: command gameState: gameState
             ^self handleUse: 'pistol' gameState: gameState].
 
         "Special case for pistol with random outcome"
-        (command parameter asLowercase = 'pistol' and: [[(gameState hasTask: 'fight') and: [gameState currentLocation = Location rock]]]  ) ifTrue: [
+        (command parameter asLowercase = 'pistol' and: [(gameState isInInventory: 'pistol') and: [(gameState hasTask: 'fight') and: [gameState currentLocation = Location rock]]]  ) ifTrue: [
             ^self getRandomPistolOutcome: gameState].
         ^self handleDrop: command parameter gameState: gameState].
 
