@@ -152,7 +152,7 @@ getHint: gameState
 !Act1 class methodsFor: 'dialog'!
 dialogWithClara: gameState
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     (gameState currentLocation ~= Location runway) ifTrue: [
@@ -210,7 +210,7 @@ dialogWithClara: gameState
 
 processChoice: choice gameState: gameState choiceType: choiceType
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     choiceType = 'clara' ifTrue: [
@@ -300,7 +300,7 @@ processChoice: choice gameState: gameState choiceType: choiceType
 
 actEpilog: preResponse gameState: gameState
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     newState addTask: 'act_finished'.
 
     response := preResponse asOrderedCollection.
@@ -330,7 +330,7 @@ actEpilog: preResponse gameState: gameState
 !Act1 class methodsFor: 'special examine'!
 examineSpecial: itemName gameState: gameState
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     (itemName = 'tanks' and: [gameState currentLocation = Location runway]) ifTrue: [
@@ -377,7 +377,7 @@ examineSpecial: itemName gameState: gameState
 !Act1 class methodsFor: 'game step'!
 step: command gameState: gameState
     | newState response result entity |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     command isNext ifTrue: [
@@ -478,7 +478,7 @@ step: command gameState: gameState
 
 handleTake: itemName gameState: gameState
     | newState response entity lowerName |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
     lowerName := itemName asLowercase.
 
@@ -546,7 +546,7 @@ handleTake: itemName gameState: gameState
 
 handleDrop: itemName gameState: gameState
     | newState response entity lowerName |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
     lowerName := itemName asLowercase.
 
@@ -581,7 +581,7 @@ handleDrop: itemName gameState: gameState
 
 handleUse: itemName gameState: gameState
     | newState response lowerName |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
     lowerName := itemName asLowercase.
 

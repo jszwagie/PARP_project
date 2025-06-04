@@ -170,7 +170,7 @@ getHint: gameState
 !Act3 class methodsFor: 'special examine'!
 examineSpecial: itemName gameState: gameState
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     (itemName = 'creature' and: [(gameState currentLocation = Location ruins) and: [(gameState entitiesAt: Location ruins) anySatisfy: [:e | e entityName = 'creature']]] ) ifTrue: [
@@ -214,7 +214,7 @@ examineSpecial: itemName gameState: gameState
 !Act3 class methodsFor: 'radio puzzle'!
 tuneRadio: gameState a: a b: b c: c
     | newState response wrongCount |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     wrongCount := (a = 2 ifTrue: [0] ifFalse: [1]) +
@@ -286,7 +286,7 @@ tuneRadio: gameState a: a b: b c: c
 !Act3 class methodsFor: 'dialog'!
 talkClara: gameState
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     (gameState hasTask: 'after_radio') ifTrue: [
@@ -430,7 +430,7 @@ talkClara: gameState
 
 talkCreature: gameState
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     (gameState currentLocation = Location ruins and: [(gameState entitiesAt: Location ruins) anySatisfy: [:e | e entityName = 'creature']]) ifTrue: [
@@ -457,7 +457,7 @@ talkCreature: gameState
 !Act3 class methodsFor: 'choice processing'!
 processChoice: choice gameState: gameState choiceType: choiceType
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     choiceType = 'ledge' ifTrue: [
@@ -603,7 +603,7 @@ Creature: "Cloaked in deception, they are, then. Harmony we cherish, yet stirred
 !Act3 class methodsFor: 'special actions'!
 useRadio: gameState
     | newState response a b c |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
 ((gameState isInInventory: 'radio') and: [gameState hasTask: 'tunnel']) ifTrue: [
@@ -640,7 +640,7 @@ useRadio: gameState
 
 goSpecial: destination gameState: gameState
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     destination = 'woods' ifTrue: [
@@ -784,7 +784,7 @@ goSpecial: destination gameState: gameState
 
 getRandomPistolOutcome: gameState
     | newState response success pistol |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     pistol := gameState findEntity: 'pistol'.
@@ -822,7 +822,7 @@ getRandomPistolOutcome: gameState
 !Act3 class methodsFor: 'game step'!
 step: command gameState: gameState
     | newState response result entity |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     (gameState hasTask: 'act_finished') ifTrue: [
@@ -922,7 +922,7 @@ step: command gameState: gameState
 
 handleLook: gameState
     | newState response out |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     out := gameState currentLocation = Location ledge
@@ -941,7 +941,7 @@ Bioluminescent moss clings to its bark, pulsing faintly, while its leaves shimme
 
 handleGoNormal: destination gameState: gameState
     | newState response targetLocation |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     targetLocation := GameUtils parseLocation: destination.
@@ -962,7 +962,7 @@ handleGoNormal: destination gameState: gameState
 
 handleTake: itemName gameState: gameState
     | newState response entity lowerName |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
     lowerName := itemName asLowercase.
 
@@ -984,7 +984,7 @@ handleTake: itemName gameState: gameState
 
 handleDrop: itemName gameState: gameState
     | newState response entity lowerName |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
     lowerName := itemName asLowercase.
 
@@ -1001,7 +1001,7 @@ handleDrop: itemName gameState: gameState
 
 handleUse: itemName gameState: gameState
     | newState response lowerName |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
     lowerName := itemName asLowercase.
 
@@ -1058,7 +1058,7 @@ gameLoop: gameState
         (state hasTask: 'awaiting_tunnel_choice') ifTrue: [
             "Handle tunnel choice processing here"
             choice := line.
-            newState := state copy.
+            newState := state deepCopy.
             newState removeTask: 'awaiting_tunnel_choice'.
             choice = '1' ifTrue: [
                 output := #('You: "You''re right. We need to explore and figure this out."' '*You stay in the valley, your resolve hardening.*' '')]

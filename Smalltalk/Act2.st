@@ -167,7 +167,7 @@ getHint: gameState
 !Act2 class methodsFor: 'dialog'!
 dialogClara: gameState
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     (gameState currentLocation = Location cockpit and: [(gameState hasTask: 'radio_used') and: [(gameState hasTask: 'crashed') not]] ) ifTrue: [
@@ -257,7 +257,7 @@ dialogClara: gameState
 
 processChoice: choice gameState: gameState choiceType: choiceType
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     choiceType = 'cockpit' ifTrue: [
@@ -336,7 +336,7 @@ processChoice: choice gameState: gameState choiceType: choiceType
 !Act2 class methodsFor: 'special examine'!
 examineSpecial: itemName gameState: gameState
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     (itemName = 'diary' and: [gameState currentLocation = Location cockpit]) ifTrue: [
@@ -413,7 +413,7 @@ examineSpecial: itemName gameState: gameState
 
 examineCompartment: gameState
     | newState response supplies hasMedkit |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
     newState addTask: 'compartment_checked'.
     newState markExamined: 'compartment'.
@@ -452,7 +452,7 @@ examineCompartment: gameState
 !Act2 class methodsFor: 'special actions'!
 goDeeper: gameState
     | newState response |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     (gameState currentLocation = Location cave and: [(gameState hasTask: 'wreck_discovery') not]) ifTrue: [
@@ -497,7 +497,7 @@ goDeeper: gameState
 !Act2 class methodsFor: 'game step'!
 step: command gameState: gameState
     | newState response result entity |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     command isNext ifTrue: [
@@ -577,7 +577,7 @@ step: command gameState: gameState
 
 handleLook: gameState
     | newState response out |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     gameState currentLocation = Location crashSite ifTrue: [
@@ -604,7 +604,7 @@ handleLook: gameState
 
 handleGo: destination gameState: gameState
     | newState response targetLocation out |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
 
     destination asLowercase = 'deeper' ifTrue: [
@@ -648,7 +648,7 @@ handleGo: destination gameState: gameState
 
 handleTake: itemName gameState: gameState
     | newState response entity lowerName compartmentEntity |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
     lowerName := itemName asLowercase.
 
@@ -730,7 +730,7 @@ handleTake: itemName gameState: gameState
 
 handleDrop: itemName gameState: gameState
     | newState response entity lowerName |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
     lowerName := itemName asLowercase.
 
@@ -751,7 +751,7 @@ handleDrop: itemName gameState: gameState
 
 handleUse: itemName gameState: gameState
     | newState response lowerName |
-    newState := gameState copy.
+    newState := gameState deepCopy.
     response := OrderedCollection new.
     lowerName := itemName asLowercase.
 
