@@ -888,6 +888,10 @@ step: command gameState: gameState
         ^self handleTake: command parameter gameState: gameState].
 
     command isDrop ifTrue: [
+        "Special case for pistol when hide task is active"
+        (command parameter asLowercase = 'pistol' and: [(gameState isInInventory: 'pistol') and: [gameState hasTask: 'hide']]) ifTrue: [
+            ^self handleUse: 'pistol' gameState: gameState].
+
         "Special case for pistol with random outcome"
         (command parameter asLowercase = 'pistol' and: [[(gameState hasTask: 'fight') and: [gameState currentLocation = Location rock]]]  ) ifTrue: [
             ^self getRandomPistolOutcome: gameState].
