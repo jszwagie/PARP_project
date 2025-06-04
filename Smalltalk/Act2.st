@@ -634,7 +634,10 @@ handleGo: destination gameState: gameState
         ifFalse: [targetLocation = Location cave ifTrue: [
             out := self describeCave: newState]
         ifFalse: [targetLocation = Location wreck ifTrue: [
-            out := 'You and Clara enter the wreck through its hatch.', (self describeLocation: targetLocation)]
+            out := 'You and Clara enter the wreck through its hatch.', (self describeLocation: targetLocation).
+            newState addTask: 'wreck_discovery'.
+            newState addTask: 'wreck_examined'.
+        ]
         ifFalse: [
             out := self describeLocation: targetLocation]]].
 
