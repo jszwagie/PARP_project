@@ -51,27 +51,41 @@ act3SuppliesList
 !GameMain class methodsFor: 'supply selection'!
 mapSelectionsToEntitiesAct2: selections
     ^selections collect: [:selection |
-        selection = 1 ifTrue: [Entity type: EntityType item name: 'food' description: 'Canned goods and dried meals.' takeable: true].
-        selection = 2 ifTrue: [Entity type: EntityType item name: 'water' description: 'Fresh water in sealed containers.' takeable: true].
-        selection = 3 ifTrue: [Entity type: EntityType item name: 'geiger' description: 'A standard radiation detector.' takeable: true].
-        selection = 4 ifTrue: [Entity type: EntityType item name: 'medkit' description: 'Bandages, antiseptic, morphine…' takeable: true].
-        selection = 5 ifTrue: [Entity type: EntityType item name: 'radio' description: 'A shortwave field radio.' takeable: true].
-        selection = 6 ifTrue: [Entity type: EntityType item name: 'gear' description: 'Ropes, pitons, carabiners.' takeable: true].
-        selection = 7 ifTrue: [Entity type: EntityType item name: 'tools' description: 'A compass, maps, and a sextant.' takeable: true].
+        selection = 1 ifTrue: [Entity type: EntityType item name: 'food' description: 'Canned goods and dried meals.' takeable: true]
+        ifFalse: [
+        selection = 2 ifTrue: [Entity type: EntityType item name: 'water' description: 'Fresh water in sealed containers.' takeable: true]
+        ifFalse: [
+        selection = 3 ifTrue: [Entity type: EntityType item name: 'geiger' description: 'A standard radiation detector.' takeable: true]
+        ifFalse: [
+        selection = 4 ifTrue: [Entity type: EntityType item name: 'medkit' description: 'Bandages, antiseptic, morphine…' takeable: true]
+        ifFalse: [
+        selection = 5 ifTrue: [Entity type: EntityType item name: 'radio' description: 'A shortwave field radio.' takeable: true]
+        ifFalse: [
+        selection = 6 ifTrue: [Entity type: EntityType item name: 'gear' description: 'Ropes, pitons, carabiners.' takeable: true]
+        ifFalse: [
+        selection = 7 ifTrue: [Entity type: EntityType item name: 'tools' description: 'A compass, maps, and a sextant.' takeable: true]
+        ifFalse: [
         "Default to food if invalid selection"
-        Entity type: EntityType item name: 'food' description: 'Canned goods and dried meals.' takeable: true]!
+        Entity type: EntityType item name: 'food' description: 'Canned goods and dried meals.' takeable: true]]]]]]]]!
 
 mapSelectionsToEntitiesAct3: selections
     ^selections collect: [:selection |
-        selection = 1 ifTrue: [Entity type: EntityType item name: 'food' description: 'Canned goods and dried meals.' takeable: true].
-        selection = 2 ifTrue: [Entity type: EntityType item name: 'water' description: 'Fresh water in sealed containers.' takeable: true].
-        selection = 3 ifTrue: [Entity type: EntityType item name: 'geiger' description: 'A standard radiation detector.' takeable: true].
-        selection = 4 ifTrue: [Entity type: EntityType item name: 'radio' description: 'A shortwave field radio.' takeable: true].
-        selection = 5 ifTrue: [Entity type: EntityType item name: 'gear' description: 'Ropes, pitons, carabiners.' takeable: true].
-        selection = 6 ifTrue: [Entity type: EntityType item name: 'tools' description: 'A compass, maps, and a sextant.' takeable: true].
-        selection = 7 ifTrue: [Entity type: EntityType item name: 'pistol' description: 'An old German Mauser C96 pistol.' takeable: true].
+        selection = 1 ifTrue: [Entity type: EntityType item name: 'food' description: 'Canned goods and dried meals.' takeable: true]
+        ifFalse: [
+        selection = 2 ifTrue: [Entity type: EntityType item name: 'water' description: 'Fresh water in sealed containers.' takeable: true]
+        ifFalse: [
+        selection = 3 ifTrue: [Entity type: EntityType item name: 'geiger' description: 'A standard radiation detector.' takeable: true]
+        ifFalse: [
+        selection = 4 ifTrue: [Entity type: EntityType item name: 'radio' description: 'A shortwave field radio.' takeable: true]
+        ifFalse: [
+        selection = 5 ifTrue: [Entity type: EntityType item name: 'gear' description: 'Ropes, pitons, carabiners.' takeable: true]
+        ifFalse: [
+        selection = 6 ifTrue: [Entity type: EntityType item name: 'tools' description: 'A compass, maps, and a sextant.' takeable: true]
+        ifFalse: [
+        selection = 7 ifTrue: [Entity type: EntityType item name: 'pistol' description: 'An old German Mauser C96 pistol.' takeable: true]
+        ifFalse: [
         "Default to food if invalid selection"
-        Entity type: EntityType item name: 'food' description: 'Canned goods and dried meals.' takeable: true]!
+        Entity type: EntityType item name: 'food' description: 'Canned goods and dried meals.' takeable: true]]]]]]]]!
 
 getSuppliesSelection: supplyList mapperBlock: mapperBlock
     | input selections validSelections |
