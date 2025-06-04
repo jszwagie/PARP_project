@@ -760,6 +760,7 @@ handleUse: itemName gameState: gameState
 
     (lowerName = 'radio' and: [(gameState currentLocation = Location cockpit) and: [(gameState hasTask: 'radio_used') not]]) ifTrue: [
         newState addTask: 'radio_used'.
+        newState addTask: 'radio_examined'.
         newState addTask: 'awaiting_radio_choice'.
         response addAll: #(
             'You playfully switch frequencies.'
